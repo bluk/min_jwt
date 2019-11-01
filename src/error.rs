@@ -1,44 +1,84 @@
 use std::convert::From;
 use std::error;
-use std::fmt;
+use std::fmt::{self, Debug, Display};
+use std::result;
 
-pub(crate) type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = result::Result<T, Error>;
 
-#[derive(Debug)]
 pub struct Error {
-    // err: Box<ErrorImpl>,
+    err: Box<ErrorImpl>,
 }
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("jwt error")
-    }
-}
+impl Error {}
 
 impl error::Error for Error {
     fn description(&self) -> &str {
-        "JWT error"
+        match self.err.code {
+            ErrorCode::RingUnspecified(_) => "cryptography error",
+            ErrorCode::SerdeJson(ref err) => error::Error::description(err),
+        }
     }
 
     fn cause(&self) -> Option<&dyn error::Error> {
-        None
+        match self.err.code {
+            ErrorCode::RingUnspecified(_) => None,
+            ErrorCode::SerdeJson(ref err) => Some(err),
+        }
     }
 }
 
-impl From<ring::error::KeyRejected> for Error {
-    fn from(_other: ring::error::KeyRejected) -> Self {
-        Error {}
+impl Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Display::fmt(&*self.err, f)
+    }
+}
+
+impl Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Error({:?})", self.err.code.to_string(),)
     }
 }
 
 impl From<ring::error::Unspecified> for Error {
-    fn from(_other: ring::error::Unspecified) -> Self {
-        Error {}
+    fn from(error: ring::error::Unspecified) -> Self {
+        Error {
+            err: Box::new(ErrorImpl {
+                code: ErrorCode::RingUnspecified(error),
+            }),
+        }
     }
 }
 
 impl From<serde_json::Error> for Error {
-    fn from(_other: serde_json::Error) -> Self {
-        Error {}
+    fn from(error: serde_json::Error) -> Self {
+        Error {
+            err: Box::new(ErrorImpl {
+                code: ErrorCode::SerdeJson(error),
+            }),
+        }
+    }
+}
+
+struct ErrorImpl {
+    code: ErrorCode,
+}
+
+impl Display for ErrorImpl {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Display::fmt(&self.code, f)
+    }
+}
+
+enum ErrorCode {
+    RingUnspecified(ring::error::Unspecified),
+    SerdeJson(serde_json::Error),
+}
+
+impl Display for ErrorCode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            ErrorCode::SerdeJson(ref error) => Display::fmt(error, f),
+            ErrorCode::RingUnspecified(ref error) => Display::fmt(error, f),
+        }
     }
 }
