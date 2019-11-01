@@ -1,0 +1,12 @@
+[package]
+name = "jwt_with_ring"
+version = "0.1.0"
+authors = ["Bryant Luk <code@bryantluk.com>"]
+edition = "2018"
+
+[dependencies]
+base64 = "0.11.0"
+ring = "0.16.9"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_derive = "1"
