@@ -1,7 +1,5 @@
-use serde::Serialize;
-
-pub trait Header: Serialize {}
-
+// use serde::Serialize;
+//
 // /// [JSON Web Token Header][jwt_header_spec].
 // /// [jwt_header_spec]: https://tools.ietf.org/html/rfc7515#section-4.1
 // #[derive(Debug, Serialize)]

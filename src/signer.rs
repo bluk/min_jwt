@@ -5,7 +5,6 @@ use ring::signature::{EcdsaKeyPair, RsaKeyPair};
 use serde::Serialize;
 
 use crate::error::Result;
-use crate::header::Header;
 
 pub struct EcdsaSigner {
     key_pair: EcdsaKeyPair,
@@ -40,7 +39,7 @@ impl EcdsaSigner {
         secure_random: &dyn SecureRandom,
     ) -> Result<String>
     where
-        H: ?Sized + Header,
+        H: ?Sized + Serialize,
         C: ?Sized + Serialize,
     {
         let encoded_header = serde_json::to_string(header)?;
@@ -103,7 +102,7 @@ impl HmacSigner {
     #[inline]
     pub fn encode_and_sign<H, C>(&self, header: &H, claims: &C) -> Result<String>
     where
-        H: ?Sized + Header,
+        H: ?Sized + Serialize,
         C: ?Sized + Serialize,
     {
         let encoded_header = serde_json::to_string(header)?;
@@ -231,7 +230,7 @@ impl RsaSigner {
         secure_random: &dyn SecureRandom,
     ) -> Result<String>
     where
-        H: ?Sized + Header,
+        H: ?Sized + Serialize,
         C: ?Sized + Serialize,
     {
         let encoded_header = serde_json::to_string(header)?;
