@@ -1,18 +1,37 @@
 use ring::hmac;
-use std::result;
 
 use crate::error::Error;
+use crate::UnverifiedJwt;
 
 #[derive(Debug)]
-pub struct SignatureVerifiedJWT<'a> {
-    pub data: &'a str,
-    pub decoded_signature: Vec<u8>,
+pub struct SignatureVerifiedJwt<'a> {
+    unverified_jwt: UnverifiedJwt<'a>,
 }
 
-#[derive(Debug)]
-pub struct UnverifiedJWT<'a> {
-    pub data: &'a str,
-    pub signature: Option<Vec<u8>>,
+impl<'a> SignatureVerifiedJwt<'a> {
+    pub fn decode_header(&mut self) -> Result<&Vec<u8>, Error> {
+        self.unverified_jwt.decode_header()
+    }
+
+    pub fn decode_claims(&mut self) -> Result<&Vec<u8>, Error> {
+        self.unverified_jwt.decode_claims()
+    }
+
+    pub fn decode_signature(&mut self) -> Result<&Vec<u8>, Error> {
+        self.unverified_jwt.decode_signature()
+    }
+
+    pub fn encoded_header(&self) -> &'a str {
+        self.unverified_jwt.encoded_header()
+    }
+
+    pub fn encoded_signature(&self) -> &'a str {
+        self.unverified_jwt.encoded_signature()
+    }
+
+    pub fn encoded_signed_data(&self) -> &'a str {
+        self.unverified_jwt.encoded_signed_data()
+    }
 }
 
 pub struct HmacVerifier {
@@ -24,28 +43,35 @@ impl HmacVerifier {
         HmacVerifier { key }
     }
 
-    pub fn verify_signature<'a>(
+    #[must_use]
+    pub fn verify_data_with_decoded_sigature(
         &self,
-        jwt: &'a str,
-    ) -> result::Result<SignatureVerifiedJWT<'a>, Error<'a>> {
-        let parts: Vec<&str> = jwt.rsplitn(2, '.').collect();
-        if parts.len() != 2 {
-            return Err(Error::malformed_jwt());
+        encoded_signed_data: &[u8],
+        decoded_signature: &[u8],
+    ) -> Result<(), Error> {
+        match hmac::verify(&self.key, encoded_signed_data, &decoded_signature) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(Error::invalid_signature()),
         }
+    }
 
-        let (signature, data) = (parts[0], parts[1]);
-        let decoded_signature = base64::decode_config(&signature, base64::URL_SAFE_NO_PAD)?;
+    #[must_use]
+    pub fn verify<'a>(&self, jwt: &'a str) -> Result<SignatureVerifiedJwt<'a>, Error> {
+        let unverified_jwt = UnverifiedJwt::with_str(jwt)?;
+        self.verify_unverified_jwt(unverified_jwt)
+    }
 
-        match hmac::verify(&self.key, data.as_bytes(), &decoded_signature) {
-            Ok(_) => Ok(SignatureVerifiedJWT {
-                data,
-                decoded_signature,
-            }),
-            Err(_) => Err(Error::invalid_signature(UnverifiedJWT {
-                data,
-                signature: Some(decoded_signature),
-            })),
-        }
+    #[must_use]
+    pub fn verify_unverified_jwt<'a>(
+        &self,
+        unverified_jwt: UnverifiedJwt<'a>,
+    ) -> Result<SignatureVerifiedJwt<'a>, Error> {
+        let mut unverified_jwt = unverified_jwt;
+        let encoded_signed_data = unverified_jwt.encoded_signed_data().as_bytes();
+        let decoded_signature = unverified_jwt.decode_signature()?;
+
+        self.verify_data_with_decoded_sigature(&encoded_signed_data, &decoded_signature)
+            .map(|_| SignatureVerifiedJwt { unverified_jwt })
     }
 }
 
@@ -53,7 +79,7 @@ impl HmacVerifier {
 mod tests {
     use ring::hmac;
 
-    use super::{HmacVerifier, SignatureVerifiedJWT};
+    use super::HmacVerifier;
 
     #[test]
     fn hs256_verify_valid_signature() {
@@ -84,19 +110,16 @@ mod tests {
 
         let signer = HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &hmac_key));
 
-        let SignatureVerifiedJWT {
-            data,
-            decoded_signature,
-        } = signer.verify_signature(&jwt).unwrap();
+        let mut signature_verified_jwt = signer.verify(&jwt).unwrap();
 
         let encoded_header = base64::encode_config(&header, base64::URL_SAFE_NO_PAD);
         let encoded_claims = base64::encode_config(&claims, base64::URL_SAFE_NO_PAD);
         let data_to_sign = [encoded_header.as_ref(), encoded_claims.as_ref()].join(".");
 
-        assert_eq!(data, &data_to_sign);
+        assert_eq!(signature_verified_jwt.encoded_signed_data(), &data_to_sign);
 
         assert_eq!(
-            decoded_signature,
+            *signature_verified_jwt.decode_signature().unwrap(),
             base64::decode_config(&encoded_signature, base64::URL_SAFE_NO_PAD).unwrap()
         );
     }
@@ -116,6 +139,6 @@ mod tests {
 
         let signer = HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &hmac_key));
 
-        signer.verify_signature(&jwt).unwrap_err();
+        assert!(signer.verify(&jwt).unwrap_err().is_invalid_signature());
     }
 }

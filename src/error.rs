@@ -3,15 +3,13 @@ use std::error;
 use std::fmt::{self, Debug, Display};
 use std::result;
 
-use crate::verifier::UnverifiedJWT;
+pub type Result<T> = result::Result<T, Error>;
 
-pub type Result<'a, T> = result::Result<T, Error<'a>>;
-
-pub struct Error<'a> {
-    err: Box<ErrorImpl<'a>>,
+pub struct Error {
+    err: Box<ErrorImpl>,
 }
 
-impl<'a> Error<'a> {
+impl Error {
     pub(crate) fn malformed_jwt() -> Self {
         Error {
             err: Box::new(ErrorImpl {
@@ -20,20 +18,34 @@ impl<'a> Error<'a> {
         }
     }
 
-    pub(crate) fn invalid_signature(unverified_jwt: UnverifiedJWT<'a>) -> Self {
+    pub fn is_malformed_jwt(&self) -> bool {
+        match self.err.code {
+            ErrorCode::MalformedJwt => true,
+            _ => false,
+        }
+    }
+
+    pub(crate) fn invalid_signature() -> Self {
         Error {
             err: Box::new(ErrorImpl {
-                code: ErrorCode::InvalidSignature(unverified_jwt),
+                code: ErrorCode::InvalidSignature,
             }),
+        }
+    }
+
+    pub fn is_invalid_signature(&self) -> bool {
+        match self.err.code {
+            ErrorCode::InvalidSignature => true,
+            _ => false,
         }
     }
 }
 
-impl<'a> error::Error for Error<'a> {
+impl error::Error for Error {
     fn description(&self) -> &str {
         match self.err.code {
             ErrorCode::Base64(_) => "base64 decode error",
-            ErrorCode::InvalidSignature(_) => "invalid signature",
+            ErrorCode::InvalidSignature => "invalid signature",
             ErrorCode::MalformedJwt => "malformed jwt",
             ErrorCode::RingUnspecified(_) => "cryptography error",
             ErrorCode::SerdeJson(ref err) => error::Error::description(err),
@@ -44,26 +56,26 @@ impl<'a> error::Error for Error<'a> {
         match self.err.code {
             ErrorCode::Base64(ref err) => Some(err),
             ErrorCode::SerdeJson(ref err) => Some(err),
-            ErrorCode::InvalidSignature(_)
+            ErrorCode::InvalidSignature
             | ErrorCode::MalformedJwt
             | ErrorCode::RingUnspecified(_) => None,
         }
     }
 }
 
-impl<'a> Display for Error<'a> {
+impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt(&*self.err, f)
     }
 }
 
-impl<'a> Debug for Error<'a> {
+impl Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Error({:?})", self.err.code.to_string(),)
     }
 }
 
-impl<'a> From<ring::error::Unspecified> for Error<'a> {
+impl From<ring::error::Unspecified> for Error {
     fn from(error: ring::error::Unspecified) -> Self {
         Error {
             err: Box::new(ErrorImpl {
@@ -73,7 +85,7 @@ impl<'a> From<ring::error::Unspecified> for Error<'a> {
     }
 }
 
-impl<'a> From<serde_json::Error> for Error<'a> {
+impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Self {
         Error {
             err: Box::new(ErrorImpl {
@@ -83,7 +95,7 @@ impl<'a> From<serde_json::Error> for Error<'a> {
     }
 }
 
-impl<'a> From<base64::DecodeError> for Error<'a> {
+impl From<base64::DecodeError> for Error {
     fn from(error: base64::DecodeError) -> Self {
         Error {
             err: Box::new(ErrorImpl {
@@ -94,31 +106,31 @@ impl<'a> From<base64::DecodeError> for Error<'a> {
 }
 
 #[derive(Debug)]
-struct ErrorImpl<'a> {
-    code: ErrorCode<'a>,
+struct ErrorImpl {
+    code: ErrorCode,
 }
 
-impl<'a> Display for ErrorImpl<'a> {
+impl Display for ErrorImpl {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         Display::fmt(&self.code, f)
     }
 }
 
 #[derive(Debug)]
-pub(crate) enum ErrorCode<'a> {
+pub(crate) enum ErrorCode {
     // TODO: Should also have a reference to the str which did not decode
     Base64(base64::DecodeError),
-    InvalidSignature(UnverifiedJWT<'a>),
+    InvalidSignature,
     MalformedJwt,
     RingUnspecified(ring::error::Unspecified),
     SerdeJson(serde_json::Error),
 }
 
-impl<'a> Display for ErrorCode<'a> {
+impl Display for ErrorCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             ErrorCode::Base64(ref error) => Display::fmt(error, f),
-            ErrorCode::InvalidSignature(_) => f.write_str("invalid signature"),
+            ErrorCode::InvalidSignature => f.write_str("invalid signature"),
             ErrorCode::MalformedJwt => f.write_str("malformed jwt"),
             ErrorCode::SerdeJson(ref error) => Display::fmt(error, f),
             ErrorCode::RingUnspecified(ref error) => Display::fmt(error, f),
