@@ -6,6 +6,7 @@ extern crate serde_json;
 
 pub mod header;
 pub mod signer;
+pub mod verifier;
 
 pub use error::Error;
 
