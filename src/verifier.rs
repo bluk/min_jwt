@@ -1,4 +1,5 @@
 use ring::hmac;
+use ring::signature::UnparsedPublicKey;
 
 use crate::error::Error;
 use crate::UnverifiedJwt;
@@ -25,12 +26,66 @@ impl<'a> SignatureVerifiedJwt<'a> {
         self.unverified_jwt.encoded_header()
     }
 
+    pub fn encoded_claims(&self) -> &'a str {
+        self.unverified_jwt.split_jwt.claims
+    }
+
     pub fn encoded_signature(&self) -> &'a str {
         self.unverified_jwt.encoded_signature()
     }
 
     pub fn encoded_signed_data(&self) -> &'a str {
         self.unverified_jwt.encoded_signed_data()
+    }
+}
+
+pub struct PublicKeyVerifier<B: AsRef<[u8]>> {
+    public_key: UnparsedPublicKey<B>,
+}
+
+impl<B> PublicKeyVerifier<B>
+where
+    B: AsRef<[u8]>,
+{
+    pub fn with_public_key(public_key: UnparsedPublicKey<B>) -> Self {
+        PublicKeyVerifier { public_key }
+    }
+
+    #[must_use]
+    pub fn verify_data_with_decoded_signature(
+        &self,
+        encoded_signed_data: &[u8],
+        decoded_signature: &[u8],
+    ) -> Result<(), Error> {
+        match self
+            .public_key
+            .verify(encoded_signed_data, &decoded_signature)
+        {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                dbg!(e);
+                Err(Error::invalid_signature())
+            }
+        }
+    }
+
+    #[must_use]
+    pub fn verify<'a>(&self, jwt: &'a str) -> Result<SignatureVerifiedJwt<'a>, Error> {
+        let unverified_jwt = UnverifiedJwt::with_str(jwt)?;
+        self.verify_unverified_jwt(unverified_jwt)
+    }
+
+    #[must_use]
+    pub fn verify_unverified_jwt<'a>(
+        &self,
+        unverified_jwt: UnverifiedJwt<'a>,
+    ) -> Result<SignatureVerifiedJwt<'a>, Error> {
+        let mut unverified_jwt = unverified_jwt;
+        let encoded_signed_data = unverified_jwt.encoded_signed_data().as_bytes();
+        let decoded_signature = unverified_jwt.decode_signature()?;
+
+        self.verify_data_with_decoded_signature(&encoded_signed_data, &decoded_signature)
+            .map(|_| SignatureVerifiedJwt { unverified_jwt })
     }
 }
 
