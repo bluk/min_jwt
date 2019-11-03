@@ -17,7 +17,10 @@ use error::Result;
 #[derive(Debug)]
 pub struct UnverifiedJwt<'a> {
     jwt: &'a str,
-    split_jwt: SplitJwt<'a>,
+    header: &'a str,
+    claims: &'a str,
+    signed_data: &'a str,
+    signature: &'a str,
 }
 
 #[derive(Debug)]
@@ -31,12 +34,18 @@ struct SplitJwt<'a> {
 impl<'a> UnverifiedJwt<'a> {
     pub fn with_str<'b>(jwt: &'b str) -> Result<UnverifiedJwt<'b>> {
         let split_jwt = Self::split(jwt)?;
-        Ok(UnverifiedJwt { jwt, split_jwt })
+        Ok(UnverifiedJwt {
+            jwt,
+            header: split_jwt.header,
+            claims: split_jwt.claims,
+            signed_data: split_jwt.signed_data,
+            signature: split_jwt.signature,
+        })
     }
 
     pub fn decode_header(&self) -> Result<Vec<u8>> {
         Ok(base64::decode_config(
-            &self.split_jwt.header,
+            &self.header,
             base64::URL_SAFE_NO_PAD,
         )?)
     }
@@ -44,28 +53,28 @@ impl<'a> UnverifiedJwt<'a> {
     // Should a SignatureVerifiedJwt be required before looking at the claims?
     fn decode_claims(&self) -> Result<Vec<u8>> {
         Ok(base64::decode_config(
-            &self.split_jwt.claims,
+            &self.claims,
             base64::URL_SAFE_NO_PAD,
         )?)
     }
 
     pub fn decode_signature(&self) -> Result<Vec<u8>> {
         Ok(base64::decode_config(
-            &self.split_jwt.signature,
+            &self.signature,
             base64::URL_SAFE_NO_PAD,
         )?)
     }
 
     pub fn encoded_header(&self) -> &'a str {
-        &self.split_jwt.header
+        &self.header
     }
 
     pub fn encoded_signature(&self) -> &'a str {
-        &self.split_jwt.signature
+        &self.signature
     }
 
     pub fn encoded_signed_data(&self) -> &'a str {
-        &self.split_jwt.signed_data
+        &self.signed_data
     }
 
     fn split<'b>(jwt: &'b str) -> Result<SplitJwt<'b>> {

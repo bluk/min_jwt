@@ -29,7 +29,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     }
 
     pub fn encoded_claims(&self) -> &'a str {
-        self.unverified_jwt.split_jwt.claims
+        self.unverified_jwt.claims
     }
 
     pub fn encoded_signature(&self) -> &'a str {
