@@ -1,13 +1,13 @@
 extern crate jwt_with_ring;
 extern crate ring;
 
+mod common;
+
 use jwt_with_ring::verifier::PublicKeyVerifier;
 use ring::signature::{self, UnparsedPublicKey};
-use std::io::Read;
-use std::path::Path;
 
 #[test]
-fn test_rs256_verification() {
+fn rs256_verification_jwt_io_example() {
     let encoded_header = String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9");
 
     let encoded_claims = String::from(
@@ -29,9 +29,9 @@ fn test_rs256_verification() {
         encoded_header, encoded_claims, encoded_signature
     );
 
-    let public_key_path = Path::new("./tests/public_key_rsa.der");
-    let public_key = read_file(public_key_path).unwrap();
-    let public_key = UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, &public_key);
+    let public_key = include_bytes!("rs256_public_key_rsa.der");
+    let public_key =
+        UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, &public_key[..]);
 
     let public_key_verifier = PublicKeyVerifier::with_public_key(public_key);
 
@@ -43,11 +43,18 @@ fn test_rs256_verification() {
         encoded_signature,
         signature_verified_jwt.encoded_signature()
     );
-}
 
-fn read_file(path: &std::path::Path) -> Result<Vec<u8>, std::io::Error> {
-    let mut file = std::fs::File::open(path)?;
-    let mut contents: Vec<u8> = Vec::new();
-    file.read_to_end(&mut contents)?;
-    Ok(contents)
+    let decoded_header = signature_verified_jwt.decode_header().unwrap();
+    let header: common::jwt_io::Header = serde_json::from_slice(&decoded_header).unwrap();
+
+    assert_eq!("JWT", header.typ);
+    assert_eq!("RS256", header.alg);
+
+    let decoded_claims = signature_verified_jwt.decode_claims().unwrap();
+    let claims: common::jwt_io::Claims = serde_json::from_slice(&decoded_claims).unwrap();
+
+    assert_eq!("1234567890", claims.sub);
+    assert_eq!("John Doe", claims.name);
+    assert_eq!(true, claims.admin);
+    assert_eq!(1516239022, claims.iat);
 }
