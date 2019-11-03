@@ -10,15 +10,15 @@ pub struct SignatureVerifiedJwt<'a> {
 }
 
 impl<'a> SignatureVerifiedJwt<'a> {
-    pub fn decode_header(&mut self) -> Result<&Vec<u8>, Error> {
+    pub fn decode_header(&self) -> Result<Vec<u8>, Error> {
         self.unverified_jwt.decode_header()
     }
 
-    pub fn decode_claims(&mut self) -> Result<&Vec<u8>, Error> {
+    pub fn decode_claims(&self) -> Result<Vec<u8>, Error> {
         self.unverified_jwt.decode_claims()
     }
 
-    pub fn decode_signature(&mut self) -> Result<&Vec<u8>, Error> {
+    pub fn decode_signature(&self) -> Result<Vec<u8>, Error> {
         self.unverified_jwt.decode_signature()
     }
 
@@ -80,7 +80,6 @@ where
         &self,
         unverified_jwt: UnverifiedJwt<'a>,
     ) -> Result<SignatureVerifiedJwt<'a>, Error> {
-        let mut unverified_jwt = unverified_jwt;
         let encoded_signed_data = unverified_jwt.encoded_signed_data().as_bytes();
         let decoded_signature = unverified_jwt.decode_signature()?;
 
@@ -121,7 +120,6 @@ impl HmacVerifier {
         &self,
         unverified_jwt: UnverifiedJwt<'a>,
     ) -> Result<SignatureVerifiedJwt<'a>, Error> {
-        let mut unverified_jwt = unverified_jwt;
         let encoded_signed_data = unverified_jwt.encoded_signed_data().as_bytes();
         let decoded_signature = unverified_jwt.decode_signature()?;
 
@@ -165,7 +163,7 @@ mod tests {
 
         let verifier = HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &hmac_key));
 
-        let mut signature_verified_jwt = verifier.verify(&jwt).unwrap();
+        let signature_verified_jwt = verifier.verify(&jwt).unwrap();
 
         let encoded_header = base64::encode_config(&header, base64::URL_SAFE_NO_PAD);
         let encoded_claims = base64::encode_config(&claims, base64::URL_SAFE_NO_PAD);
@@ -174,7 +172,7 @@ mod tests {
         assert_eq!(signature_verified_jwt.encoded_signed_data(), &data_to_sign);
 
         assert_eq!(
-            *signature_verified_jwt.decode_signature().unwrap(),
+            signature_verified_jwt.decode_signature().unwrap(),
             base64::decode_config(&encoded_signature, base64::URL_SAFE_NO_PAD).unwrap()
         );
     }

@@ -18,9 +18,6 @@ use error::Result;
 pub struct UnverifiedJwt<'a> {
     jwt: &'a str,
     split_jwt: SplitJwt<'a>,
-    decoded_header: Option<Vec<u8>>,
-    decoded_claims: Option<Vec<u8>>,
-    decoded_signature: Option<Vec<u8>>,
 }
 
 #[derive(Debug)]
@@ -34,59 +31,29 @@ struct SplitJwt<'a> {
 impl<'a> UnverifiedJwt<'a> {
     pub fn with_str<'b>(jwt: &'b str) -> Result<UnverifiedJwt<'b>> {
         let split_jwt = Self::split(jwt)?;
-        Ok(UnverifiedJwt {
-            jwt,
-            split_jwt,
-            decoded_header: None,
-            decoded_claims: None,
-            decoded_signature: None,
-        })
+        Ok(UnverifiedJwt { jwt, split_jwt })
     }
 
-    pub fn decode_header(&mut self) -> Result<&Vec<u8>> {
-        if let Some(ref decoded_header) = self.decoded_header {
-            Ok(decoded_header)
-        } else {
-            let decoded_header =
-                base64::decode_config(&self.split_jwt.header, base64::URL_SAFE_NO_PAD)?;
-            self.decoded_header = Some(decoded_header);
-
-            match self.decoded_header.as_ref() {
-                Some(decoded_header) => Ok(decoded_header),
-                None => unreachable!(),
-            }
-        }
+    pub fn decode_header(&self) -> Result<Vec<u8>> {
+        Ok(base64::decode_config(
+            &self.split_jwt.header,
+            base64::URL_SAFE_NO_PAD,
+        )?)
     }
 
     // Should a SignatureVerifiedJwt be required before looking at the claims?
-    fn decode_claims(&mut self) -> Result<&Vec<u8>> {
-        if let Some(ref decoded_claims) = self.decoded_claims {
-            Ok(decoded_claims)
-        } else {
-            let decoded_claims =
-                base64::decode_config(&self.split_jwt.claims, base64::URL_SAFE_NO_PAD)?;
-            self.decoded_claims = Some(decoded_claims);
-
-            match self.decoded_claims.as_ref() {
-                Some(decoded_claims) => Ok(decoded_claims),
-                None => unreachable!(),
-            }
-        }
+    fn decode_claims(&self) -> Result<Vec<u8>> {
+        Ok(base64::decode_config(
+            &self.split_jwt.claims,
+            base64::URL_SAFE_NO_PAD,
+        )?)
     }
 
-    pub fn decode_signature(&mut self) -> Result<&Vec<u8>> {
-        if let Some(ref decoded_signature) = self.decoded_signature {
-            Ok(decoded_signature)
-        } else {
-            let decoded_signature =
-                base64::decode_config(&self.split_jwt.signature, base64::URL_SAFE_NO_PAD)?;
-            self.decoded_signature = Some(decoded_signature);
-
-            match self.decoded_signature.as_ref() {
-                Some(decoded_signature) => Ok(decoded_signature),
-                None => unreachable!(),
-            }
-        }
+    pub fn decode_signature(&self) -> Result<Vec<u8>> {
+        Ok(base64::decode_config(
+            &self.split_jwt.signature,
+            base64::URL_SAFE_NO_PAD,
+        )?)
     }
 
     pub fn encoded_header(&self) -> &'a str {
