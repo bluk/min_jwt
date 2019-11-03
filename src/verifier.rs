@@ -44,7 +44,7 @@ impl HmacVerifier {
     }
 
     #[must_use]
-    pub fn verify_data_with_decoded_sigature(
+    pub fn verify_data_with_decoded_signature(
         &self,
         encoded_signed_data: &[u8],
         decoded_signature: &[u8],
@@ -70,7 +70,7 @@ impl HmacVerifier {
         let encoded_signed_data = unverified_jwt.encoded_signed_data().as_bytes();
         let decoded_signature = unverified_jwt.decode_signature()?;
 
-        self.verify_data_with_decoded_sigature(&encoded_signed_data, &decoded_signature)
+        self.verify_data_with_decoded_signature(&encoded_signed_data, &decoded_signature)
             .map(|_| SignatureVerifiedJwt { unverified_jwt })
     }
 }
@@ -108,9 +108,9 @@ mod tests {
         let hmac_key = String::from("AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow");
         let hmac_key = base64::decode_config(&hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
 
-        let signer = HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &hmac_key));
+        let verifier = HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &hmac_key));
 
-        let mut signature_verified_jwt = signer.verify(&jwt).unwrap();
+        let mut signature_verified_jwt = verifier.verify(&jwt).unwrap();
 
         let encoded_header = base64::encode_config(&header, base64::URL_SAFE_NO_PAD);
         let encoded_claims = base64::encode_config(&claims, base64::URL_SAFE_NO_PAD);
@@ -128,11 +128,13 @@ mod tests {
     fn hs256_verify_invalid_signature() {
         let encoded_signature = String::from("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXg");
 
-        let jwt = String::from("eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.")
-            + &String::from("eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzO")
-            + &String::from("DAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb2")
-            + &String::from("90Ijp0cnVlfQ.")
-            + &encoded_signature;
+        let jwt = String::from(
+            "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.\
+             eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzO\
+             DAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb2\
+             90Ijp0cnVlfQ.\
+             ",
+        ) + &encoded_signature;
 
         let hmac_key = String::from("AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow");
         let hmac_key = base64::decode_config(&hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
