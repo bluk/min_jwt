@@ -4,21 +4,23 @@ use ring::signature::UnparsedPublicKey;
 use crate::error::Error;
 use crate::UnverifiedJwt;
 
+use crate::error::Result;
+
 #[derive(Debug)]
 pub struct SignatureVerifiedJwt<'a> {
     unverified_jwt: UnverifiedJwt<'a>,
 }
 
 impl<'a> SignatureVerifiedJwt<'a> {
-    pub fn decode_header(&self) -> Result<Vec<u8>, Error> {
+    pub fn decode_header(&self) -> Result<Vec<u8>> {
         self.unverified_jwt.decode_header()
     }
 
-    pub fn decode_claims(&self) -> Result<Vec<u8>, Error> {
+    pub fn decode_claims(&self) -> Result<Vec<u8>> {
         self.unverified_jwt.decode_claims()
     }
 
-    pub fn decode_signature(&self) -> Result<Vec<u8>, Error> {
+    pub fn decode_signature(&self) -> Result<Vec<u8>> {
         self.unverified_jwt.decode_signature()
     }
 
@@ -56,7 +58,7 @@ where
         &self,
         encoded_signed_data: &[u8],
         decoded_signature: &[u8],
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         match self
             .public_key
             .verify(encoded_signed_data, &decoded_signature)
@@ -70,7 +72,7 @@ where
     }
 
     #[must_use]
-    pub fn verify<'a>(&self, jwt: &'a str) -> Result<SignatureVerifiedJwt<'a>, Error> {
+    pub fn verify<'a>(&self, jwt: &'a str) -> Result<SignatureVerifiedJwt<'a>> {
         let unverified_jwt = UnverifiedJwt::with_str(jwt)?;
         self.verify_unverified_jwt(unverified_jwt)
     }
@@ -79,7 +81,7 @@ where
     pub fn verify_unverified_jwt<'a>(
         &self,
         unverified_jwt: UnverifiedJwt<'a>,
-    ) -> Result<SignatureVerifiedJwt<'a>, Error> {
+    ) -> Result<SignatureVerifiedJwt<'a>> {
         let encoded_signed_data = unverified_jwt.encoded_signed_data().as_bytes();
         let decoded_signature = unverified_jwt.decode_signature()?;
 
@@ -102,7 +104,7 @@ impl HmacVerifier {
         &self,
         encoded_signed_data: &[u8],
         decoded_signature: &[u8],
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         match hmac::verify(&self.key, encoded_signed_data, &decoded_signature) {
             Ok(_) => Ok(()),
             Err(_) => Err(Error::invalid_signature()),
@@ -110,7 +112,7 @@ impl HmacVerifier {
     }
 
     #[must_use]
-    pub fn verify<'a>(&self, jwt: &'a str) -> Result<SignatureVerifiedJwt<'a>, Error> {
+    pub fn verify<'a>(&self, jwt: &'a str) -> Result<SignatureVerifiedJwt<'a>> {
         let unverified_jwt = UnverifiedJwt::with_str(jwt)?;
         self.verify_unverified_jwt(unverified_jwt)
     }
@@ -119,7 +121,7 @@ impl HmacVerifier {
     pub fn verify_unverified_jwt<'a>(
         &self,
         unverified_jwt: UnverifiedJwt<'a>,
-    ) -> Result<SignatureVerifiedJwt<'a>, Error> {
+    ) -> Result<SignatureVerifiedJwt<'a>> {
         let encoded_signed_data = unverified_jwt.encoded_signed_data().as_bytes();
         let decoded_signature = unverified_jwt.decode_signature()?;
 
