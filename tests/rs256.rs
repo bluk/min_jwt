@@ -4,6 +4,7 @@ extern crate ring;
 mod common;
 
 use jwt_with_ring::verifier::PublicKeyVerifier;
+use jwt_with_ring::UnverifiedJwt;
 use ring::signature::{self, UnparsedPublicKey};
 
 #[test]
@@ -35,7 +36,9 @@ fn rs256_verification_jwt_io_example() {
 
     let public_key_verifier = PublicKeyVerifier::with_public_key(public_key);
 
-    let signature_verified_jwt = public_key_verifier.verify(&jwt).unwrap();
+    let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
+
+    let signature_verified_jwt = public_key_verifier.verify(&unverified_jwt).unwrap();
 
     assert_eq!(encoded_header, signature_verified_jwt.encoded_header());
     assert_eq!(encoded_claims, signature_verified_jwt.encoded_claims());

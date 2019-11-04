@@ -35,7 +35,10 @@ use error::Result;
 /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
 ///
 /// /* if need to read the header */
-/// let decoded_header = unverified_jwt.decode_header();
+/// let decoded_header = unverified_jwt.decode_header()?;
+///
+/// assert_eq!(String::from_utf8(decoded_header).unwrap(), "{\"alg\":\"HS256\",\"typ\":\"JWT\"}");
+///
 /// /* use Serde or other library to deserialize the decoded header into a custom type */
 ///
 /// /* check the header to determine the algorithm used to sign the JWT */
@@ -127,6 +130,9 @@ impl<'a> UnverifiedJwt<'a> {
     /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
     ///
     /// let decoded_header = unverified_jwt.decode_header()?;
+    ///
+    /// assert_eq!(String::from_utf8(decoded_header).unwrap(), "{\"alg\":\"HS256\",\"typ\":\"JWT\"}");
+    ///
     /// /* use Serde or other library to deserialize the decoded header */
     ///
     /// #   Ok(())
@@ -175,6 +181,7 @@ impl<'a> UnverifiedJwt<'a> {
     /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
     ///
     /// let decoded_signature = unverified_jwt.decode_signature()?;
+    ///
     /// /* use a cryptography library to verify the signed data with the decoded signature */
     ///
     /// #   Ok(())
