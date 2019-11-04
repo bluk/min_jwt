@@ -309,6 +309,335 @@ impl<'a> UnverifiedJwt<'a> {
     }
 }
 
+/// Represents a JSON Web Token which has had its signature verified.
+///
+/// A signature verified JWT contains signed data which was verified with the included
+/// signature. The signed data is the encoded header + "." + encoded claims.
+///
+/// ```
+/// # use jwt_with_ring::Error;
+/// #
+/// # fn try_main() -> Result<(), Error> {
+/// use jwt_with_ring::UnverifiedJwt;
+/// use jwt_with_ring::verifier::HmacVerifier;
+/// use ring::hmac;
+///
+/// let jwt_str = String::from("\
+/// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
+/// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
+/// ");
+/// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+///
+/// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
+/// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
+/// let hmac_verifier = HmacVerifier::with_key(hmac_key);
+///
+/// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+///
+/// let decoded_claims = signature_verified_jwt.decode_claims()?;
+///
+/// /* validate claims */
+/// #   Ok(())
+/// # }
+/// # fn main() {
+/// #   try_main().unwrap();
+/// # }
+/// ```
+#[derive(Debug)]
+pub struct SignatureVerifiedJwt<'a> {
+    unverified_jwt: &'a UnverifiedJwt<'a>,
+}
+
+impl<'a> SignatureVerifiedJwt<'a> {
+    /// Decodes the header part by parsing the JWT for the header and base64 decoding the header.
+    ///
+    /// # Errors
+    ///
+    /// If the header part is not correctly base64 encoded, the function will return an error variant.
+    ///
+    /// ```
+    /// # use jwt_with_ring::Error;
+    /// #
+    /// # fn try_main() -> Result<(), Error> {
+    /// use jwt_with_ring::UnverifiedJwt;
+    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use ring::hmac;
+    ///
+    /// let jwt_str = String::from("\
+    /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
+    /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
+    /// ");
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    ///
+    /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
+    /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
+    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
+    ///
+    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    ///
+    /// let decoded_header = signature_verified_jwt.decode_header()?;
+    ///
+    /// assert_eq!(String::from_utf8(decoded_header).unwrap(), "{\"alg\":\"HS256\",\"typ\":\"JWT\"}");
+    ///
+    /// #   Ok(())
+    /// # }
+    /// # fn main() {
+    /// #   try_main().unwrap();
+    /// # }
+    /// ```
+    #[inline]
+    pub fn decode_header(&self) -> Result<Vec<u8>> {
+        self.unverified_jwt.decode_header()
+    }
+
+    /// Decodes the claims part by parsing the JWT for the claims and base64 decoding the claims.
+    ///
+    /// # Errors
+    ///
+    /// If the claims part is not correctly base64 encoded, the function will return an error variant.
+    ///
+    /// ```
+    /// # use jwt_with_ring::Error;
+    /// #
+    /// # fn try_main() -> Result<(), Error> {
+    /// use jwt_with_ring::UnverifiedJwt;
+    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use ring::hmac;
+    ///
+    /// let jwt_str = String::from("\
+    /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
+    /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
+    /// ");
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    ///
+    /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
+    /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
+    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
+    ///
+    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    ///
+    /// let decoded_claims = signature_verified_jwt.decode_claims()?;
+    ///
+    /// assert_eq!(String::from_utf8(decoded_claims).unwrap(), "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"iat\":1516239022}");
+    ///
+    /// #   Ok(())
+    /// # }
+    /// # fn main() {
+    /// #   try_main().unwrap();
+    /// # }
+    /// ```
+    #[inline]
+    pub fn decode_claims(&self) -> Result<Vec<u8>> {
+        self.unverified_jwt.decode_claims()
+    }
+
+    /// Decodes the signature part by parsing the JWT for the signature and base64 decoding the
+    /// signature.
+    ///
+    /// # Errors
+    ///
+    /// If the signature part is not correctly base64 encoded, the function will return an error variant.
+    ///
+    /// ```
+    /// # use jwt_with_ring::Error;
+    /// #
+    /// # fn try_main() -> Result<(), Error> {
+    /// use jwt_with_ring::UnverifiedJwt;
+    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use ring::hmac;
+    ///
+    /// let jwt_str = String::from("\
+    /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
+    /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
+    /// ");
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    ///
+    /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
+    /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
+    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
+    ///
+    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    ///
+    /// let decoded_signature = signature_verified_jwt.decode_signature()?;
+    ///
+    /// /* use a cryptography library to verify the signed data with the decoded signature */
+    ///
+    /// #   Ok(())
+    /// # }
+    /// # fn main() {
+    /// #   try_main().unwrap();
+    /// # }
+    /// ```
+    #[inline]
+    pub fn decode_signature(&self) -> Result<Vec<u8>> {
+        self.unverified_jwt.decode_signature()
+    }
+
+    /// Returns the signed data.
+    ///
+    /// The signed data is the encoded header + "." + encoded claims.
+    ///
+    /// ```
+    /// # use jwt_with_ring::Error;
+    /// #
+    /// # fn try_main() -> Result<(), Error> {
+    /// use jwt_with_ring::UnverifiedJwt;
+    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use ring::hmac;
+    ///
+    /// let jwt_str = String::from("\
+    /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
+    /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
+    /// ");
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    ///
+    /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
+    /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
+    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
+    ///
+    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    ///
+    /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", signature_verified_jwt .signed_data());
+    ///
+    /// #   Ok(())
+    /// # }
+    /// # fn main() {
+    /// #   try_main().unwrap();
+    /// # }
+    /// ```
+    #[inline]
+    pub fn signed_data(&self) -> &'a str {
+        self.unverified_jwt.signed_data()
+    }
+
+    /// Returns the encoded header part.
+    ///
+    /// Practically, the `decode_header` method is more useful since the returned data from this
+    /// method is still base64 encoded.
+    ///
+    /// The encoded header is available for debugging purposes.
+    ///
+    /// ```
+    /// # use jwt_with_ring::Error;
+    /// #
+    /// # fn try_main() -> Result<(), Error> {
+    /// use jwt_with_ring::UnverifiedJwt;
+    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use ring::hmac;
+    ///
+    /// let jwt_str = String::from("\
+    /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
+    /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
+    /// ");
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    ///
+    /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
+    /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
+    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
+    ///
+    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    ///
+    /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9", signature_verified_jwt.encoded_header());
+    ///
+    /// /* use a cryptography library to verify the signed data with the decoded signature */
+    ///
+    /// #   Ok(())
+    /// # }
+    /// # fn main() {
+    /// #   try_main().unwrap();
+    /// # }
+    /// ```
+    #[inline]
+    pub fn encoded_header(&self) -> &'a str {
+        self.unverified_jwt.encoded_header()
+    }
+
+    /// Returns the encoded claims part.
+    ///
+    /// Practically, the `decode_claims` method is more useful since the returned data from this
+    /// method is still base64 encoded.
+    ///
+    /// The encoded claims is available for debugging purposes.
+    ///
+    ///
+    /// ```
+    /// # use jwt_with_ring::Error;
+    /// #
+    /// # fn try_main() -> Result<(), Error> {
+    /// use jwt_with_ring::UnverifiedJwt;
+    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use ring::hmac;
+    ///
+    /// let jwt_str = String::from("\
+    /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
+    /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
+    /// ");
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    ///
+    /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
+    /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
+    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
+    ///
+    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    ///
+    /// assert_eq!("eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", signature_verified_jwt.encoded_claims());
+    ///
+    /// /* use a cryptography library to verify the signed data with the decoded signature */
+    ///
+    /// #   Ok(())
+    /// # }
+    /// # fn main() {
+    /// #   try_main().unwrap();
+    /// # }
+    /// ```
+    #[inline]
+    pub fn encoded_claims(&self) -> &'a str {
+        self.unverified_jwt.claims
+    }
+
+    /// Returns the encoded signature part.
+    ///
+    /// Practically, the `decode_signature` method is more useful since the returned data from this
+    /// method is still base64 encoded.
+    ///
+    /// The encoded signature is available for debugging purposes.
+    ///
+    /// ```
+    /// # use jwt_with_ring::Error;
+    /// #
+    /// # fn try_main() -> Result<(), Error> {
+    /// use jwt_with_ring::UnverifiedJwt;
+    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use ring::hmac;
+    ///
+    /// let jwt_str = String::from("\
+    /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
+    /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
+    /// ");
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    ///
+    /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
+    /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
+    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
+    ///
+    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    ///
+    /// assert_eq!("SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", signature_verified_jwt.encoded_signature());
+    ///
+    /// /* use a cryptography library to verify the signed data with the decoded signature */
+    ///
+    /// #   Ok(())
+    /// # }
+    /// # fn main() {
+    /// #   try_main().unwrap();
+    /// # }
+    /// ```
+    #[inline]
+    pub fn encoded_signature(&self) -> &'a str {
+        self.unverified_jwt.encoded_signature()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{SplitJwt, UnverifiedJwt};
