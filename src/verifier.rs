@@ -36,8 +36,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
         self.unverified_jwt.encoded_signature()
     }
 
-    pub fn encoded_signed_data(&self) -> &'a str {
-        self.unverified_jwt.encoded_signed_data()
+    pub fn signed_data(&self) -> &'a str {
+        self.unverified_jwt.signed_data()
     }
 }
 
@@ -56,18 +56,12 @@ where
     #[must_use]
     pub fn verify_data_with_decoded_signature(
         &self,
-        encoded_signed_data: &[u8],
+        signed_data: &[u8],
         decoded_signature: &[u8],
     ) -> Result<()> {
-        match self
-            .public_key
-            .verify(encoded_signed_data, &decoded_signature)
-        {
+        match self.public_key.verify(signed_data, &decoded_signature) {
             Ok(()) => Ok(()),
-            Err(e) => {
-                dbg!(e);
-                Err(Error::invalid_signature())
-            }
+            Err(_) => Err(Error::invalid_signature()),
         }
     }
 
@@ -82,10 +76,10 @@ where
         &self,
         unverified_jwt: UnverifiedJwt<'a>,
     ) -> Result<SignatureVerifiedJwt<'a>> {
-        let encoded_signed_data = unverified_jwt.encoded_signed_data().as_bytes();
+        let signed_data = unverified_jwt.signed_data().as_bytes();
         let decoded_signature = unverified_jwt.decode_signature()?;
 
-        self.verify_data_with_decoded_signature(&encoded_signed_data, &decoded_signature)
+        self.verify_data_with_decoded_signature(&signed_data, &decoded_signature)
             .map(|_| SignatureVerifiedJwt { unverified_jwt })
     }
 }
@@ -102,10 +96,10 @@ impl HmacVerifier {
     #[must_use]
     pub fn verify_data_with_decoded_signature(
         &self,
-        encoded_signed_data: &[u8],
+        signed_data: &[u8],
         decoded_signature: &[u8],
     ) -> Result<()> {
-        match hmac::verify(&self.key, encoded_signed_data, &decoded_signature) {
+        match hmac::verify(&self.key, signed_data, &decoded_signature) {
             Ok(_) => Ok(()),
             Err(_) => Err(Error::invalid_signature()),
         }
@@ -122,10 +116,10 @@ impl HmacVerifier {
         &self,
         unverified_jwt: UnverifiedJwt<'a>,
     ) -> Result<SignatureVerifiedJwt<'a>> {
-        let encoded_signed_data = unverified_jwt.encoded_signed_data().as_bytes();
+        let signed_data = unverified_jwt.signed_data().as_bytes();
         let decoded_signature = unverified_jwt.decode_signature()?;
 
-        self.verify_data_with_decoded_signature(&encoded_signed_data, &decoded_signature)
+        self.verify_data_with_decoded_signature(&signed_data, &decoded_signature)
             .map(|_| SignatureVerifiedJwt { unverified_jwt })
     }
 }
@@ -171,7 +165,7 @@ mod tests {
         let encoded_claims = base64::encode_config(&claims, base64::URL_SAFE_NO_PAD);
         let data_to_sign = [encoded_header.as_ref(), encoded_claims.as_ref()].join(".");
 
-        assert_eq!(signature_verified_jwt.encoded_signed_data(), &data_to_sign);
+        assert_eq!(signature_verified_jwt.signed_data(), &data_to_sign);
 
         assert_eq!(
             signature_verified_jwt.decode_signature().unwrap(),
