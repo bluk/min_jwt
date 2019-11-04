@@ -2,7 +2,6 @@ use base64;
 use ring::hmac;
 use ring::rand::SecureRandom;
 use ring::signature::{EcdsaKeyPair, RsaKeyPair};
-use serde::Serialize;
 
 use crate::error::Result;
 
@@ -40,17 +39,6 @@ where
     //     )?;
     //     Ok(ECDSASigner { key_pair })
     // }
-
-    #[inline]
-    pub fn encode_and_sign<H, C>(&self, header: &H, claims: &C) -> Result<String>
-    where
-        H: ?Sized + Serialize,
-        C: ?Sized + Serialize,
-    {
-        let encoded_header = serde_json::to_string(header)?;
-        let encoded_claims = serde_json::to_string(claims)?;
-        self.encode_and_sign_json_str(&encoded_header, &encoded_claims)
-    }
 
     #[inline]
     pub fn encode_and_sign_json_str(&self, header: &str, claims: &str) -> Result<String> {
@@ -95,17 +83,6 @@ impl HmacSigner {
     //     let key = hmac::Key::new(hmac::HMAC_SHA512, key);
     //     Ok(HMACSigner { key })
     // }
-
-    #[inline]
-    pub fn encode_and_sign<H, C>(&self, header: &H, claims: &C) -> Result<String>
-    where
-        H: ?Sized + Serialize,
-        C: ?Sized + Serialize,
-    {
-        let encoded_header = serde_json::to_string(header)?;
-        let encoded_claims = serde_json::to_string(claims)?;
-        self.encode_and_sign_json_str(&encoded_header, &encoded_claims)
-    }
 
     #[inline]
     pub fn encode_and_sign_json_str(&self, header: &str, claims: &str) -> Result<String> {
@@ -233,17 +210,6 @@ where
     //         ring::signature::RsaKeyPair::from_pkcs8(bytes)?,
     //     ))
     // }
-
-    #[inline]
-    pub fn encode_and_sign<H, C>(&self, header: &H, claims: &C) -> Result<String>
-    where
-        H: ?Sized + Serialize,
-        C: ?Sized + Serialize,
-    {
-        let encoded_header = serde_json::to_string(header)?;
-        let encoded_claims = serde_json::to_string(claims)?;
-        self.encode_and_sign_json_str(&encoded_header, &encoded_claims)
-    }
 
     #[inline]
     pub fn encode_and_sign_json_str(&self, header: &str, claims: &str) -> Result<String> {

@@ -48,14 +48,12 @@ impl error::Error for Error {
             ErrorCode::InvalidSignature => "invalid signature",
             ErrorCode::MalformedJwt => "malformed jwt",
             ErrorCode::RingUnspecified(_) => "cryptography error",
-            ErrorCode::SerdeJson(ref err) => error::Error::description(err),
         }
     }
 
     fn cause(&self) -> Option<&dyn error::Error> {
         match self.err.code {
             ErrorCode::Base64(ref err) => Some(err),
-            ErrorCode::SerdeJson(ref err) => Some(err),
             ErrorCode::InvalidSignature
             | ErrorCode::MalformedJwt
             | ErrorCode::RingUnspecified(_) => None,
@@ -80,16 +78,6 @@ impl From<ring::error::Unspecified> for Error {
         Error {
             err: Box::new(ErrorImpl {
                 code: ErrorCode::RingUnspecified(error),
-            }),
-        }
-    }
-}
-
-impl From<serde_json::Error> for Error {
-    fn from(error: serde_json::Error) -> Self {
-        Error {
-            err: Box::new(ErrorImpl {
-                code: ErrorCode::SerdeJson(error),
             }),
         }
     }
@@ -123,7 +111,6 @@ pub(crate) enum ErrorCode {
     InvalidSignature,
     MalformedJwt,
     RingUnspecified(ring::error::Unspecified),
-    SerdeJson(serde_json::Error),
 }
 
 impl Display for ErrorCode {
@@ -132,7 +119,6 @@ impl Display for ErrorCode {
             ErrorCode::Base64(ref error) => Display::fmt(error, f),
             ErrorCode::InvalidSignature => f.write_str("invalid signature"),
             ErrorCode::MalformedJwt => f.write_str("malformed jwt"),
-            ErrorCode::SerdeJson(ref error) => Display::fmt(error, f),
             ErrorCode::RingUnspecified(ref error) => Display::fmt(error, f),
         }
     }
