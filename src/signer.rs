@@ -69,21 +69,6 @@ impl HmacSigner {
         HmacSigner { key }
     }
 
-    // pub fn with_hs256(key: &[u8]) -> Result<HMACSigner> {
-    //     let key = hmac::Key::new(hmac::HMAC_SHA256, key);
-    //     Ok(HMACSigner { key })
-    // }
-    //
-    // pub fn with_hs384(key: &[u8]) -> Result<HMACSigner> {
-    //     let key = hmac::Key::new(hmac::HMAC_SHA384, key);
-    //     Ok(HMACSigner { key })
-    // }
-    //
-    // pub fn with_hs512(key: &[u8]) -> Result<HMACSigner> {
-    //     let key = hmac::Key::new(hmac::HMAC_SHA512, key);
-    //     Ok(HMACSigner { key })
-    // }
-
     #[inline]
     pub fn encode_and_sign_json_str(&self, header: &str, claims: &str) -> Result<String> {
         self.encode_and_sign_json_bytes(header.as_bytes(), claims.as_bytes())
@@ -232,72 +217,5 @@ where
         let signature = base64::encode_config::<[u8]>(&signature, base64::URL_SAFE_NO_PAD);
 
         Ok([data_to_sign, signature].join("."))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use ring::hmac;
-
-    use super::HmacSigner;
-
-    #[test]
-    fn encode_and_sign_hs256_json_str() {
-        let header_bytes = vec![
-            123, 34, 116, 121, 112, 34, 58, 34, 74, 87, 84, 34, 44, 13, 10, 32, 34, 97, 108, 103,
-            34, 58, 34, 72, 83, 50, 53, 54, 34, 125,
-        ];
-        let header = String::from_utf8(header_bytes).unwrap();
-        let claims_bytes = vec![
-            123, 34, 105, 115, 115, 34, 58, 34, 106, 111, 101, 34, 44, 13, 10, 32, 34, 101, 120,
-            112, 34, 58, 49, 51, 48, 48, 56, 49, 57, 51, 56, 48, 44, 13, 10, 32, 34, 104, 116, 116,
-            112, 58, 47, 47, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 105, 115, 95,
-            114, 111, 111, 116, 34, 58, 116, 114, 117, 101, 125,
-        ];
-        let claims = String::from_utf8(claims_bytes).unwrap();
-
-        let hmac_key = String::from("AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow");
-        let hmac_key = base64::decode_config(&hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
-
-        let signer = HmacSigner::with_key(hmac::Key::new(hmac::HMAC_SHA256, &hmac_key));
-
-        assert_eq!(
-            signer.encode_and_sign_json_str(&header, &claims).unwrap(),
-            String::from("eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.")
-                + &String::from("eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzO")
-                + &String::from("DAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb2")
-                + &String::from("90Ijp0cnVlfQ.dBjftJeZ4CVP-mB92K27uhbUJU1p")
-                + &String::from("1r_wW1gFWFOEjXk")
-        );
-    }
-
-    #[test]
-    fn encode_and_sign_hs256_json_bytes() {
-        let header_bytes = vec![
-            123, 34, 116, 121, 112, 34, 58, 34, 74, 87, 84, 34, 44, 13, 10, 32, 34, 97, 108, 103,
-            34, 58, 34, 72, 83, 50, 53, 54, 34, 125,
-        ];
-        let claims_bytes = vec![
-            123, 34, 105, 115, 115, 34, 58, 34, 106, 111, 101, 34, 44, 13, 10, 32, 34, 101, 120,
-            112, 34, 58, 49, 51, 48, 48, 56, 49, 57, 51, 56, 48, 44, 13, 10, 32, 34, 104, 116, 116,
-            112, 58, 47, 47, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 105, 115, 95,
-            114, 111, 111, 116, 34, 58, 116, 114, 117, 101, 125,
-        ];
-
-        let hmac_key = String::from("AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow");
-        let hmac_key = base64::decode_config(&hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
-
-        let signer = HmacSigner::with_key(hmac::Key::new(hmac::HMAC_SHA256, &hmac_key));
-
-        assert_eq!(
-            signer
-                .encode_and_sign_json_bytes(&header_bytes, &claims_bytes)
-                .unwrap(),
-            String::from("eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.")
-                + &String::from("eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzO")
-                + &String::from("DAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb2")
-                + &String::from("90Ijp0cnVlfQ.dBjftJeZ4CVP-mB92K27uhbUJU1p")
-                + &String::from("1r_wW1gFWFOEjXk")
-        );
     }
 }
