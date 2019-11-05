@@ -69,10 +69,10 @@ fn hs256_verify_valid_signature_rfc7515_appendix_a_1_example() {
 
     let jwt = &EXPECTED_JWT_RFC7515_A1;
 
+    let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
+
     let hmac_verifier =
         HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
-
-    let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
 
     let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt).unwrap();
 
@@ -84,21 +84,21 @@ fn hs256_verify_valid_signature_rfc7515_appendix_a_1_example() {
 
 #[test]
 fn hs256_verify_invalid_signature() {
-    let jwt = &EXPECTED_JWT_RFC7515_A1;
-
-    let invalid_hmac_key = String::from(
-        "DyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow",
+    let jwt_with_invalid_signature = String::from(
+        "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.\
+         eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzO\
+         DAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb2\
+         90Ijp0cnVlfQ.cBjftJeZ4CVP-mB92K27uhbUJU1p\
+         1r_wW1gFWFOEjXk\
+         ",
     );
-    let decoded_invalid_hmac_key =
-        base64::decode_config(&invalid_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
 
-    let verifier =
-        HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_invalid_hmac_key));
+    let unverified_jwt = UnverifiedJwt::with_str(&jwt_with_invalid_signature).unwrap();
 
-    let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
+    let hmac_verifier =
+        HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
 
-    assert!(verifier
-        .verify(&unverified_jwt)
-        .unwrap_err()
-        .is_invalid_signature());
+    let error = hmac_verifier.verify(&unverified_jwt).unwrap_err();
+
+    assert!(error.is_invalid_signature());
 }

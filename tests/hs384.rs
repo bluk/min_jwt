@@ -42,10 +42,10 @@ fn hs384_verify_valid_signature_jwt_io_example() {
 
     let jwt = &EXPECTED_JWT_JWT_IO_384;
 
+    let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
+
     let hmac_verifier =
         HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA384, &decoded_hmac_key()));
-
-    let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
 
     let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt).unwrap();
 
@@ -57,18 +57,22 @@ fn hs384_verify_valid_signature_jwt_io_example() {
 
 #[test]
 fn hs384_verify_invalid_signature() {
-    let jwt = &EXPECTED_JWT_JWT_IO_384;
+    let jwt_with_invalid_signature = String::from(
+        "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.\
+         eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik\
+         pvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6\
+         MTUxNjIzOTAyMn0.aQTnz6AuMJvmXXQsVPrxeQ\
+         NvzDkimo7VNXxHeSBfClLufmCVZRUuyTwJF311\
+         JHuh\
+         ",
+    );
 
-    let decoded_invalid_hmac_key =
-        Vec::<u8>::from(String::from("invalid-384-bit-secret").as_bytes());
+    let unverified_jwt = UnverifiedJwt::with_str(&jwt_with_invalid_signature).unwrap();
 
-    let verifier =
-        HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA384, &decoded_invalid_hmac_key));
+    let hmac_verifier =
+        HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA384, &decoded_hmac_key()));
 
-    let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
+    let error = hmac_verifier.verify(&unverified_jwt).unwrap_err();
 
-    assert!(verifier
-        .verify(&unverified_jwt)
-        .unwrap_err()
-        .is_invalid_signature());
+    assert!(error.is_invalid_signature());
 }
