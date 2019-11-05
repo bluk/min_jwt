@@ -1,7 +1,6 @@
 extern crate base64;
 extern crate ring;
 
-pub mod header;
 pub mod signer;
 pub mod verifier;
 
