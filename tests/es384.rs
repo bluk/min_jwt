@@ -7,12 +7,14 @@ use jwt_with_ring::{signer::EcdsaSigner, verifier::PublicKeyVerifier, Unverified
 use ring::rand::SystemRandom;
 use ring::signature::{EcdsaKeyPair, UnparsedPublicKey};
 
-static EXPECTED_JWT_JWT_IO_256: &str = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.\
-                                        eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik\
-                                        pvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6\
-                                        MTUxNjIzOTAyMn0.tyh-VfuzIxCyGYDlkBA7Df\
-                                        yjrqmSHu6pQ2hoZuFqUSLPNY2N0mpHb3nk5K17\
-                                        HWP_3cYHBw7AhHale5wky6-sVA\
+static EXPECTED_JWT_JWT_IO_384: &str = "eyJhbGciOiJFUzM4NCIsInR5cCI6IkpXVCIsImtpZCI6I\
+                                        mlUcVhYSTB6YkFuSkNLRGFvYmZoa00xZi02ck1TcFRmeVp\
+                                        NUnBfMnRLSTgifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibm\
+                                        FtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6\
+                                        MTUxNjIzOTAyMn0.cJOP_w-hBqnyTsBm3T6lOE5WpcHaAk\
+                                        LuQGAs1QO-lg2eWs8yyGW8p9WagGjxgvx7h9X72H7pXmXq\
+                                        ej3GdlVbFmhuzj45A9SXDOAHZ7bJXwM1VidcPi7ZcrsMSC\
+                                        tP1hiN\
                                         ";
 
 static EXPECTED_CLAIMS: &str =
@@ -20,27 +22,28 @@ static EXPECTED_CLAIMS: &str =
 
 // See https://github.com/Keats/jsonwebtoken/pull/73#issuecomment-460322317
 //
-// openssl ecparam -name prime256v1 -genkey -noout -out private_key.pem
+// openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-384 \
+// -pkeyopt ec_param_enc:named_curve -out private_key.pem
 // openssl pkcs8 -in private_key.pem -topk8 -nocrypt -outform DER -out private_key.p8.der
 //
 // openssl ec -in private_key.pem -pubout -out public_key.pem
-// openssl asn1parse -in public_key.pem -offset $((23 + 2)) -out public_key.p8.der.block
+// openssl asn1parse -in public_key.pem -offset $((20 + 2)) -out public_key.p8.der.block
 // dd bs=1 skip=1 if=public_key.p8.der.block of=public_key.p8.der
 
 fn private_key_pair() -> EcdsaKeyPair {
-    let private_key = include_bytes!("es256_private_key.p8.der");
+    let private_key = include_bytes!("es384_private_key.p8.der");
     EcdsaKeyPair::from_pkcs8(
-        &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
+        &ring::signature::ECDSA_P384_SHA384_FIXED_SIGNING,
         &private_key[..],
     )
     .unwrap()
 }
 
 #[test]
-fn es256_encode_and_sign_json_str_jwt_io_example() {
+fn es384_encode_and_sign_json_str_jwt_io_example() {
     let sys_rand = SystemRandom::new();
 
-    let header = String::from("{\"alg\":\"ES256\",\"typ\":\"JWT\"}");
+    let header = String::from("{\"alg\":\"ES384\",\"typ\":\"JWT\"}");
     let claims = EXPECTED_CLAIMS;
 
     let signer = EcdsaSigner::with_key_pair(private_key_pair(), &sys_rand);
@@ -51,9 +54,9 @@ fn es256_encode_and_sign_json_str_jwt_io_example() {
 
     // Verify the signature generated
 
-    let public_key = include_bytes!("es256_public_key.p8.der");
+    let public_key = include_bytes!("es384_public_key.p8.der");
     let unparsed_public_key =
-        UnparsedPublicKey::new(&ring::signature::ECDSA_P256_SHA256_FIXED, &public_key[..]);
+        UnparsedPublicKey::new(&ring::signature::ECDSA_P384_SHA384_FIXED, &public_key[..]);
 
     let public_key_verifier = PublicKeyVerifier::with_public_key(unparsed_public_key);
 
@@ -66,16 +69,16 @@ fn es256_encode_and_sign_json_str_jwt_io_example() {
 }
 
 #[test]
-fn es256_verify_valid_signature_jwt_io_example() {
+fn es384_verify_valid_signature_jwt_io_example() {
     // See https://jwt.io
-    let jwt = &EXPECTED_JWT_JWT_IO_256;
+    let jwt = &EXPECTED_JWT_JWT_IO_384;
 
     let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
 
-    let public_key = include_bytes!("es256_jwt_io_public_key.p8.der");
+    let public_key = include_bytes!("es384_jwt_io_public_key.p8.der");
 
     let unparsed_public_key =
-        UnparsedPublicKey::new(&ring::signature::ECDSA_P256_SHA256_FIXED, &public_key[..]);
+        UnparsedPublicKey::new(&ring::signature::ECDSA_P384_SHA384_FIXED, &public_key[..]);
     let public_key_verifier = PublicKeyVerifier::with_public_key(unparsed_public_key);
 
     let signature_verified_jwt = public_key_verifier.verify(&unverified_jwt).unwrap();
@@ -87,23 +90,25 @@ fn es256_verify_valid_signature_jwt_io_example() {
 }
 
 #[test]
-fn es256_verify_invalid_signature() {
+fn es384_verify_invalid_signature() {
     let jwt_with_invalid_signature = String::from(
-        "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.\
-         eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik\
-         pvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6\
-         MTUxNjIzOTAyMn0.syh-VfuzIxCyGYDlkBA7Df\
-         yjrqmSHu6pQ2hoZuFqUSLPNY2N0mpHb3nk5K17\
-         HWP_3cYHBw7AhHale5wky6-sVA\
+        "eyJhbGciOiJFUzM4NCIsInR5cCI6IkpXVCIsImtpZCI6I\
+         mlUcVhYSTB6YkFuSkNLRGFvYmZoa00xZi02ck1TcFRmeVp\
+         NUnBfMnRLSTgifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibm\
+         FtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6\
+         MTUxNjIzOTAyMn0.dJOP_w-hBqnyTsBm3T6lOE5WpcHaAk\
+         LuQGAs1QO-lg2eWs8yyGW8p9WagGjxgvx7h9X72H7pXmXq\
+         ej3GdlVbFmhuzj45A9SXDOAHZ7bJXwM1VidcPi7ZcrsMSC\
+         tP1hiN\
          ",
     );
 
     let unverified_jwt = UnverifiedJwt::with_str(&jwt_with_invalid_signature).unwrap();
 
-    let public_key = include_bytes!("es256_jwt_io_public_key.p8.der");
+    let public_key = include_bytes!("es384_jwt_io_public_key.p8.der");
 
     let unparsed_public_key =
-        UnparsedPublicKey::new(&ring::signature::ECDSA_P256_SHA256_FIXED, &public_key[..]);
+        UnparsedPublicKey::new(&ring::signature::ECDSA_P384_SHA384_FIXED, &public_key[..]);
     let public_key_verifier = PublicKeyVerifier::with_public_key(unparsed_public_key);
 
     let error = public_key_verifier.verify(&unverified_jwt).unwrap_err();
