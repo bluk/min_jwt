@@ -1,10 +1,10 @@
-extern crate jwt_with_ring;
+extern crate min_jwt;
 extern crate ring;
 
 mod common;
 
-use jwt_with_ring::verifier::PublicKeyVerifier;
-use jwt_with_ring::UnverifiedJwt;
+use min_jwt::verifier::PublicKeyVerifier;
+use min_jwt::UnverifiedJwt;
 use ring::signature::{self, UnparsedPublicKey};
 
 #[test]

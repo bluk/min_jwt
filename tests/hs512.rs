@@ -1,9 +1,9 @@
-extern crate jwt_with_ring;
+extern crate min_jwt;
 extern crate ring;
 
 mod common;
 
-use jwt_with_ring::{signer::HmacSigner, verifier::HmacVerifier, UnverifiedJwt};
+use min_jwt::{signer::HmacSigner, verifier::HmacVerifier, UnverifiedJwt};
 use ring::hmac;
 
 static EXPECTED_JWT_JWT_IO_512: &str = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.\

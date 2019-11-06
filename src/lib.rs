@@ -1,4 +1,4 @@
-//! # JWT with ring
+//! # Minimal JWT
 //!
 //! JSON Web Tokens are a method for representing claims between two parties.
 //!
@@ -29,10 +29,10 @@ use error::Result;
 /// what to do with the JWT.
 ///
 /// ```
-/// # use jwt_with_ring::Error;
+/// # use min_jwt::Error;
 /// #
 /// # fn try_main() -> Result<(), Error> {
-/// use jwt_with_ring::UnverifiedJwt;
+/// use min_jwt::UnverifiedJwt;
 ///
 /// let jwt_str = String::from("\
 /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
@@ -49,7 +49,7 @@ use error::Result;
 ///
 /// /* check the header to determine the algorithm used to sign the JWT */
 ///
-/// /* use a verifier from the jwt_with_ring::verifier package to verify the JWT signature */
+/// /* use a verifier from the min_jwt::verifier package to verify the JWT signature */
 ///
 /// #   Ok(())
 /// # }
@@ -90,10 +90,10 @@ impl<'a> UnverifiedJwt<'a> {
     /// The function may return an error variant because the string slice is an invalid JWT string.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
+    /// use min_jwt::UnverifiedJwt;
     ///
     /// let jwt_str = String::from("\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
@@ -124,10 +124,10 @@ impl<'a> UnverifiedJwt<'a> {
     /// If the header part is not correctly base64 encoded, the function will return an error variant.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
+    /// use min_jwt::UnverifiedJwt;
     ///
     /// let jwt_str = String::from("\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
@@ -175,10 +175,10 @@ impl<'a> UnverifiedJwt<'a> {
     /// If the signature part is not correctly base64 encoded, the function will return an error variant.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
+    /// use min_jwt::UnverifiedJwt;
     ///
     /// let jwt_str = String::from("\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
@@ -208,10 +208,10 @@ impl<'a> UnverifiedJwt<'a> {
     /// The signed data is the encoded header + "." + encoded claims.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
+    /// use min_jwt::UnverifiedJwt;
     ///
     /// let jwt_str = String::from("\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
@@ -239,10 +239,10 @@ impl<'a> UnverifiedJwt<'a> {
     /// The encoded header is available for debugging purposes.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
+    /// use min_jwt::UnverifiedJwt;
     ///
     /// let jwt_str = String::from("\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
@@ -270,10 +270,10 @@ impl<'a> UnverifiedJwt<'a> {
     /// The encoded signature is available for debugging purposes.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
+    /// use min_jwt::UnverifiedJwt;
     ///
     /// let jwt_str = String::from("\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
@@ -321,11 +321,11 @@ impl<'a> UnverifiedJwt<'a> {
 /// signature. The signed data is the encoded header + "." + encoded claims.
 ///
 /// ```
-/// # use jwt_with_ring::Error;
+/// # use min_jwt::Error;
 /// #
 /// # fn try_main() -> Result<(), Error> {
-/// use jwt_with_ring::UnverifiedJwt;
-/// use jwt_with_ring::verifier::HmacVerifier;
+/// use min_jwt::UnverifiedJwt;
+/// use min_jwt::verifier::HmacVerifier;
 /// use ring::hmac;
 ///
 /// let jwt_str = String::from("\
@@ -362,11 +362,11 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// If the header part is not correctly base64 encoded, the function will return an error variant.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
-    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use min_jwt::UnverifiedJwt;
+    /// use min_jwt::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -403,11 +403,11 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// If the claims part is not correctly base64 encoded, the function will return an error variant.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
-    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use min_jwt::UnverifiedJwt;
+    /// use min_jwt::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -445,11 +445,11 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// If the signature part is not correctly base64 encoded, the function will return an error variant.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
-    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use min_jwt::UnverifiedJwt;
+    /// use min_jwt::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -484,11 +484,11 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// The signed data is the encoded header + "." + encoded claims.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
-    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use min_jwt::UnverifiedJwt;
+    /// use min_jwt::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -524,11 +524,11 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// The encoded header is available for debugging purposes.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
-    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use min_jwt::UnverifiedJwt;
+    /// use min_jwt::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -567,11 +567,11 @@ impl<'a> SignatureVerifiedJwt<'a> {
     ///
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
-    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use min_jwt::UnverifiedJwt;
+    /// use min_jwt::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -609,11 +609,11 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// The encoded signature is available for debugging purposes.
     ///
     /// ```
-    /// # use jwt_with_ring::Error;
+    /// # use min_jwt::Error;
     /// #
     /// # fn try_main() -> Result<(), Error> {
-    /// use jwt_with_ring::UnverifiedJwt;
-    /// use jwt_with_ring::verifier::HmacVerifier;
+    /// use min_jwt::UnverifiedJwt;
+    /// use min_jwt::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\

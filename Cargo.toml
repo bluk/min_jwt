@@ -1,9 +1,9 @@
 [package]
-name = "jwt_with_ring"
+name = "min_jwt"
 version = "0.1.0"
 license = "MIT OR Apache-2.0"
-description = "JSON Web Token library built on top of ring"
-repository = "https://github.com/bluk/jwt_with_ring"
+description = "Minimal JSON Web Token library built on top of ring"
+repository = "https://github.com/bluk/min_jwt"
 authors = ["Bryant Luk <code@bryantluk.com>"]
 edition = "2018"
 

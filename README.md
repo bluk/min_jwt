@@ -1,6 +1,6 @@
-# JSON Web Token with ring
+# Minimal JSON Web Token
 
-A JSON Web Token library that is built on top of [ring][ring].
+A minimal JSON Web Token library that is built on top of [ring][ring].
 
 There are many fully featured crates for JSON Web Tokens, but this crate's goals
 are:

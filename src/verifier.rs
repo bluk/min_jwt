@@ -22,10 +22,10 @@ use crate::error::Result;
 /// on how to convert the public key data into an acceptable format.
 ///
 /// ```
-/// # use jwt_with_ring::Error;
+/// # use min_jwt::Error;
 /// #
 /// # fn try_main() -> Result<(), Error> {
-/// use jwt_with_ring::{UnverifiedJwt, signer::EcdsaSigner, verifier::PublicKeyVerifier};
+/// use min_jwt::{UnverifiedJwt, signer::EcdsaSigner, verifier::PublicKeyVerifier};
 /// use ring::{signature::EcdsaKeyPair, signature::KeyPair, signature::UnparsedPublicKey, rand::SystemRandom};
 /// #
 /// # let sys_rand = SystemRandom::new();
@@ -118,7 +118,7 @@ where
 /// Verifies a JWT's signature is correct for the signed data with a HMAC secret key.
 ///
 /// ```
-/// # use jwt_with_ring::Error;
+/// # use min_jwt::Error;
 /// #
 /// static ENCODED_HMAC_KEY_RFC7515_A1: &str =
 ///    "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
@@ -128,7 +128,7 @@ where
 /// }
 ///
 /// # fn try_main() -> Result<(), Error> {
-/// use jwt_with_ring::{UnverifiedJwt, verifier::HmacVerifier};
+/// use min_jwt::{UnverifiedJwt, verifier::HmacVerifier};
 /// use ring::hmac;
 ///
 /// let jwt = String::from("eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.\

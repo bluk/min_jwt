@@ -12,10 +12,10 @@ use crate::error::Result;
 /// Signs header and claims parts with an ECDSA key.
 ///
 /// ```
-/// # use jwt_with_ring::Error;
+/// # use min_jwt::Error;
 /// #
 /// # fn try_main() -> Result<(), Error> {
-/// use jwt_with_ring::signer::EcdsaSigner;
+/// use min_jwt::signer::EcdsaSigner;
 /// use ring::{signature::EcdsaKeyPair, rand::SystemRandom};
 ///
 /// let sys_rand = SystemRandom::new();
@@ -102,10 +102,10 @@ where
 /// Signs header and claims parts with a HMAC secret key.
 ///
 /// ```
-/// # use jwt_with_ring::Error;
+/// # use min_jwt::Error;
 /// #
 /// # fn try_main() -> Result<(), Error> {
-/// use jwt_with_ring::signer::HmacSigner;
+/// use min_jwt::signer::HmacSigner;
 /// use ring::hmac::{Key, self};
 ///
 /// let header = String::from("{\"alg\":\"HS256\",\"typ\":\"JWT\"}");

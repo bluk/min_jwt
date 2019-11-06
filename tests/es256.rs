@@ -1,9 +1,9 @@
-extern crate jwt_with_ring;
+extern crate min_jwt;
 extern crate ring;
 
 mod common;
 
-use jwt_with_ring::{signer::EcdsaSigner, verifier::PublicKeyVerifier, UnverifiedJwt};
+use min_jwt::{signer::EcdsaSigner, verifier::PublicKeyVerifier, UnverifiedJwt};
 use ring::rand::SystemRandom;
 use ring::signature::{EcdsaKeyPair, UnparsedPublicKey};
 
