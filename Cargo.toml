@@ -6,6 +6,14 @@ description = "Minimal JSON Web Token library built on top of ring"
 repository = "https://github.com/bluk/min_jwt"
 authors = ["Bryant Luk <code@bryantluk.com>"]
 edition = "2018"
+readme = "README.md"
+include = [
+  "src/**/*.rs",
+  "Cargo.toml",
+  "README.md",
+  "LICENSE-APACHE",
+  "LICENSE-MIT",
+]
 
 [dependencies]
 base64 = "0.11.0"
