@@ -1,3 +1,13 @@
+//! # JWT with ring
+//!
+//! JSON Web Tokens are a method for representing claims between two parties.
+//!
+//! JWTs are useful in some scenarios, but there are many use cases where JWTs are not ideal. If
+//! you search on the Internet, you can find many articles and comments which may help you decide
+//! if JWTs are appropriate for your use case.
+//!
+//! This crate currently provides basic functionality to sign and verify the signatures of JWTs.
+
 extern crate base64;
 extern crate ring;
 

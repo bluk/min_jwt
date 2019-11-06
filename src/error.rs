@@ -5,6 +5,7 @@ use std::result;
 
 pub type Result<T> = result::Result<T, Error>;
 
+/// Represents all possible errors from this crate.
 pub struct Error {
     err: Box<ErrorImpl>,
 }
@@ -18,6 +19,7 @@ impl Error {
         }
     }
 
+    /// If the error is due to the JWT being malformed.
     pub fn is_malformed_jwt(&self) -> bool {
         match self.err.code {
             ErrorCode::MalformedJwt => true,
@@ -33,9 +35,34 @@ impl Error {
         }
     }
 
+    /// If the error is due to an invalid signature.
     pub fn is_invalid_signature(&self) -> bool {
         match self.err.code {
             ErrorCode::InvalidSignature => true,
+            _ => false,
+        }
+    }
+
+    /// If the error is due to a part not being correctly base64 encoded.
+    pub fn is_base64_decode_error(&self) -> bool {
+        match self.err.code {
+            ErrorCode::Base64(_) => true,
+            _ => false,
+        }
+    }
+
+    /// If the error is due to a cryptography error.
+    pub fn is_crypto_error(&self) -> bool {
+        match self.err.code {
+            ErrorCode::RingUnspecified(_) => true,
+            _ => false,
+        }
+    }
+
+    /// If the error is due to an invalid signing key.
+    pub fn is_key_rejected(&self) -> bool {
+        match self.err.code {
+            ErrorCode::RingKeyRejected(_) => true,
             _ => false,
         }
     }
@@ -48,6 +75,7 @@ impl error::Error for Error {
             ErrorCode::InvalidSignature => "invalid signature",
             ErrorCode::MalformedJwt => "malformed jwt",
             ErrorCode::RingUnspecified(_) => "cryptography error",
+            ErrorCode::RingKeyRejected(_) => "key rejected",
         }
     }
 
@@ -56,6 +84,7 @@ impl error::Error for Error {
             ErrorCode::Base64(ref err) => Some(err),
             ErrorCode::InvalidSignature
             | ErrorCode::MalformedJwt
+            | ErrorCode::RingKeyRejected(_)
             | ErrorCode::RingUnspecified(_) => None,
         }
     }
@@ -70,6 +99,16 @@ impl Display for Error {
 impl Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Error({:?})", self.err.code.to_string(),)
+    }
+}
+
+impl From<ring::error::KeyRejected> for Error {
+    fn from(error: ring::error::KeyRejected) -> Self {
+        Error {
+            err: Box::new(ErrorImpl {
+                code: ErrorCode::RingKeyRejected(error),
+            }),
+        }
     }
 }
 
@@ -110,6 +149,7 @@ pub(crate) enum ErrorCode {
     Base64(base64::DecodeError),
     InvalidSignature,
     MalformedJwt,
+    RingKeyRejected(ring::error::KeyRejected),
     RingUnspecified(ring::error::Unspecified),
 }
 
@@ -119,6 +159,7 @@ impl Display for ErrorCode {
             ErrorCode::Base64(ref error) => Display::fmt(error, f),
             ErrorCode::InvalidSignature => f.write_str("invalid signature"),
             ErrorCode::MalformedJwt => f.write_str("malformed jwt"),
+            ErrorCode::RingKeyRejected(ref error) => Display::fmt(error, f),
             ErrorCode::RingUnspecified(ref error) => Display::fmt(error, f),
         }
     }

@@ -1,3 +1,7 @@
+//! Sign JWTs using various signature algorithms.
+//!
+//! See the tests for how to use a specific signing algorithm.
+
 use base64;
 use ring::hmac;
 use ring::rand::SecureRandom;
@@ -5,6 +9,44 @@ use ring::signature::{EcdsaKeyPair, RsaKeyPair};
 
 use crate::error::Result;
 
+/// Signs header and claims parts with an ECDSA key.
+///
+/// ```
+/// # use jwt_with_ring::Error;
+/// #
+/// # fn try_main() -> Result<(), Error> {
+/// use jwt_with_ring::signer::EcdsaSigner;
+/// use ring::{signature::EcdsaKeyPair, rand::SystemRandom};
+///
+/// let sys_rand = SystemRandom::new();
+///
+/// let header = String::from("{\"alg\":\"ES256\",\"typ\":\"JWT\"}");
+/// let claims = String::from("{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}");
+///
+/// // Normally the key's bytes are read from a file or another data store
+/// // and should not be randomly generated on every invocation
+/// let pkcs8_bytes = EcdsaKeyPair::generate_pkcs8(
+///   &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
+///   &sys_rand
+/// )?;
+/// let key_pair = EcdsaKeyPair::from_pkcs8(
+///   &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
+///   pkcs8_bytes.as_ref()
+/// )?;
+///
+/// let signer = EcdsaSigner::with_key_pair(key_pair, &sys_rand);
+///
+/// /* the header and claims could be serialized by Serde */
+/// /* in the end, the serialized JSON should be referenced as either &str or &[u8] */
+///
+/// let jwt = signer.encode_and_sign_json_str(&header, &claims)?;
+///
+/// #   Ok(())
+/// # }
+/// # fn main() {
+/// #   try_main().unwrap();
+/// # }
+/// ```
 pub struct EcdsaSigner<'a, T>
 where
     T: SecureRandom,
@@ -17,6 +59,7 @@ impl<'a, T> EcdsaSigner<'a, T>
 where
     T: SecureRandom,
 {
+    /// Instantiates a new signer with the given ECDSA key pair and random number generator.
     pub fn with_key_pair(key_pair: EcdsaKeyPair, secure_random: &'a T) -> EcdsaSigner<'a, T> {
         EcdsaSigner {
             key_pair,
@@ -24,27 +67,23 @@ where
         }
     }
 
-    // pub fn with_es256(private_key: &[u8]) -> Result<ECDSASigner> {
-    //     let key_pair = EcdsaKeyPair::from_pkcs8(
-    //         &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
-    //         private_key,
-    //     )?;
-    //     Ok(ECDSASigner { key_pair })
-    // }
-    //
-    // pub fn with_es384(private_key: &[u8]) -> Result<ECDSASigner> {
-    //     let key_pair = EcdsaKeyPair::from_pkcs8(
-    //         &ring::signature::ECDSA_P384_SHA384_FIXED_SIGNING,
-    //         private_key,
-    //     )?;
-    //     Ok(ECDSASigner { key_pair })
-    // }
-
+    /// Base64 encodes the JSON, constructs the signing input, signs the data, and then
+    /// returns the JWT.
+    ///
+    /// # Errors
+    ///
+    /// The function may return an error variant because the key pair is invalid.
     #[inline]
     pub fn encode_and_sign_json_str(&self, header: &str, claims: &str) -> Result<String> {
         self.encode_and_sign_json_bytes(header.as_bytes(), claims.as_bytes())
     }
 
+    /// Base64 encodes the JSON, constructs the signing input, signs the data, and then
+    /// returns the JWT.
+    ///
+    /// # Errors
+    ///
+    /// The function may return an error variant because the key pair is invalid.
     #[inline]
     pub fn encode_and_sign_json_bytes(&self, header: &[u8], claims: &[u8]) -> Result<String> {
         let encoded_header = base64::encode_config(header, base64::URL_SAFE_NO_PAD);
@@ -60,20 +99,52 @@ where
     }
 }
 
+/// Signs header and claims parts with a HMAC secret key.
+///
+/// ```
+/// # use jwt_with_ring::Error;
+/// #
+/// # fn try_main() -> Result<(), Error> {
+/// use jwt_with_ring::signer::HmacSigner;
+/// use ring::hmac::{Key, self};
+///
+/// let header = String::from("{\"alg\":\"HS256\",\"typ\":\"JWT\"}");
+/// let claims = String::from("{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}");
+///
+/// let hmac_key = String::from("your-secret-key");
+/// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key.as_bytes());
+/// let hmac_signer = HmacSigner::with_key(hmac_key);
+///
+/// /* the header and claims could be serialized by Serde */
+/// /* in the end, the serialized JSON should be referenced as either &str or &[u8] */
+///
+/// let jwt = hmac_signer .encode_and_sign_json_str(&header, &claims)?;
+///
+/// #   Ok(())
+/// # }
+/// # fn main() {
+/// #   try_main().unwrap();
+/// # }
+/// ```
 pub struct HmacSigner {
     key: hmac::Key,
 }
 
 impl HmacSigner {
+    /// Instantiates a new signer with the given HMAC key.
     pub fn with_key(key: hmac::Key) -> Self {
         HmacSigner { key }
     }
 
+    /// Base64 encodes the JSON, constructs the signing input, signs the data, and then
+    /// returns the JWT.
     #[inline]
     pub fn encode_and_sign_json_str(&self, header: &str, claims: &str) -> Result<String> {
         self.encode_and_sign_json_bytes(header.as_bytes(), claims.as_bytes())
     }
 
+    /// Base64 encodes the JSON, constructs the signing input, signs the data, and then
+    /// returns the JWT.
     #[inline]
     pub fn encode_and_sign_json_bytes(&self, header: &[u8], claims: &[u8]) -> Result<String> {
         let encoded_header = base64::encode_config(header, base64::URL_SAFE_NO_PAD);
