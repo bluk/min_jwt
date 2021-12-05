@@ -45,7 +45,7 @@ fn es256_encode_and_sign_json_str_jwt_io_example() {
 
     let signer = EcdsaSigner::with_key_pair(private_key_pair(), &sys_rand);
 
-    let jwt = signer.encode_and_sign_json_str(&header, &claims).unwrap();
+    let jwt = signer.encode_and_sign_json_str(&header, claims).unwrap();
 
     let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
 
@@ -70,7 +70,7 @@ fn es256_verify_valid_signature_jwt_io_example() {
     // See https://jwt.io
     let jwt = &EXPECTED_JWT_JWT_IO_256;
 
-    let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
+    let unverified_jwt = UnverifiedJwt::with_str(jwt).unwrap();
 
     let public_key = include_bytes!("es256_jwt_io_public_key.p8.der");
 

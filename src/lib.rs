@@ -59,7 +59,6 @@ use error::Result;
 /// ```
 #[derive(Debug)]
 pub struct UnverifiedJwt<'a> {
-    jwt: &'a str,
     /// The encoded header part.
     header: &'a str,
     /// The encoded claims part.
@@ -106,10 +105,9 @@ impl<'a> UnverifiedJwt<'a> {
     /// #   try_main().unwrap();
     /// # }
     /// ```
-    pub fn with_str<'b>(jwt: &'b str) -> Result<UnverifiedJwt<'b>> {
+    pub fn with_str(jwt: &str) -> Result<UnverifiedJwt> {
         let split_jwt = Self::split(jwt)?;
         Ok(UnverifiedJwt {
-            jwt,
             header: split_jwt.header,
             claims: split_jwt.claims,
             signed_data: split_jwt.signed_data,
@@ -228,7 +226,7 @@ impl<'a> UnverifiedJwt<'a> {
     /// # }
     /// ```
     pub fn signed_data(&self) -> &'a str {
-        &self.signed_data
+        self.signed_data
     }
 
     /// Returns the encoded header part.
@@ -259,7 +257,7 @@ impl<'a> UnverifiedJwt<'a> {
     /// # }
     /// ```
     pub fn encoded_header(&self) -> &'a str {
-        &self.header
+        self.header
     }
 
     /// Returns the encoded signature part.
@@ -290,10 +288,10 @@ impl<'a> UnverifiedJwt<'a> {
     /// # }
     /// ```
     pub fn encoded_signature(&self) -> &'a str {
-        &self.signature
+        self.signature
     }
 
-    fn split<'b>(jwt: &'b str) -> Result<SplitJwt<'b>> {
+    fn split(jwt: &str) -> Result<SplitJwt<'_>> {
         let mut parts = jwt.rsplitn(2, '.');
         let (signature, signed_data) = match (parts.next(), parts.next()) {
             (Some(signature), Some(signed_data)) => (signature, signed_data),

@@ -58,7 +58,7 @@ fn rs256_verify_valid_signature_jwt_io_example() {
 
     assert_eq!("1234567890", claims.sub);
     assert_eq!("John Doe", claims.name);
-    assert_eq!(true, claims.admin);
+    assert!(claims.admin);
     assert_eq!(1516239022, claims.iat);
 }
 

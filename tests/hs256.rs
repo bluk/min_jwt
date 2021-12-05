@@ -33,7 +33,7 @@ fn hs256_encode_and_sign_json_str_rfc7515_appendix_a_1_example() {
     let signer = HmacSigner::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
 
     assert_eq!(
-        signer.encode_and_sign_json_str(&header, &claims).unwrap(),
+        signer.encode_and_sign_json_str(&header, claims).unwrap(),
         EXPECTED_JWT_RFC7515_A1
     );
 }
@@ -69,7 +69,7 @@ fn hs256_verify_valid_signature_rfc7515_appendix_a_1_example() {
 
     let jwt = &EXPECTED_JWT_RFC7515_A1;
 
-    let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
+    let unverified_jwt = UnverifiedJwt::with_str(jwt).unwrap();
 
     let hmac_verifier =
         HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));

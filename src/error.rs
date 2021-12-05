@@ -21,10 +21,7 @@ impl Error {
 
     /// If the error is due to the JWT being malformed.
     pub fn is_malformed_jwt(&self) -> bool {
-        match self.err.code {
-            ErrorCode::MalformedJwt => true,
-            _ => false,
-        }
+        matches!(self.err.code, ErrorCode::MalformedJwt)
     }
 
     pub(crate) fn invalid_signature() -> Self {
@@ -37,34 +34,22 @@ impl Error {
 
     /// If the error is due to an invalid signature.
     pub fn is_invalid_signature(&self) -> bool {
-        match self.err.code {
-            ErrorCode::InvalidSignature => true,
-            _ => false,
-        }
+        matches!(self.err.code, ErrorCode::InvalidSignature)
     }
 
     /// If the error is due to a part not being correctly base64 encoded.
     pub fn is_base64_decode_error(&self) -> bool {
-        match self.err.code {
-            ErrorCode::Base64(_) => true,
-            _ => false,
-        }
+        matches!(self.err.code, ErrorCode::Base64(_))
     }
 
     /// If the error is due to a cryptography error.
     pub fn is_crypto_error(&self) -> bool {
-        match self.err.code {
-            ErrorCode::RingUnspecified(_) => true,
-            _ => false,
-        }
+        matches!(self.err.code, ErrorCode::RingUnspecified(_))
     }
 
     /// If the error is due to an invalid signing key.
     pub fn is_key_rejected(&self) -> bool {
-        match self.err.code {
-            ErrorCode::RingKeyRejected(_) => true,
-            _ => false,
-        }
+        matches!(self.err.code, ErrorCode::RingKeyRejected(_))
     }
 }
 

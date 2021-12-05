@@ -31,7 +31,7 @@ fn hs384_encode_and_sign_json_str_jwt_io_example() {
     let signer = HmacSigner::with_key(hmac::Key::new(hmac::HMAC_SHA384, &decoded_hmac_key()));
 
     assert_eq!(
-        signer.encode_and_sign_json_str(&header, &claims).unwrap(),
+        signer.encode_and_sign_json_str(&header, claims).unwrap(),
         EXPECTED_JWT_JWT_IO_384
     );
 }
@@ -42,7 +42,7 @@ fn hs384_verify_valid_signature_jwt_io_example() {
 
     let jwt = &EXPECTED_JWT_JWT_IO_384;
 
-    let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
+    let unverified_jwt = UnverifiedJwt::with_str(jwt).unwrap();
 
     let hmac_verifier =
         HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA384, &decoded_hmac_key()));

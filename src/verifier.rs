@@ -85,13 +85,12 @@ where
     /// # Errors
     ///
     /// If the public key or signature is invalid, the function will return an error variant.
-    #[must_use]
     pub fn verify_data_with_decoded_signature(
         &self,
         signed_data: &[u8],
         decoded_signature: &[u8],
     ) -> Result<()> {
-        match self.public_key.verify(signed_data, &decoded_signature) {
+        match self.public_key.verify(signed_data, decoded_signature) {
             Ok(()) => Ok(()),
             Err(_) => Err(Error::invalid_signature()),
         }
@@ -102,7 +101,6 @@ where
     /// # Errors
     ///
     /// If the public key or signature is invalid, the function will return an error variant.
-    #[must_use]
     pub fn verify<'a>(
         &self,
         unverified_jwt: &'a UnverifiedJwt<'a>,
@@ -110,7 +108,7 @@ where
         let signed_data = unverified_jwt.signed_data().as_bytes();
         let decoded_signature = unverified_jwt.decode_signature()?;
 
-        self.verify_data_with_decoded_signature(&signed_data, &decoded_signature)
+        self.verify_data_with_decoded_signature(signed_data, &decoded_signature)
             .map(|_| SignatureVerifiedJwt { unverified_jwt })
     }
 }
@@ -168,13 +166,12 @@ impl HmacVerifier {
     /// # Errors
     ///
     /// If the signature is invalid, the function will return an error variant.
-    #[must_use]
     pub fn verify_data_with_decoded_signature(
         &self,
         signed_data: &[u8],
         decoded_signature: &[u8],
     ) -> Result<()> {
-        match hmac::verify(&self.key, signed_data, &decoded_signature) {
+        match hmac::verify(&self.key, signed_data, decoded_signature) {
             Ok(_) => Ok(()),
             Err(_) => Err(Error::invalid_signature()),
         }
@@ -185,7 +182,6 @@ impl HmacVerifier {
     /// # Errors
     ///
     /// If the signature is invalid, the function will return an error variant.
-    #[must_use]
     pub fn verify<'a>(
         &self,
         unverified_jwt: &'a UnverifiedJwt<'a>,
@@ -193,9 +189,7 @@ impl HmacVerifier {
         let signed_data = unverified_jwt.signed_data().as_bytes();
         let decoded_signature = unverified_jwt.decode_signature()?;
 
-        self.verify_data_with_decoded_signature(&signed_data, &decoded_signature)
-            .map(|_| SignatureVerifiedJwt {
-                unverified_jwt: &unverified_jwt,
-            })
+        self.verify_data_with_decoded_signature(signed_data, &decoded_signature)
+            .map(|_| SignatureVerifiedJwt { unverified_jwt })
     }
 }
