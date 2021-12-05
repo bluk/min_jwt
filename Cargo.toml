@@ -16,8 +16,8 @@ include = [
 ]
 
 [dependencies]
-base64 = "0.11.0"
-ring = "0.16.9"
+base64 = "0.13.0"
+ring = "0.16.20"
 
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }

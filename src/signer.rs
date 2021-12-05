@@ -285,7 +285,7 @@ where
             data_to_sign.as_bytes(),
             &mut signature,
         )?;
-        let signature = base64::encode_config::<[u8]>(&signature, base64::URL_SAFE_NO_PAD);
+        let signature = base64::encode_config(signature, base64::URL_SAFE_NO_PAD);
 
         Ok([data_to_sign, signature].join("."))
     }
