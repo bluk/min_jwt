@@ -1,12 +1,17 @@
-extern crate min_jwt;
-extern crate ring;
-
 mod common;
 
-use min_jwt::{signer::EcdsaSigner, verifier::PublicKeyVerifier, UnverifiedJwt};
-use ring::rand::SystemRandom;
-use ring::signature::{EcdsaKeyPair, UnparsedPublicKey};
+#[cfg(any(feature = "ring"))]
+use min_jwt::{
+    ring::{signer::EcdsaSigner, verifier::PublicKeyVerifier},
+    UnverifiedJwt,
+};
+#[cfg(any(feature = "ring"))]
+use ring::{
+    rand::SystemRandom,
+    signature::{EcdsaKeyPair, UnparsedPublicKey},
+};
 
+#[cfg(any(feature = "ring"))]
 static EXPECTED_JWT_JWT_IO_256: &str = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.\
                                         eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik\
                                         pvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6\
@@ -15,6 +20,7 @@ static EXPECTED_JWT_JWT_IO_256: &str = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.\
                                         HWP_3cYHBw7AhHale5wky6-sVA\
                                         ";
 
+#[cfg(any(feature = "ring"))]
 static EXPECTED_CLAIMS: &str =
     "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}";
 
@@ -27,6 +33,7 @@ static EXPECTED_CLAIMS: &str =
 // openssl asn1parse -in public_key.pem -offset $((23 + 2)) -out public_key.p8.der.block
 // dd bs=1 skip=1 if=public_key.p8.der.block of=public_key.p8.der
 
+#[cfg(any(feature = "ring"))]
 fn private_key_pair() -> EcdsaKeyPair {
     let private_key = include_bytes!("es256_private_key.p8.der");
     EcdsaKeyPair::from_pkcs8(
@@ -36,6 +43,7 @@ fn private_key_pair() -> EcdsaKeyPair {
     .unwrap()
 }
 
+#[cfg(any(feature = "ring"))]
 #[test]
 fn es256_encode_and_sign_json_str_jwt_io_example() {
     let sys_rand = SystemRandom::new();
@@ -65,6 +73,7 @@ fn es256_encode_and_sign_json_str_jwt_io_example() {
     );
 }
 
+#[cfg(any(feature = "ring"))]
 #[test]
 fn es256_verify_valid_signature_jwt_io_example() {
     // See https://jwt.io
@@ -86,6 +95,7 @@ fn es256_verify_valid_signature_jwt_io_example() {
     );
 }
 
+#[cfg(any(feature = "ring"))]
 #[test]
 fn es256_verify_invalid_signature() {
     let jwt_with_invalid_signature = String::from(

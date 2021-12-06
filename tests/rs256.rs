@@ -1,12 +1,11 @@
-extern crate min_jwt;
-extern crate ring;
-
 mod common;
 
-use min_jwt::verifier::PublicKeyVerifier;
-use min_jwt::UnverifiedJwt;
+#[cfg(any(feature = "ring"))]
+use min_jwt::{ring::verifier::PublicKeyVerifier, UnverifiedJwt};
+#[cfg(any(feature = "ring"))]
 use ring::signature::{self, UnparsedPublicKey};
 
+#[cfg(any(feature = "ring"))]
 #[test]
 fn rs256_verify_valid_signature_jwt_io_example() {
     let encoded_header = String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9");
@@ -62,6 +61,7 @@ fn rs256_verify_valid_signature_jwt_io_example() {
     assert_eq!(1516239022, claims.iat);
 }
 
+#[cfg(any(feature = "ring"))]
 #[test]
 fn rs256_verify_invalid_signature() {
     let encoded_header = String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9");

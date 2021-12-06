@@ -1,11 +1,14 @@
-extern crate min_jwt;
-extern crate ring;
-
 mod common;
 
-use min_jwt::{signer::HmacSigner, verifier::HmacVerifier, UnverifiedJwt};
+#[cfg(any(feature = "ring"))]
+use min_jwt::{
+    ring::{signer::HmacSigner, verifier::HmacVerifier},
+    UnverifiedJwt,
+};
+#[cfg(any(feature = "ring"))]
 use ring::hmac;
 
+#[cfg(any(feature = "ring"))]
 static EXPECTED_JWT_JWT_IO_384: &str = "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.\
                                         eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik\
                                         pvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6\
@@ -14,13 +17,16 @@ static EXPECTED_JWT_JWT_IO_384: &str = "eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.\
                                         JHuh\
                                         ";
 
+#[cfg(any(feature = "ring"))]
 static EXPECTED_CLAIMS: &str =
     "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}";
 
+#[cfg(any(feature = "ring"))]
 fn decoded_hmac_key() -> Vec<u8> {
     "your-384-bit-secret".as_bytes().into()
 }
 
+#[cfg(any(feature = "ring"))]
 #[test]
 fn hs384_encode_and_sign_json_str_jwt_io_example() {
     // See https://jwt.io
@@ -36,6 +42,7 @@ fn hs384_encode_and_sign_json_str_jwt_io_example() {
     );
 }
 
+#[cfg(any(feature = "ring"))]
 #[test]
 fn hs384_verify_valid_signature_jwt_io_example() {
     // See https://jwt.io
@@ -55,6 +62,7 @@ fn hs384_verify_valid_signature_jwt_io_example() {
     );
 }
 
+#[cfg(any(feature = "ring"))]
 #[test]
 fn hs384_verify_invalid_signature() {
     let jwt_with_invalid_signature = String::from(

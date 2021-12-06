@@ -1,6 +1,8 @@
 # Minimal JSON Web Token
 
-A minimal JSON Web Token library that is built on top of [ring][ring].
+A minimal JSON Web Token library.
+
+By default, the signers and verifiers are built on top of [ring][ring].
 
 There are many fully featured crates for JSON Web Tokens, but this crate's goals
 are:

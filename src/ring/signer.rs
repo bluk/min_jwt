@@ -3,9 +3,11 @@
 //! See the tests for how to use a specific signing algorithm.
 
 use base64;
-use ring::hmac;
-use ring::rand::SecureRandom;
-use ring::signature::{EcdsaKeyPair, RsaKeyPair};
+use ring::{
+    hmac,
+    rand::SecureRandom,
+    signature::{EcdsaKeyPair, RsaKeyPair},
+};
 
 use crate::error::Result;
 
@@ -15,7 +17,7 @@ use crate::error::Result;
 /// # use min_jwt::Error;
 /// #
 /// # fn try_main() -> Result<(), Error> {
-/// use min_jwt::signer::EcdsaSigner;
+/// use min_jwt::ring::signer::EcdsaSigner;
 /// use ring::{signature::EcdsaKeyPair, rand::SystemRandom};
 ///
 /// let sys_rand = SystemRandom::new();
@@ -105,7 +107,7 @@ where
 /// # use min_jwt::Error;
 /// #
 /// # fn try_main() -> Result<(), Error> {
-/// use min_jwt::signer::HmacSigner;
+/// use min_jwt::ring::signer::HmacSigner;
 /// use ring::hmac::{Key, self};
 ///
 /// let header = String::from("{\"alg\":\"HS256\",\"typ\":\"JWT\"}");
@@ -158,6 +160,7 @@ impl HmacSigner {
     }
 }
 
+/// Signs header and claims parts with an RSA key.
 pub struct RsaSigner<'a, T>
 where
     T: SecureRandom,

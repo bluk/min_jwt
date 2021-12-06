@@ -8,11 +8,8 @@
 //!
 //! This crate currently provides basic functionality to sign and verify the signatures of JWTs.
 
-extern crate base64;
-extern crate ring;
-
-pub mod signer;
-pub mod verifier;
+#[cfg(any(feature = "ring"))]
+pub mod ring;
 
 pub use error::Error;
 
@@ -321,9 +318,10 @@ impl<'a> UnverifiedJwt<'a> {
 /// ```
 /// # use min_jwt::Error;
 /// #
+/// # #[cfg(any(feature = "ring"))]
 /// # fn try_main() -> Result<(), Error> {
 /// use min_jwt::UnverifiedJwt;
-/// use min_jwt::verifier::HmacVerifier;
+/// use min_jwt::ring::verifier::HmacVerifier;
 /// use ring::hmac;
 ///
 /// let jwt_str = String::from("\
@@ -344,6 +342,7 @@ impl<'a> UnverifiedJwt<'a> {
 /// #   Ok(())
 /// # }
 /// # fn main() {
+/// #   #[cfg(any(feature = "ring"))]
 /// #   try_main().unwrap();
 /// # }
 /// ```
@@ -362,9 +361,10 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
+    /// # #[cfg(any(feature = "ring"))]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::verifier::HmacVerifier;
+    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -386,6 +386,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
+    /// #   #[cfg(any(feature = "ring"))]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -403,9 +404,10 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
+    /// # #[cfg(any(feature = "ring"))]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::verifier::HmacVerifier;
+    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -427,6 +429,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
+    /// #   #[cfg(any(feature = "ring"))]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -445,9 +448,10 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
+    /// # #[cfg(any(feature = "ring"))]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::verifier::HmacVerifier;
+    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -469,6 +473,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
+    /// #   #[cfg(any(feature = "ring"))]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -484,9 +489,10 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
+    /// # #[cfg(any(feature = "ring"))]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::verifier::HmacVerifier;
+    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -506,6 +512,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
+    /// #   #[cfg(any(feature = "ring"))]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -524,9 +531,10 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
+    /// # #[cfg(any(feature = "ring"))]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::verifier::HmacVerifier;
+    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -548,6 +556,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
+    /// #   #[cfg(any(feature = "ring"))]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -567,9 +576,10 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
+    /// # #[cfg(any(feature = "ring"))]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::verifier::HmacVerifier;
+    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -591,6 +601,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
+    /// #   #[cfg(any(feature = "ring"))]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -609,9 +620,10 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
+    /// # #[cfg(any(feature = "ring"))]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::verifier::HmacVerifier;
+    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -633,6 +645,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
+    /// #   #[cfg(any(feature = "ring"))]
     /// #   try_main().unwrap();
     /// # }
     /// ```

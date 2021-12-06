@@ -2,13 +2,12 @@
 //!
 //! See the tests for how to verify a specific signing algorithm.
 
-use ring::hmac;
-use ring::signature::UnparsedPublicKey;
+use ring::{hmac, signature::UnparsedPublicKey};
 
-use crate::error::Error;
-use crate::{SignatureVerifiedJwt, UnverifiedJwt};
-
-use crate::error::Result;
+use crate::{
+    error::{Error, Result},
+    SignatureVerifiedJwt, UnverifiedJwt,
+};
 
 /// Verifies a JWT's signature is correct with an unparsed public key.
 ///
@@ -25,7 +24,7 @@ use crate::error::Result;
 /// # use min_jwt::Error;
 /// #
 /// # fn try_main() -> Result<(), Error> {
-/// use min_jwt::{UnverifiedJwt, signer::EcdsaSigner, verifier::PublicKeyVerifier};
+/// use min_jwt::{UnverifiedJwt, ring::{signer::EcdsaSigner, verifier::PublicKeyVerifier}};
 /// use ring::{signature::EcdsaKeyPair, signature::KeyPair, signature::UnparsedPublicKey, rand::SystemRandom};
 /// #
 /// # let sys_rand = SystemRandom::new();
@@ -126,7 +125,7 @@ where
 /// }
 ///
 /// # fn try_main() -> Result<(), Error> {
-/// use min_jwt::{UnverifiedJwt, verifier::HmacVerifier};
+/// use min_jwt::{UnverifiedJwt, ring::verifier::HmacVerifier};
 /// use ring::hmac;
 ///
 /// let jwt = String::from("eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.\

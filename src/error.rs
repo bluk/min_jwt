@@ -24,6 +24,7 @@ impl Error {
         matches!(self.err.code, ErrorCode::MalformedJwt)
     }
 
+    #[cfg(any(feature = "ring"))]
     pub(crate) fn invalid_signature() -> Self {
         Error {
             err: Box::new(ErrorImpl {
@@ -34,7 +35,14 @@ impl Error {
 
     /// If the error is due to an invalid signature.
     pub fn is_invalid_signature(&self) -> bool {
-        matches!(self.err.code, ErrorCode::InvalidSignature)
+        #[cfg(any(feature = "ring"))]
+        {
+            matches!(self.err.code, ErrorCode::InvalidSignature)
+        }
+        #[cfg(not(any(feature = "ring")))]
+        {
+            false
+        }
     }
 
     /// If the error is due to a part not being correctly base64 encoded.
@@ -44,12 +52,26 @@ impl Error {
 
     /// If the error is due to a cryptography error.
     pub fn is_crypto_error(&self) -> bool {
-        matches!(self.err.code, ErrorCode::RingUnspecified(_))
+        #[cfg(any(feature = "ring"))]
+        {
+            matches!(self.err.code, ErrorCode::RingUnspecified(_))
+        }
+        #[cfg(not(any(feature = "ring")))]
+        {
+            false
+        }
     }
 
     /// If the error is due to an invalid signing key.
     pub fn is_key_rejected(&self) -> bool {
-        matches!(self.err.code, ErrorCode::RingKeyRejected(_))
+        #[cfg(any(feature = "ring"))]
+        {
+            matches!(self.err.code, ErrorCode::RingKeyRejected(_))
+        }
+        #[cfg(not(any(feature = "ring")))]
+        {
+            false
+        }
     }
 }
 
@@ -57,18 +79,22 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match self.err.code {
             ErrorCode::Base64(_) => "base64 decode error",
+            #[cfg(any(feature = "ring"))]
             ErrorCode::InvalidSignature => "invalid signature",
             ErrorCode::MalformedJwt => "malformed jwt",
+            #[cfg(any(feature = "ring"))]
             ErrorCode::RingUnspecified(_) => "cryptography error",
+            #[cfg(any(feature = "ring"))]
             ErrorCode::RingKeyRejected(_) => "key rejected",
         }
     }
 
-    fn cause(&self) -> Option<&dyn error::Error> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self.err.code {
             ErrorCode::Base64(ref err) => Some(err),
+            ErrorCode::MalformedJwt => None,
+            #[cfg(any(feature = "ring"))]
             ErrorCode::InvalidSignature
-            | ErrorCode::MalformedJwt
             | ErrorCode::RingKeyRejected(_)
             | ErrorCode::RingUnspecified(_) => None,
         }
@@ -87,6 +113,7 @@ impl Debug for Error {
     }
 }
 
+#[cfg(any(feature = "ring"))]
 impl From<ring::error::KeyRejected> for Error {
     fn from(error: ring::error::KeyRejected) -> Self {
         Error {
@@ -97,6 +124,7 @@ impl From<ring::error::KeyRejected> for Error {
     }
 }
 
+#[cfg(any(feature = "ring"))]
 impl From<ring::error::Unspecified> for Error {
     fn from(error: ring::error::Unspecified) -> Self {
         Error {
@@ -132,9 +160,12 @@ impl Display for ErrorImpl {
 pub(crate) enum ErrorCode {
     // TODO: Should also have a reference to the str which did not decode
     Base64(base64::DecodeError),
+    #[cfg(any(feature = "ring"))]
     InvalidSignature,
     MalformedJwt,
+    #[cfg(any(feature = "ring"))]
     RingKeyRejected(ring::error::KeyRejected),
+    #[cfg(any(feature = "ring"))]
     RingUnspecified(ring::error::Unspecified),
 }
 
@@ -142,9 +173,12 @@ impl Display for ErrorCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             ErrorCode::Base64(ref error) => Display::fmt(error, f),
+            #[cfg(any(feature = "ring"))]
             ErrorCode::InvalidSignature => f.write_str("invalid signature"),
             ErrorCode::MalformedJwt => f.write_str("malformed jwt"),
+            #[cfg(any(feature = "ring"))]
             ErrorCode::RingKeyRejected(ref error) => Display::fmt(error, f),
+            #[cfg(any(feature = "ring"))]
             ErrorCode::RingUnspecified(ref error) => Display::fmt(error, f),
         }
     }

@@ -1,8 +1,8 @@
 [package]
 name = "min_jwt"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT OR Apache-2.0"
-description = "Minimal JSON Web Token library built on top of ring"
+description = "Minimal JSON Web Token library"
 repository = "https://github.com/bluk/min_jwt"
 authors = ["Bryant Luk <code@bryantluk.com>"]
 edition = "2018"
@@ -17,9 +17,11 @@ include = [
 
 [dependencies]
 base64 = "0.13.0"
-ring = "0.16.20"
+ring = { version = "0.16.20", optional = true }
 
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-serde_derive = "1"
+
+[features]
+default = ["ring"]
