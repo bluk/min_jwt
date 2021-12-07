@@ -658,10 +658,6 @@ impl<'a> SignatureVerifiedJwt<'a> {
     }
 }
 
-/// The key ID.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct KeyId<'a>(pub &'a str);
-
 /// Algorithm used to sign the JWT.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Algorithm {
@@ -731,10 +727,6 @@ impl<'a> Header<'a> {
     /// Returns the key ID.
     pub fn kid(&self) -> &str {
         self.kid
-    }
-
-    pub(crate) fn key_id(&self) -> KeyId<'_> {
-        KeyId(self.kid)
     }
 }
 

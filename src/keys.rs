@@ -28,7 +28,7 @@ impl Keys<JwkSet> {
     }
 
     #[cfg(feature = "serde_json")]
-    pub fn find_signing_key(&self, jwt: UnverifiedJwt) -> Option<&Jwk> {
+    pub fn find_signing_key(&self, jwt: &UnverifiedJwt) -> Option<&Jwk> {
         let header = jwt.decode_header().ok()?;
         let header = serde_json::from_slice::<Header>(&header).ok()?;
         let alg = header.alg();

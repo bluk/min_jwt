@@ -1,9 +1,13 @@
+use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
 use web_sys::{CryptoKey, SubtleCrypto};
 
 use crate::{
     error::Error,
-    keys::{jwk::Jwk, pkcs8::Pkcs8Key},
+    keys::{
+        jwk::{Jwk, USAGE_SIGN},
+        pkcs8::Pkcs8Key,
+    },
     Algorithm, SignatureVerifiedJwt, UnverifiedJwt,
 };
 
@@ -70,6 +74,12 @@ pub async fn import_jwk_key<'a, 'b>(
     subtle_crypto: &'a SubtleCrypto,
     jwk: &Jwk,
 ) -> Result<VerifyingKey<'a>, Error> {
+    if let Some(usage) = jwk.r#use.as_deref() {
+        if usage != USAGE_SIGN {
+            return Err(Error::key_rejected(JsValue::from_str("invalid usage")));
+        }
+    }
+
     let algorithm = jwk
         .algorithm()
         .map_err(|_| Error::key_rejected(JsValue::from_str("unknown alg")))?;
@@ -93,4 +103,66 @@ pub async fn import_pkcs8_key<'a, 'b>(
         crypto_key,
         algorithm: pkcs8_key.algorithm,
     })
+}
+
+use crate::Header;
+use core::str::FromStr;
+
+#[derive(Debug)]
+pub struct Keys<'a> {
+    keys: BTreeMap<String, VerifyingKey<'a>>,
+}
+
+impl<'a> Keys<'a> {
+    pub fn len(&self) -> usize {
+        self.keys.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.keys.is_empty()
+    }
+
+    pub fn insert(&mut self, kid: String, key: VerifyingKey<'a>) -> Option<VerifyingKey<'a>> {
+        self.keys.insert(kid, key)
+    }
+
+    #[cfg(feature = "serde_json")]
+    pub fn find_signing_key(&self, jwt: &UnverifiedJwt) -> Option<&VerifyingKey> {
+        let header = jwt.decode_header().ok()?;
+        let header = serde_json::from_slice::<Header>(&header).ok()?;
+        let alg = Algorithm::from_str(header.alg()).ok()?;
+        let kid = header.kid();
+
+        self.keys.get(kid).filter(|&key| key.algorithm == alg)
+    }
+}
+
+impl<'a> Default for Keys<'a> {
+    fn default() -> Self {
+        Self {
+            keys: BTreeMap::default(),
+        }
+    }
+}
+
+impl<'a> Extend<(String, VerifyingKey<'a>)> for Keys<'a> {
+    fn extend<T: IntoIterator<Item = (String, VerifyingKey<'a>)>>(&mut self, iter: T) {
+        self.keys.extend(iter)
+    }
+}
+
+impl<'a, const N: usize> From<[(String, VerifyingKey<'a>); N]> for Keys<'a> {
+    fn from(arr: [(String, VerifyingKey<'a>); N]) -> Self {
+        Self {
+            keys: BTreeMap::from(arr),
+        }
+    }
+}
+
+impl<'a> core::iter::FromIterator<(String, VerifyingKey<'a>)> for Keys<'a> {
+    fn from_iter<T: IntoIterator<Item = (String, VerifyingKey<'a>)>>(iter: T) -> Self {
+        Self {
+            keys: BTreeMap::from_iter(iter),
+        }
+    }
 }

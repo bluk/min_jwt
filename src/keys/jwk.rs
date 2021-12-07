@@ -9,7 +9,9 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{Algorithm, KeyId, ParseAlgorithmError};
+use crate::{Algorithm, ParseAlgorithmError};
+
+pub(crate) const USAGE_SIGN: &str = "sig";
 
 /// A JSON Web Key.
 ///
@@ -52,10 +54,6 @@ impl Jwk {
             Err(ParseAlgorithmError::UnknownAlgorithm)
         }
     }
-
-    pub(crate) fn key_id(&self) -> Option<KeyId<'_>> {
-        self.kid.as_ref().map(|kid| KeyId(kid))
-    }
 }
 
 /// A JSON Web Key set.
@@ -73,6 +71,6 @@ impl JwkSet {
     pub fn signing_keys(&self) -> impl Iterator<Item = &Jwk> {
         self.keys
             .iter()
-            .filter(|&key| key.r#use.as_deref() == Some("sig"))
+            .filter(|&key| key.r#use.as_deref() == Some(USAGE_SIGN))
     }
 }

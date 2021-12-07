@@ -2,7 +2,7 @@
 //!
 //! Keys in PEM/DER format.
 
-use crate::{Algorithm, KeyId};
+use crate::Algorithm;
 
 /// A key used to sign, verify, or encrypt data.
 #[derive(Clone, Debug)]
@@ -31,15 +31,11 @@ impl<'a> Pkcs8Key<'a> {
 #[derive(Clone, Debug)]
 pub struct Pkcs8KeyWithId<'a, 'b> {
     pub(crate) key: Pkcs8Key<'a>,
-    pub(crate) id: KeyId<'b>,
+    pub(crate) kid: &'b str,
 }
 
 impl<'a, 'b> Pkcs8KeyWithId<'a, 'b> {
-    pub fn with_key_and_id(key: Pkcs8Key<'a>, id: KeyId<'b>) -> Self {
-        Self { key, id }
-    }
-
-    pub(crate) fn key_id(&self) -> KeyId<'_> {
-        self.id.clone()
+    pub fn with_key_and_id(key: Pkcs8Key<'a>, kid: &'b str) -> Self {
+        Self { key, kid }
     }
 }
