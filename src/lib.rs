@@ -14,6 +14,7 @@ mod error;
 pub mod keys;
 #[cfg(feature = "ring")]
 pub mod ring;
+pub mod time;
 #[cfg(feature = "web_crypto")]
 pub mod web_crypto;
 
