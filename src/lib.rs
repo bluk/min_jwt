@@ -709,6 +709,74 @@ impl core::str::FromStr for Algorithm {
     }
 }
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+/// Contains the algorithm and the key ID used to sign the JWT.
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct Header<'a> {
+    alg: &'a str,
+    kid: &'a str,
+}
+
+impl<'a> Header<'a> {
+    /// Returns the signing algorithm.
+    pub fn alg(&self) -> &str {
+        self.alg
+    }
+
+    /// Returns the key ID.
+    pub fn kid(&self) -> &str {
+        self.kid
+    }
+
+    pub(crate) fn key_id(&self) -> KeyId<'_> {
+        KeyId(self.kid)
+    }
+}
+
+/// Contains the issuer ID, when the token was issued, and when the token expires.
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+pub struct Claims<'a> {
+    pub iss: &'a str,
+    pub iat: u64,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub exp: Option<u64>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub aud: Option<&'a str>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub sub: Option<&'a str>,
+}
+
+impl<'a> Claims<'a> {
+    /// Returns the issuer of the token (usually the team ID).
+    pub fn iss(&self) -> &str {
+        self.iss
+    }
+
+    /// Returns when the token was issued as the number of seconds since the Unix epoch.
+    pub fn iat(&self) -> u64 {
+        self.iat
+    }
+
+    /// Returns when the token should expire as the number of seconds since the Unix epoch.
+    pub fn exp(&self) -> Option<u64> {
+        self.exp
+    }
+
+    /// Returns the intended audience.
+    pub fn aud(&self) -> Option<&str> {
+        self.aud
+    }
+
+    /// Returns the subject.
+    pub fn sub(&self) -> Option<&str> {
+        self.sub
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{SplitJwt, UnverifiedJwt};
