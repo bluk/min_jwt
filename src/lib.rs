@@ -8,13 +8,14 @@
 //!
 //! This crate currently provides basic functionality to sign and verify the signatures of JWTs.
 
-#[cfg(any(feature = "ring"))]
-pub mod ring;
-
 pub use error::Error;
 
 mod error;
 pub mod keys;
+#[cfg(feature = "ring")]
+pub mod ring;
+#[cfg(feature = "web_crypto")]
+pub mod web_crypto;
 
 use error::Result;
 
