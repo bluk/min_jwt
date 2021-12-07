@@ -14,8 +14,7 @@ pub mod ring;
 pub use error::Error;
 
 mod error;
-pub mod jwk;
-pub mod pkcs8;
+pub mod keys;
 
 use error::Result;
 

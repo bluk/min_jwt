@@ -9,7 +9,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use super::{Algorithm, ParseAlgorithmError};
+use crate::{Algorithm, KeyId, ParseAlgorithmError};
 
 /// A JSON Web Key.
 ///
@@ -51,6 +51,10 @@ impl Jwk {
         } else {
             Err(ParseAlgorithmError::UnknownAlgorithm)
         }
+    }
+
+    pub(crate) fn key_id(&self) -> Option<KeyId<'_>> {
+        self.kid.as_ref().map(|kid| KeyId(kid))
     }
 }
 
