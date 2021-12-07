@@ -718,8 +718,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Header<'a> {
-    alg: &'a str,
-    kid: &'a str,
+    pub alg: &'a str,
+    pub kid: &'a str,
 }
 
 impl<'a> Header<'a> {
