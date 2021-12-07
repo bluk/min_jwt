@@ -6,8 +6,8 @@ on:
   pull_request:
 
 jobs:
-  check:
-    name: Check
+  build:
+    name: Build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -38,10 +38,16 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
-      - name: Run cargo check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
+      - run: cargo build --release --no-default-features
+      - run: cargo build --release --no-default-features --features p256
+      - run: cargo build --release --no-default-features --features rsa,sha2
+      - run: cargo build --release --no-default-features --features ring
+      - run: cargo build --release --no-default-features --features p256,serde,serde_json
+      - run: cargo build --release --no-default-features --features rsa,sha2,serde,serde_json
+      - run: cargo build --release --no-default-features --features ring,serde,serde_json
+      - run: cargo build --release --no-default-features --features ring,p256,serde,serde_json
+      - run: cargo build --release --no-default-features --features ring,rsa,sha2,serde,serde_json
+      - run: cargo build --release --all-features
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -74,8 +80,10 @@ jobs:
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.toml') }}
-      - name: Run cargo test
-        run: cargo test
+      - run: cargo check --all-features
+      - run: cargo test --release --no-default-features
+      - run: cargo test --release
+      - run: cargo test --release --all-features
   rustfmt:
     name: Format
     runs-on: ubuntu-latest

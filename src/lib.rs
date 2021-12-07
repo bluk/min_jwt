@@ -2,18 +2,132 @@
 //!
 //! JSON Web Tokens are a method for representing claims between two parties.
 //!
-//! JWTs are useful in some scenarios, but there are many use cases where JWTs are not ideal. If
-//! you search on the Internet, you can find many articles and comments which may help you decide
-//! if JWTs are appropriate for your use case.
+//! They are used in authentication flows with a third party provider (e.g.
+//! Sign in with...) amongst other scenarios.
 //!
-//! This crate currently provides basic functionality to sign and verify the signatures of JWTs.
-
-#[cfg(any(feature = "ring"))]
-pub mod ring;
+//! This crate provides functionality to sign and verify the signatures of
+//! JWTs.
+//!
+//! ## Cryptography Features/Dependencies
+//!
+//! This crate depends on other crates for all cryptographic operations.
+//! Find a supported crypto crate below which supports the algorithms required.
+//!
+//! | Dependent Crate(s)       | Algorithm(s) Supported | Feature(s)
+//! | ------------------       | ---------------------- | ----------
+//! | [p256][p256]             | ES256                  | p256
+//! | [ring][ring]             | ES256, HS256, RS256    | ring
+//! | [rsa][rsa], [sha2][sha2] | RS256                  | rsa, sha2
+//!
+//! For instance, if you need `ES256` support, you may choose to use the `p256`
+//! crate and/or the `ring` crate.  Suppose you chose the `p256` crate. In your
+//! crate, depend on this crate and the relevant dependent crate in your
+//! `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! min_jwt = { version = "0.2.0", features = [ "p256", "serde", "serde_json"] }
+//! p256 = { version = "0.10.0", features = [ "ecdsa", "jwk", "pem"] }
+//! ```
+//!
+//! Be sure to enable the relevant features as well.
+//!
+//! When choosing a cryptography implementation, you may want to consider
+//! compatibility with your environment, the ability to import the signing and
+//! verifying keys in the given formats, and the security properties of the
+//! code (e.g. an audited implementation, resistence to timing attacks, etc.).
+//!
+//! ## Usage
+//!
+//! The [encode_and_sign] and [verify][fn@verify] functions are the primary functions for this crate.
+//!
+//! To use the functions, construct the cryptography crate's key. The
+//! cryptography crate may provide methods to import a key in PKCS8 PEM, PKCS8
+//! DER, JSON Web Key (JWK), and other formats.
+//!
+//! Then, use the key as either a [sign::Signer] or [verify::Verifier]
+//! parameter. The key may need to be wrapped in a provided type.
+//! See the [sign] or [verify][mod@verify] modules for more documentation and examples.
+//!
+//! ## Examples
+//!
+//! ### Sign using ES256 with `p256` crate
+//!
+//! ```
+//! # #[cfg(feature = "p256")]
+//! # fn try_main() -> Result<(), min_jwt::error::Error> {
+//! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
+//! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
+//! let jwk = r#"
+//! {
+//!     "kty": "EC",
+//!     "crv": "P-256",
+//!     "x": "erEk-zqoG1oYBLD3ohuz0tzIlU7XzFG1098HcCOu0Ck",
+//!     "y": "lQLKfGS2F6mA97bOvo9AlfyNsn88Mf6Iwa5vmf6UkJw",
+//!     "d": "8UmkmK0KO64KCDRZb4RCAHRZ0AfRWBn3Pv6hTv1VR9k"
+//! }
+//! "#;
+//!
+//! let secret_key = ::p256::SecretKey::from_jwk_str(jwk).unwrap();
+//! let signing_key = ::p256::ecdsa::SigningKey::from(secret_key);
+//!
+//! let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
+//! # assert_eq!("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw", jwt);
+//! # Ok::<(), min_jwt::Error>(())
+//! # }
+//! # fn main() {
+//! #   #[cfg(feature = "p256")]
+//! #   try_main().unwrap();
+//! # }
+//! ```
+//!
+//! ### Verify using RS256 with `rsa` and `sha2` crates
+//!
+//! ```
+//! # #[cfg(all(feature = "rsa", feature = "sha2"))]
+//! # fn try_main() -> Result<(), min_jwt::error::Error> {
+//! # let jwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw";
+//! use ::rsa::pkcs8::FromPublicKey;
+//!
+//! let public_key =
+//! "-----BEGIN PUBLIC KEY-----
+//! MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyfEiSb2ElqylyAfWkbV0
+//! JmKwzaYH2JtWi05dELrGpSI+OM2mNmFnpxZVUUx77GWASD+u/EbDpB7TxoL8wW6r
+//! SFuduTIb63uhqeilkj6VhpPXVLpZg6m8korAXPGaN5BBMTyBAbpWk9e72z5gOGaF
+//! GI4xOv0v3N0MX2h9uXJvhPTpOdKn6jXEflUFF89OWGEh/3JnyZbX5p8+F8BAuseb
+//! 8gfpqT2Ct6KT5GrNiA7dPwjN7XFvVnvyYgR7+QXTVNRMrcrEUoJbR4DG+QVeyIRh
+//! 0JGqXtm901cviPBRbicIMn2f8qfs15XMSeHWrgel21Cv1wQh3I4xy+soZuZZ2i/p
+//! zwIDAQAB
+//! -----END PUBLIC KEY-----";
+//!
+//! let public_key = ::rsa::RsaPublicKey::from_public_key_pem(public_key).unwrap();
+//!
+//! let verifier = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(public_key);
+//! let result = min_jwt::verify(jwt, &verifier)?;
+//!
+//! let header = result.decode_header();
+//! let claims = result.decode_claims();
+//! # Ok::<(), min_jwt::Error>(())
+//! # }
+//! # fn main() {
+//! #   #[cfg(all(feature = "rsa", feature = "sha2"))]
+//! #   try_main().unwrap();
+//! # }
+//! ```
+//!
+//! [p256]: https://github.com/RustCrypto/elliptic-curves
+//! [ring]: https://github.com/briansmith/ring
+//! [rsa]: https://github.com/RustCrypto/RSA
+//! [rust_crypto]: https://github.com/RustCrypto
+//! [sha2]: https://github.com/RustCrypto/hashes
 
 pub use error::Error;
 
-mod error;
+pub mod algorithm;
+pub mod error;
+pub mod sign;
+pub mod time;
+pub mod verify;
 
 use error::Result;
 
@@ -26,16 +140,14 @@ use error::Result;
 /// what to do with the JWT.
 ///
 /// ```
-/// # use min_jwt::Error;
-/// #
-/// # fn try_main() -> Result<(), Error> {
+/// # fn try_main() -> Result<(), min_jwt::error::Error> {
 /// use min_jwt::UnverifiedJwt;
 ///
-/// let jwt_str = String::from("\
+/// let jwt = "\
 /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
 /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-/// ");
-/// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+/// ";
+/// let unverified_jwt = UnverifiedJwt::with_str(jwt)?;
 ///
 /// /* if need to read the header */
 /// let decoded_header = unverified_jwt.decode_header()?;
@@ -74,6 +186,20 @@ struct SplitJwt<'a> {
     signature: &'a str,
 }
 
+impl<'a> core::convert::TryFrom<&'a str> for UnverifiedJwt<'a> {
+    type Error = crate::error::Error;
+
+    fn try_from(value: &'a str) -> Result<Self> {
+        let split_jwt = Self::split(value)?;
+        Ok(UnverifiedJwt {
+            header: split_jwt.header,
+            claims: split_jwt.claims,
+            signed_data: split_jwt.signed_data,
+            signature: split_jwt.signature,
+        })
+    }
+}
+
 impl<'a> UnverifiedJwt<'a> {
     /// Attempts to construct an `UnverifiedJwt`.
     ///
@@ -91,11 +217,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(jwt)?;
     /// #   Ok(())
     /// # }
     /// # fn main() {
@@ -124,11 +250,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     ///
     /// let decoded_header = unverified_jwt.decode_header()?;
     ///
@@ -175,11 +301,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     ///
     /// let decoded_signature = unverified_jwt.decode_signature()?;
     ///
@@ -208,11 +334,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", unverified_jwt.signed_data());
     ///
@@ -239,11 +365,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9", unverified_jwt.encoded_header());
     ///
@@ -270,11 +396,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     ///
     /// assert_eq!("SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", unverified_jwt.encoded_signature());
     ///
@@ -318,23 +444,20 @@ impl<'a> UnverifiedJwt<'a> {
 /// ```
 /// # use min_jwt::Error;
 /// #
-/// # #[cfg(any(feature = "ring"))]
+/// # #[cfg(feature = "ring")]
 /// # fn try_main() -> Result<(), Error> {
-/// use min_jwt::UnverifiedJwt;
-/// use min_jwt::ring::verifier::HmacVerifier;
 /// use ring::hmac;
 ///
-/// let jwt_str = String::from("\
+/// let jwt = "\
 /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
 /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-/// ");
-/// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+/// ";
 ///
 /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
 /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-/// let hmac_verifier = HmacVerifier::with_key(hmac_key);
 ///
-/// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+/// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+/// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
 ///
 /// let decoded_claims = signature_verified_jwt.decode_claims()?;
 ///
@@ -342,13 +465,13 @@ impl<'a> UnverifiedJwt<'a> {
 /// #   Ok(())
 /// # }
 /// # fn main() {
-/// #   #[cfg(any(feature = "ring"))]
+/// #   #[cfg(feature = "ring")]
 /// #   try_main().unwrap();
 /// # }
 /// ```
 #[derive(Debug)]
 pub struct SignatureVerifiedJwt<'a> {
-    unverified_jwt: &'a UnverifiedJwt<'a>,
+    unverified_jwt: UnverifiedJwt<'a>,
 }
 
 impl<'a> SignatureVerifiedJwt<'a> {
@@ -361,23 +484,20 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
-    /// # #[cfg(any(feature = "ring"))]
+    /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// let decoded_header = signature_verified_jwt.decode_header()?;
     ///
@@ -386,7 +506,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
-    /// #   #[cfg(any(feature = "ring"))]
+    /// #   #[cfg(feature = "ring")]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -404,23 +524,20 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
-    /// # #[cfg(any(feature = "ring"))]
+    /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// let decoded_claims = signature_verified_jwt.decode_claims()?;
     ///
@@ -429,7 +546,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
-    /// #   #[cfg(any(feature = "ring"))]
+    /// #   #[cfg(feature = "ring")]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -448,23 +565,20 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
-    /// # #[cfg(any(feature = "ring"))]
+    /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// let decoded_signature = signature_verified_jwt.decode_signature()?;
     ///
@@ -473,7 +587,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
-    /// #   #[cfg(any(feature = "ring"))]
+    /// #   #[cfg(feature = "ring")]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -489,30 +603,27 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
-    /// # #[cfg(any(feature = "ring"))]
+    /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", signature_verified_jwt .signed_data());
     ///
     /// #   Ok(())
     /// # }
     /// # fn main() {
-    /// #   #[cfg(any(feature = "ring"))]
+    /// #   #[cfg(feature = "ring")]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -531,23 +642,20 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
-    /// # #[cfg(any(feature = "ring"))]
+    /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9", signature_verified_jwt.encoded_header());
     ///
@@ -556,7 +664,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
-    /// #   #[cfg(any(feature = "ring"))]
+    /// #   #[cfg(feature = "ring")]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -576,23 +684,20 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
-    /// # #[cfg(any(feature = "ring"))]
+    /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// assert_eq!("eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", signature_verified_jwt.encoded_claims());
     ///
@@ -601,7 +706,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
-    /// #   #[cfg(any(feature = "ring"))]
+    /// #   #[cfg(feature = "ring")]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -620,23 +725,20 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// ```
     /// # use min_jwt::Error;
     /// #
-    /// # #[cfg(any(feature = "ring"))]
+    /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// assert_eq!("SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", signature_verified_jwt.encoded_signature());
     ///
@@ -645,7 +747,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #   Ok(())
     /// # }
     /// # fn main() {
-    /// #   #[cfg(any(feature = "ring"))]
+    /// #   #[cfg(feature = "ring")]
     /// #   try_main().unwrap();
     /// # }
     /// ```
@@ -655,9 +757,141 @@ impl<'a> SignatureVerifiedJwt<'a> {
     }
 }
 
+/// A marker trait for a JWT's header.
+pub trait Header {}
+
+/// A marker trait for a JWT's claims.
+pub trait Claims {}
+
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+/// Contains the algorithm and the key ID used to sign the JWT.
+///
+/// The `BasicHeader` type is intended to be used for generic algorithms which
+/// only require common information in JWTs. If more specific fields need to be
+/// deserialized, a custom application specific type would be required to
+/// deserialize all of the fields.
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[non_exhaustive]
+pub struct BasicHeader<'a> {
+    /// The signing algorithm.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub alg: Option<&'a str>,
+    /// The key ID.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub kid: Option<&'a str>,
+    /// The type of token.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub typ: Option<&'a str>,
+}
+
+impl<'a> Header for BasicHeader<'a> {}
+
+/// Contains the issuer ID, when the token was issued, and when the token
+/// expires.
+///
+/// The `BasicClaims` type is intended to be used for generic algorithms which
+/// only require common information in JWTs. For most applications, a custom
+/// application specific type would be required to deserialize all of the
+/// fields.
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[non_exhaustive]
+pub struct BasicClaims<'a> {
+    /// The issuer of the token.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub iss: Option<&'a str>,
+    /// When the token was issued as the number of seconds since the Unix epoch.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub iat: Option<u64>,
+    /// When the token should expire as the number of seconds since the Unix epoch.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub exp: Option<u64>,
+    /// The intended audience.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub aud: Option<&'a str>,
+    /// The subject.
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub sub: Option<&'a str>,
+}
+
+impl<'a> Claims for BasicClaims<'a> {}
+
+trait DecodeJwk {}
+
+trait EncodeJwk {}
+
+/// Serializes the types to JSON, base64 encodes the JSON, constructs the
+/// signing input, signs the data, and then returns the JWT.
+///
+/// # Errors
+///
+/// The function may return an error variant because the key pair is invalid.
+#[cfg(all(feature = "serde", feature = "serde_json"))]
+pub fn serialize_encode_and_sign<H, C, S>(header: H, claims: C, signing_key: S) -> Result<String>
+where
+    H: crate::Header + serde::Serialize,
+    C: crate::Claims + serde::Serialize,
+    S: sign::Signer,
+{
+    let header = serde_json::to_vec(&header).unwrap();
+    let claims = serde_json::to_vec(&claims).unwrap();
+    encode_and_sign(header, claims, signing_key)
+}
+
+/// Base64 encodes byte representations of the header and claims, constructs the
+/// signing input, signs the data, and then returns the JWT.
+///
+/// # Errors
+///
+/// The function may return an error variant because the key pair is invalid.
+pub fn encode_and_sign<H, C, S>(header: H, claims: C, signing_key: S) -> Result<String>
+where
+    H: AsRef<[u8]>,
+    C: AsRef<[u8]>,
+    S: sign::Signer,
+{
+    let encoded_header = base64::encode_config(header, base64::URL_SAFE_NO_PAD);
+    let encoded_claims = base64::encode_config(claims, base64::URL_SAFE_NO_PAD);
+    let data_to_sign = [encoded_header.as_ref(), encoded_claims.as_ref()].join(".");
+
+    let signature = signing_key.sign(data_to_sign.as_bytes())?;
+    let signature = signature.as_ref();
+    let signature = base64::encode_config(&signature, base64::URL_SAFE_NO_PAD);
+
+    Ok([data_to_sign, signature].join("."))
+}
+
+/// Attempts to verify a JWT's signature.
+///
+/// # Errors
+///
+/// If the public key or signature is invalid, the function will return an error variant.
+pub fn verify<V>(unverified_jwt: &str, verifying_key: V) -> Result<SignatureVerifiedJwt<'_>>
+where
+    V: verify::Verifier,
+{
+    let unverified_jwt = UnverifiedJwt::with_str(unverified_jwt)?;
+    let signed_data = unverified_jwt.signed_data().as_bytes();
+    let decoded_signature = unverified_jwt.decode_signature()?;
+
+    verifying_key
+        .verify(signed_data, decoded_signature)
+        .map(|_| SignatureVerifiedJwt { unverified_jwt })
+}
+
 #[cfg(test)]
 mod tests {
     use super::{SplitJwt, UnverifiedJwt};
+
+    #[cfg(any(feature = "ring", feature = "p256"))]
+    pub(crate) fn jwt_claims_str() -> String {
+        String::from(
+            "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}",
+        )
+    }
 
     #[test]
     fn split_unverified_jwt_normal_parts() {
@@ -739,3 +973,12 @@ mod tests {
         assert!(error.is_malformed_jwt())
     }
 }
+
+#[cfg(feature = "p256")]
+mod p256;
+
+#[cfg(feature = "ring")]
+mod ring;
+
+#[cfg(feature = "rsa")]
+mod rsa;

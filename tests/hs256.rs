@@ -1,14 +1,9 @@
 mod common;
 
-#[cfg(any(feature = "ring"))]
-use min_jwt::{
-    ring::{signer::HmacSigner, verifier::HmacVerifier},
-    UnverifiedJwt,
-};
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 use ring::hmac;
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 static EXPECTED_JWT_RFC7515_A1: &str = "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.\
                                         eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzO\
                                         DAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb2\
@@ -16,38 +11,43 @@ static EXPECTED_JWT_RFC7515_A1: &str = "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9
                                         1r_wW1gFWFOEjXk\
                                         ";
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 static ENCODED_HMAC_KEY_RFC7515_A1: &str =
     "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 static EXPECTED_CLAIMS: &str =
     "{\"iss\":\"joe\",\r\n \"exp\":1300819380,\r\n \"http://example.com/is_root\":true}";
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 fn decoded_hmac_key() -> Vec<u8> {
     base64::decode_config(&ENCODED_HMAC_KEY_RFC7515_A1, base64::URL_SAFE_NO_PAD).unwrap()
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs256_encode_and_sign_json_str_rfc7515_appendix_a_1_example() {
+    use min_jwt::sign::ring::HmacKeySigner;
+
     // See https://tools.ietf.org/html/rfc7515#appendix-A.1
 
     let header = String::from("{\"typ\":\"JWT\",\r\n \"alg\":\"HS256\"}");
     let claims = EXPECTED_CLAIMS;
 
-    let signer = HmacSigner::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
+    let key = hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key());
+    let signer = HmacKeySigner::with_hs256(&key);
 
     assert_eq!(
-        signer.encode_and_sign_json_str(&header, claims).unwrap(),
+        min_jwt::encode_and_sign(&header, &claims, &signer).unwrap(),
         EXPECTED_JWT_RFC7515_A1
     );
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs256_encode_and_sign_json_bytes_rfc7515_appendix_a_1_example() {
+    use min_jwt::sign::ring::HmacKeySigner;
+
     // See https://tools.ietf.org/html/rfc7515#appendix-A.1
 
     let header_bytes = [
@@ -61,29 +61,26 @@ fn hs256_encode_and_sign_json_bytes_rfc7515_appendix_a_1_example() {
         111, 116, 34, 58, 116, 114, 117, 101, 125,
     ];
 
-    let signer = HmacSigner::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
+    let signer = HmacKeySigner::with_hs256(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
 
     assert_eq!(
-        signer
-            .encode_and_sign_json_bytes(&header_bytes, &claims_bytes)
-            .unwrap(),
+        min_jwt::encode_and_sign(&header_bytes, &claims_bytes, &signer,).unwrap(),
         EXPECTED_JWT_RFC7515_A1
     );
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs256_verify_valid_signature_rfc7515_appendix_a_1_example() {
+    use min_jwt::verify::ring::HmacKeyVerifier;
+
     // See https://tools.ietf.org/html/rfc7515#appendix-A.1
 
-    let jwt = &EXPECTED_JWT_RFC7515_A1;
+    let jwt = EXPECTED_JWT_RFC7515_A1;
+    let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key());
 
-    let unverified_jwt = UnverifiedJwt::with_str(jwt).unwrap();
-
-    let hmac_verifier =
-        HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
-
-    let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt).unwrap();
+    let verifier = HmacKeyVerifier::with_hs256(&hmac_key);
+    let signature_verified_jwt = min_jwt::verify(jwt, &verifier).unwrap();
 
     assert_eq!(
         String::from_utf8(signature_verified_jwt.decode_claims().unwrap()).unwrap(),
@@ -91,9 +88,11 @@ fn hs256_verify_valid_signature_rfc7515_appendix_a_1_example() {
     );
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs256_verify_invalid_signature() {
+    use min_jwt::verify::ring::HmacKeyVerifier;
+
     let jwt_with_invalid_signature = String::from(
         "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.\
          eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzO\
@@ -103,12 +102,10 @@ fn hs256_verify_invalid_signature() {
          ",
     );
 
-    let unverified_jwt = UnverifiedJwt::with_str(&jwt_with_invalid_signature).unwrap();
+    let verifier =
+        HmacKeyVerifier::with_hs256(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
 
-    let hmac_verifier =
-        HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
-
-    let error = hmac_verifier.verify(&unverified_jwt).unwrap_err();
+    let error = min_jwt::verify(&jwt_with_invalid_signature, &verifier).unwrap_err();
 
     assert!(error.is_invalid_signature());
 }
