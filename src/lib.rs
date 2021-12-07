@@ -15,6 +15,7 @@ pub use error::Error;
 
 mod error;
 pub mod jwk;
+pub mod pkcs8;
 
 use error::Result;
 
