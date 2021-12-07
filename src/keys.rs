@@ -34,8 +34,8 @@ impl Keys<JwkSet> {
         let alg = header.alg();
         let kid = header.kid();
 
-        self.keys
-            .signing_keys()
-            .find(|&jwk| jwk.alg.as_deref() == Some(alg) && jwk.kid.as_deref() == Some(kid))
+        self.keys.signing_keys().find(|&jwk| {
+            alg.is_some() && jwk.alg.as_deref() == alg && kid.is_some() && jwk.kid.as_deref() == kid
+        })
     }
 }

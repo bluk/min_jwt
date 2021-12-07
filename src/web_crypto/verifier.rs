@@ -130,8 +130,8 @@ impl<'a> Keys<'a> {
     pub fn find_signing_key(&self, jwt: &UnverifiedJwt) -> Option<&VerifyingKey> {
         let header = jwt.decode_header().ok()?;
         let header = serde_json::from_slice::<Header>(&header).ok()?;
-        let alg = Algorithm::from_str(header.alg()).ok()?;
-        let kid = header.kid();
+        let alg = header.alg.and_then(|alg| Algorithm::from_str(alg).ok())?;
+        let kid = header.kid()?;
 
         self.keys.get(kid).filter(|&key| key.algorithm == alg)
     }

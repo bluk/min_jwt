@@ -714,19 +714,28 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Header<'a> {
-    pub alg: &'a str,
-    pub kid: &'a str,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub alg: Option<&'a str>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub kid: Option<&'a str>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub typ: Option<&'a str>,
 }
 
 impl<'a> Header<'a> {
     /// Returns the signing algorithm.
-    pub fn alg(&self) -> &str {
+    pub fn alg(&self) -> Option<&str> {
         self.alg
     }
 
     /// Returns the key ID.
-    pub fn kid(&self) -> &str {
+    pub fn kid(&self) -> Option<&str> {
         self.kid
+    }
+
+    /// Returns the type of token.
+    pub fn typ(&self) -> Option<&str> {
+        self.typ
     }
 }
 
@@ -734,8 +743,10 @@ impl<'a> Header<'a> {
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Claims<'a> {
-    pub iss: &'a str,
-    pub iat: u64,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub iss: Option<&'a str>,
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub iat: Option<u64>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub exp: Option<u64>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
@@ -746,12 +757,12 @@ pub struct Claims<'a> {
 
 impl<'a> Claims<'a> {
     /// Returns the issuer of the token (usually the team ID).
-    pub fn iss(&self) -> &str {
+    pub fn iss(&self) -> Option<&str> {
         self.iss
     }
 
     /// Returns when the token was issued as the number of seconds since the Unix epoch.
-    pub fn iat(&self) -> u64 {
+    pub fn iat(&self) -> Option<u64> {
         self.iat
     }
 
