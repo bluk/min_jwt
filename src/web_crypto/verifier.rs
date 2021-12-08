@@ -5,10 +5,7 @@ use web_sys::{CryptoKey, SubtleCrypto};
 
 use crate::{
     error::Error,
-    keys::{
-        jwk::{Jwk, USAGE_SIGN},
-        pkcs8::Pkcs8Key,
-    },
+    keys::jwk::{Jwk, USAGE_SIGN},
     Algorithm, SignatureVerifiedJwt, UnverifiedJwt,
 };
 
@@ -97,19 +94,5 @@ pub async fn import_jwk_key<'a, 'b>(
         subtle_crypto,
         crypto_key,
         algorithm,
-    })
-}
-
-/// Imports a PKCS8 key via the `SubtleCrypto` API.
-pub async fn import_pkcs8_key<'a, 'b>(
-    subtle_crypto: &'a SubtleCrypto,
-    pkcs8_key: &'b Pkcs8Key<'b>,
-) -> Result<VerifyingKey<'a>, Error> {
-    let crypto_key =
-        super::import_pkcs8_key(subtle_crypto, pkcs8_key, super::KeyUsages::Verify).await?;
-    Ok(VerifyingKey {
-        subtle_crypto,
-        crypto_key,
-        algorithm: pkcs8_key.algorithm,
     })
 }
