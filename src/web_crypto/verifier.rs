@@ -1,3 +1,5 @@
+//! Verify various types of signatures for a JWT.
+
 use std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
 use web_sys::{CryptoKey, SubtleCrypto};
@@ -13,6 +15,7 @@ use crate::{
 
 use super::WebCryptoAlgorithm;
 
+/// A key used to verify JWT signatures.
 #[derive(Debug)]
 pub struct VerifyingKey<'a> {
     subtle_crypto: &'a SubtleCrypto,
@@ -70,6 +73,7 @@ impl<'a> VerifyingKey<'a> {
     }
 }
 
+/// Imports a JWK key via the `SubtleCrypto` API.
 pub async fn import_jwk_key<'a, 'b>(
     subtle_crypto: &'a SubtleCrypto,
     jwk: &Jwk,
@@ -92,6 +96,7 @@ pub async fn import_jwk_key<'a, 'b>(
     })
 }
 
+/// Imports a PKCS8 key via the `SubtleCrypto` API.
 pub async fn import_pkcs8_key<'a, 'b>(
     subtle_crypto: &'a SubtleCrypto,
     pkcs8_key: &'b Pkcs8Key<'b>,
@@ -108,7 +113,7 @@ pub async fn import_pkcs8_key<'a, 'b>(
 use crate::Header;
 use core::str::FromStr;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Keys<'a> {
     keys: BTreeMap<String, VerifyingKey<'a>>,
 }
@@ -131,17 +136,9 @@ impl<'a> Keys<'a> {
         let header = jwt.decode_header().ok()?;
         let header = serde_json::from_slice::<Header>(&header).ok()?;
         let alg = header.alg.and_then(|alg| Algorithm::from_str(alg).ok())?;
-        let kid = header.kid()?;
+        let kid = header.kid?;
 
         self.keys.get(kid).filter(|&key| key.algorithm == alg)
-    }
-}
-
-impl<'a> Default for Keys<'a> {
-    fn default() -> Self {
-        Self {
-            keys: BTreeMap::default(),
-        }
     }
 }
 

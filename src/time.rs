@@ -32,12 +32,14 @@ impl DurationSinceEpoch for StdDurationSinceEpoch {
 #[cfg(feature = "web_crypto")]
 use js_sys::Date;
 
+/// Duration since the epoch represented by JavaScript types.
 #[cfg(feature = "web_crypto")]
 #[derive(Clone, Copy, Debug)]
 pub struct JsDurationSinceEpoch(f64);
 
 #[cfg(feature = "web_crypto")]
 impl JsDurationSinceEpoch {
+    /// Returns the current duration since the epoch.
     pub fn now() -> Self {
         Self(Date::now())
     }

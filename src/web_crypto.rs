@@ -1,3 +1,9 @@
+//! Web Crypto API implementation of signers and verifiers.
+//!
+//! [Web Crypto API][web_crypto] is an API available in JavaScript/browser environments.
+//!
+//! [web_crypto]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API
+
 use js_sys::{Array, Object, Uint8Array};
 use serde::Serialize;
 use std::iter::FromIterator;

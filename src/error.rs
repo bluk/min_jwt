@@ -71,7 +71,7 @@ impl Error {
         }
     }
 
-    /// If the error is due to an invalid signing key.
+    /// If the error is due to an invalid key.
     pub fn is_key_rejected(&self) -> bool {
         #[cfg(all(feature = "ring", not(feature = "web_crypto")))]
         {

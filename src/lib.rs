@@ -711,75 +711,51 @@ impl core::str::FromStr for Algorithm {
 use serde::{Deserialize, Serialize};
 
 /// Contains the algorithm and the key ID used to sign the JWT.
+///
+/// The `Header` type is intended to be used for generic algorithms which only
+/// require common information in JWTs. If more specific fields need to be
+/// deserialized, a specific type would be required to deserialize all of the
+/// fields.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[non_exhaustive]
 pub struct Header<'a> {
+    /// The signing algorithm.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub alg: Option<&'a str>,
+    /// The key ID.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub kid: Option<&'a str>,
+    /// The type of token.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub typ: Option<&'a str>,
 }
 
-impl<'a> Header<'a> {
-    /// Returns the signing algorithm.
-    pub fn alg(&self) -> Option<&str> {
-        self.alg
-    }
-
-    /// Returns the key ID.
-    pub fn kid(&self) -> Option<&str> {
-        self.kid
-    }
-
-    /// Returns the type of token.
-    pub fn typ(&self) -> Option<&str> {
-        self.typ
-    }
-}
-
-/// Contains the issuer ID, when the token was issued, and when the token expires.
+/// Contains the issuer ID, when the token was issued, and when the token
+/// expires.
+///
+/// The `Claims` type is intended to be used for generic algorithms which only
+/// require common information in JWTs. For most applications, a specific type
+/// would be required to deserialize all of the fields.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[non_exhaustive]
 pub struct Claims<'a> {
+    /// The issuer of the token.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub iss: Option<&'a str>,
+    /// When the token was issued as the number of seconds since the Unix epoch.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub iat: Option<u64>,
+    /// When the token should expire as the number of seconds since the Unix epoch.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub exp: Option<u64>,
+    /// The intended audience.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub aud: Option<&'a str>,
+    /// The subject.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub sub: Option<&'a str>,
-}
-
-impl<'a> Claims<'a> {
-    /// Returns the issuer of the token (usually the team ID).
-    pub fn iss(&self) -> Option<&str> {
-        self.iss
-    }
-
-    /// Returns when the token was issued as the number of seconds since the Unix epoch.
-    pub fn iat(&self) -> Option<u64> {
-        self.iat
-    }
-
-    /// Returns when the token should expire as the number of seconds since the Unix epoch.
-    pub fn exp(&self) -> Option<u64> {
-        self.exp
-    }
-
-    /// Returns the intended audience.
-    pub fn aud(&self) -> Option<&str> {
-        self.aud
-    }
-
-    /// Returns the subject.
-    pub fn sub(&self) -> Option<&str> {
-        self.sub
-    }
 }
 
 #[cfg(test)]
