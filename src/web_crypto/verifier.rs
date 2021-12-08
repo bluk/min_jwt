@@ -13,13 +13,13 @@ use super::WebCryptoAlgorithm;
 
 /// A key used to verify JWT signatures.
 #[derive(Debug)]
-pub struct VerifyingKey<'a> {
+pub struct Verifier<'a> {
     subtle_crypto: &'a SubtleCrypto,
     algorithm: Algorithm,
     crypto_key: CryptoKey,
 }
 
-impl<'a> VerifyingKey<'a> {
+impl<'a> Verifier<'a> {
     /// Returns the algorithm of the underlying key.
     pub fn algorithm(&self) -> Algorithm {
         self.algorithm
@@ -75,10 +75,10 @@ impl<'a> VerifyingKey<'a> {
 }
 
 /// Imports a JWK key via the `SubtleCrypto` API.
-pub async fn import_jwk_key<'a, 'b>(
+pub async fn with_jwk<'a, 'b>(
     subtle_crypto: &'a SubtleCrypto,
     jwk: &Jwk,
-) -> Result<VerifyingKey<'a>, Error> {
+) -> Result<Verifier<'a>, Error> {
     if let Some(usage) = jwk.r#use.as_deref() {
         if usage != USAGE_SIGN {
             return Err(Error::key_rejected(JsValue::from_str("invalid usage")));
@@ -89,8 +89,8 @@ pub async fn import_jwk_key<'a, 'b>(
         .algorithm()
         .map_err(|_| Error::key_rejected(JsValue::from_str("unknown alg")))?;
     let crypto_key =
-        super::import_jwk_key(subtle_crypto, jwk, algorithm, super::KeyUsages::Verify).await?;
-    Ok(VerifyingKey {
+        super::import_jwk(subtle_crypto, jwk, algorithm, super::KeyUsages::Verify).await?;
+    Ok(Verifier {
         subtle_crypto,
         crypto_key,
         algorithm,

@@ -134,7 +134,7 @@ impl WebCryptoAlgorithm for super::Algorithm {
     }
 }
 
-async fn import_jwk_key<'a, 'b>(
+async fn import_jwk<'a, 'b>(
     subtle_crypto: &'a SubtleCrypto,
     jwk: &'b Jwk,
     algorithm: Algorithm,
