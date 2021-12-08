@@ -9,7 +9,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{Algorithm, Error};
+use crate::{Algorithm, Error, Header, UnverifiedJwt};
 
 pub(crate) const USAGE_SIGN: &str = "sig";
 
@@ -68,9 +68,23 @@ pub struct JwkSet {
 }
 
 impl JwkSet {
+    /// Returns all of the keys used for signing.
     pub fn signing_keys(&self) -> impl Iterator<Item = &Jwk> {
         self.keys
             .iter()
             .filter(|&key| key.r#use.as_deref() == Some(USAGE_SIGN))
+    }
+
+    /// Uses a JWT's header's algorithm and key id values to find a JWK.
+    #[cfg(feature = "serde_json")]
+    pub fn find_signing_key(&self, jwt: &UnverifiedJwt) -> Option<&Jwk> {
+        let header = jwt.decode_header().ok()?;
+        let header = serde_json::from_slice::<Header>(&header).ok()?;
+        let alg = header.alg;
+        let kid = header.kid;
+
+        self.signing_keys().find(|&jwk| {
+            alg.is_some() && jwk.alg.as_deref() == alg && kid.is_some() && jwk.kid.as_deref() == kid
+        })
     }
 }
