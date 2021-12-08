@@ -157,15 +157,15 @@ async fn import_jwk_key<'a, 'b>(
     ))
 }
 
-async fn import_pkcs8_key<'a, 'b>(
+async fn import_pkcs8<'a, 'b>(
     subtle_crypto: &'a SubtleCrypto,
-    pkcs8_key: &'b Pkcs8Key<'b>,
+    pkcs8_key: &'b Pkcs8Key,
     key_usages: KeyUsages,
 ) -> Result<CryptoKey, Error> {
     let import_key_promise = subtle_crypto
         .import_key_with_object(
             "pkcs8",
-            &pkcs8_data_object(pkcs8_key.data),
+            &pkcs8_data_object(&pkcs8_key.data),
             &pkcs8_key.algorithm.import_algorithm(),
             false,
             &key_usages.import_usage(),
