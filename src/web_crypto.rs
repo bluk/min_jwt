@@ -83,20 +83,14 @@ impl WebCryptoAlgorithm for super::Algorithm {
             Self::Rs256 => {
                 #[derive(Serialize)]
                 #[serde(rename_all = "camelCase")]
-                struct ImportRsaHash<'a> {
-                    name: &'a str,
-                }
-
-                #[derive(Serialize)]
-                #[serde(rename_all = "camelCase")]
                 struct ImportRsaPkcs1Type<'a> {
                     name: &'a str,
-                    hash: ImportRsaHash<'a>,
+                    hash: &'a str,
                 }
 
                 let key_type = ImportRsaPkcs1Type {
                     name: "RSASSA-PKCS1-v1_5",
-                    hash: ImportRsaHash { name: "SHA-256" },
+                    hash: "SHA-256",
                 };
                 let key_type_js_value = JsValue::from_serde(&key_type).unwrap();
                 Object::from(key_type_js_value)
