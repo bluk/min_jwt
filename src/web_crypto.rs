@@ -4,7 +4,7 @@
 //!
 //! [web_crypto]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API
 
-use js_sys::{Array, Object, Uint8Array};
+use js_sys::{Array, ArrayBuffer, Object, Uint8Array};
 use serde::Serialize;
 use std::iter::FromIterator;
 use wasm_bindgen::prelude::*;
@@ -31,7 +31,7 @@ impl KeyUsages {
     }
 }
 
-fn pkcs8_data_object(bytes: &[u8]) -> Object {
+fn pkcs8_data_object(bytes: &[u8]) -> ArrayBuffer {
     use regex::Regex;
 
     let header_re = Regex::new(r"-+BEGIN.+-+").unwrap();
@@ -46,7 +46,7 @@ fn pkcs8_data_object(bytes: &[u8]) -> Object {
     // TODO: Use JavaScript window.atob() instead of base64?
     let b64_decoded_key =
         base64::decode_config(&key_data[..], base64::STANDARD).expect("base64::decode failed");
-    Object::from(Uint8Array::from(b64_decoded_key.as_slice()).buffer())
+    Uint8Array::from(b64_decoded_key.as_slice()).buffer()
 }
 
 fn jwk_data_object(jwk: &Jwk) -> Object {
