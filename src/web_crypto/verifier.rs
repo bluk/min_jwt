@@ -23,6 +23,11 @@ pub struct VerifyingKey<'a> {
 }
 
 impl<'a> VerifyingKey<'a> {
+    /// Returns the algorithm of the underlying key.
+    pub fn algorithm(&self) -> Algorithm {
+        self.algorithm
+    }
+
     /// Attempts to verify signed data with a base64 decoded signature.
     ///
     /// This function is available for debugging purposes.

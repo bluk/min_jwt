@@ -660,49 +660,19 @@ impl<'a> SignatureVerifiedJwt<'a> {
 
 /// Algorithm used to sign the JWT.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) enum Algorithm {
+pub enum Algorithm {
     Es256,
     Rs256,
 }
 
-// impl Algorithm {
-//     fn as_str(&self) -> &str {
-//         match self {
-//             Algorithm::Es256 => "ES256",
-//             Algorithm::Rs256 => "RS256",
-//         }
-//     }
-// }
-
-/// Errors for when parsing a str into an algorithm.
-#[derive(Debug)]
-#[non_exhaustive]
-pub(crate) enum ParseAlgorithmError {
-    UnknownAlgorithm,
-}
-
-impl std::error::Error for ParseAlgorithmError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        None
-    }
-}
-
-impl std::fmt::Display for ParseAlgorithmError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::UnknownAlgorithm => f.write_str("unknown algorithm"),
-        }
-    }
-}
-
 impl core::str::FromStr for Algorithm {
-    type Err = ParseAlgorithmError;
+    type Err = Error;
 
     fn from_str(s: &str) -> core::result::Result<Self, Self::Err> {
         match s {
             "ES256" => Ok(Algorithm::Es256),
             "RS256" => Ok(Algorithm::Rs256),
-            _ => Err(ParseAlgorithmError::UnknownAlgorithm),
+            _ => Err(Error::unknown_algorithm()),
         }
     }
 }

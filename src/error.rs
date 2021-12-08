@@ -91,6 +91,19 @@ impl Error {
             false
         }
     }
+
+    pub(crate) fn unknown_algorithm() -> Self {
+        Error {
+            err: Box::new(ErrorImpl {
+                code: ErrorCode::UnknownAlgorithm,
+            }),
+        }
+    }
+
+    /// If the error is due to an unknown algorithm.
+    pub fn is_unknown_algorithm(&self) -> bool {
+        matches!(self.err.code, ErrorCode::UnknownAlgorithm)
+    }
 }
 
 impl error::Error for Error {
@@ -104,6 +117,7 @@ impl error::Error for Error {
             ErrorCode::RingUnspecified(_) => "cryptography error",
             #[cfg(feature = "ring")]
             ErrorCode::RingKeyRejected(_) => "key rejected",
+            ErrorCode::UnknownAlgorithm => "unknown algorithm",
             #[cfg(feature = "web_crypto")]
             ErrorCode::WebCryptoKeyRejected(_) => "key rejected",
         }
@@ -117,6 +131,7 @@ impl error::Error for Error {
             ErrorCode::InvalidSignature => None,
             #[cfg(feature = "ring")]
             ErrorCode::RingKeyRejected(_) | ErrorCode::RingUnspecified(_) => None,
+            ErrorCode::UnknownAlgorithm => None,
             #[cfg(feature = "web_crypto")]
             ErrorCode::WebCryptoKeyRejected(_) => None,
         }
@@ -189,6 +204,7 @@ pub(crate) enum ErrorCode {
     RingKeyRejected(ring::error::KeyRejected),
     #[cfg(feature = "ring")]
     RingUnspecified(ring::error::Unspecified),
+    UnknownAlgorithm,
     #[cfg(feature = "web_crypto")]
     WebCryptoKeyRejected(wasm_bindgen::JsValue),
 }
@@ -204,6 +220,7 @@ impl Display for ErrorCode {
             ErrorCode::RingKeyRejected(ref error) => Display::fmt(error, f),
             #[cfg(feature = "ring")]
             ErrorCode::RingUnspecified(ref error) => Display::fmt(error, f),
+            ErrorCode::UnknownAlgorithm => f.write_str("unknown algorithm"),
             #[cfg(feature = "web_crypto")]
             ErrorCode::WebCryptoKeyRejected(ref error) => {
                 if let Some(error) = error.as_string() {

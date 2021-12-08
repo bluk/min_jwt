@@ -9,7 +9,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{Algorithm, ParseAlgorithmError};
+use crate::{Algorithm, Error};
 
 pub(crate) const USAGE_SIGN: &str = "sig";
 
@@ -45,13 +45,13 @@ pub struct Jwk {
 }
 
 impl Jwk {
-    pub(crate) fn algorithm(&self) -> Result<Algorithm, ParseAlgorithmError> {
+    pub(crate) fn algorithm(&self) -> Result<Algorithm, Error> {
         use core::str::FromStr;
 
         if let Some(alg) = self.alg.as_ref() {
             Algorithm::from_str(alg)
         } else {
-            Err(ParseAlgorithmError::UnknownAlgorithm)
+            Err(Error::unknown_algorithm())
         }
     }
 }
