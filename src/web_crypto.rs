@@ -16,9 +16,11 @@ use crate::{
     Algorithm,
 };
 
+pub mod signer;
 pub mod verifier;
 
 enum KeyUsages {
+    Sign,
     Verify,
 }
 
@@ -26,6 +28,7 @@ impl KeyUsages {
     #[inline]
     fn import_usage(&self) -> Array {
         match self {
+            Self::Sign => Array::from_iter([JsValue::from_str("sign")].iter()),
             Self::Verify => Array::from_iter([JsValue::from_str("verify")].iter()),
         }
     }
@@ -56,6 +59,8 @@ fn jwk_data_object(jwk: &Jwk) -> Object {
 
 trait WebCryptoAlgorithm {
     fn import_algorithm(&self) -> Object;
+
+    fn sign_algorithm(&self) -> Object;
 
     fn verify_algorithm(&self) -> Object;
 }
@@ -94,6 +99,31 @@ impl WebCryptoAlgorithm for super::Algorithm {
                 };
                 let key_type_js_value = JsValue::from_serde(&key_type).unwrap();
                 Object::from(key_type_js_value)
+            }
+        }
+    }
+
+    fn sign_algorithm(&self) -> Object {
+        // TODO: Avoid use of serde
+
+        match self {
+            Self::Es256 => {
+                #[derive(Serialize)]
+                #[serde(rename_all = "camelCase")]
+                struct VerifyEcdsaParamsType<'a> {
+                    name: &'a str,
+                    hash: &'a str,
+                }
+
+                let key_type = VerifyEcdsaParamsType {
+                    name: "ECDSA",
+                    hash: "SHA-256",
+                };
+                let key_type_js_value = JsValue::from_serde(&key_type).unwrap();
+                Object::from(key_type_js_value)
+            }
+            Self::Rs256 => {
+                todo!()
             }
         }
     }
