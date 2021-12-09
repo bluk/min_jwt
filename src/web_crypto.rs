@@ -19,12 +19,12 @@ use crate::{
 pub mod signer;
 pub mod verifier;
 
-enum KeyUsages {
+enum KeyUsage {
     Sign,
     Verify,
 }
 
-impl KeyUsages {
+impl KeyUsage {
     #[inline]
     fn import_usage(&self) -> Array {
         match self {
@@ -168,7 +168,7 @@ async fn import_jwk<'a, 'b>(
     subtle_crypto: &'a SubtleCrypto,
     jwk: &'b Jwk,
     algorithm: Algorithm,
-    key_usages: KeyUsages,
+    key_usages: KeyUsage,
 ) -> Result<CryptoKey, Error> {
     debug_assert_eq!(algorithm, jwk.algorithm().unwrap());
     let import_key_promise = subtle_crypto
@@ -190,7 +190,7 @@ async fn import_jwk<'a, 'b>(
 async fn import_pkcs8<'a, 'b>(
     subtle_crypto: &'a SubtleCrypto,
     pkcs8_key: &'b Pkcs8Key,
-    key_usages: KeyUsages,
+    key_usages: KeyUsage,
 ) -> Result<CryptoKey, Error> {
     let import_key_promise = subtle_crypto
         .import_key_with_object(

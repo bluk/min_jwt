@@ -39,7 +39,7 @@ impl<'a> Signer<'a> {
             .algorithm()
             .map_err(|_| Error::key_rejected(JsValue::from_str("unknown alg")))?;
         let crypto_key =
-            super::import_jwk(subtle_crypto, jwk, algorithm, super::KeyUsages::Sign).await?;
+            super::import_jwk(subtle_crypto, jwk, algorithm, super::KeyUsage::Sign).await?;
         Ok(Signer {
             subtle_crypto,
             crypto_key,
@@ -52,7 +52,7 @@ impl<'a> Signer<'a> {
         subtle_crypto: &'a SubtleCrypto,
         pkcs8: &Pkcs8Key,
     ) -> Result<Signer<'a>, Error> {
-        let crypto_key = super::import_pkcs8(subtle_crypto, pkcs8, super::KeyUsages::Sign).await?;
+        let crypto_key = super::import_pkcs8(subtle_crypto, pkcs8, super::KeyUsage::Sign).await?;
         Ok(Signer {
             subtle_crypto,
             crypto_key,

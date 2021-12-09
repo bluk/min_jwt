@@ -89,7 +89,7 @@ pub async fn with_jwk<'a, 'b>(
         .algorithm()
         .map_err(|_| Error::key_rejected(JsValue::from_str("unknown alg")))?;
     let crypto_key =
-        super::import_jwk(subtle_crypto, jwk, algorithm, super::KeyUsages::Verify).await?;
+        super::import_jwk(subtle_crypto, jwk, algorithm, super::KeyUsage::Verify).await?;
     Ok(Verifier {
         subtle_crypto,
         crypto_key,
