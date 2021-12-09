@@ -20,6 +20,29 @@ pub struct Verifier<'a> {
 }
 
 impl<'a> Verifier<'a> {
+    /// Imports a JWK key via the `SubtleCrypto` API.
+    pub async fn with_jwk<'b>(
+        subtle_crypto: &'a SubtleCrypto,
+        jwk: &Jwk,
+    ) -> Result<Verifier<'a>, Error> {
+        if let Some(usage) = jwk.r#use.as_deref() {
+            if usage != USAGE_SIGN {
+                return Err(Error::key_rejected(JsValue::from_str("invalid usage")));
+            }
+        }
+
+        let algorithm = jwk
+            .algorithm()
+            .map_err(|_| Error::key_rejected(JsValue::from_str("unknown alg")))?;
+        let crypto_key =
+            super::import_jwk(subtle_crypto, jwk, algorithm, super::KeyUsage::Verify).await?;
+        Ok(Verifier {
+            subtle_crypto,
+            crypto_key,
+            algorithm,
+        })
+    }
+
     /// Returns the algorithm of the underlying key.
     pub fn algorithm(&self) -> Algorithm {
         self.algorithm
@@ -72,27 +95,4 @@ impl<'a> Verifier<'a> {
             .await
             .map(|_| SignatureVerifiedJwt { unverified_jwt })
     }
-}
-
-/// Imports a JWK key via the `SubtleCrypto` API.
-pub async fn with_jwk<'a, 'b>(
-    subtle_crypto: &'a SubtleCrypto,
-    jwk: &Jwk,
-) -> Result<Verifier<'a>, Error> {
-    if let Some(usage) = jwk.r#use.as_deref() {
-        if usage != USAGE_SIGN {
-            return Err(Error::key_rejected(JsValue::from_str("invalid usage")));
-        }
-    }
-
-    let algorithm = jwk
-        .algorithm()
-        .map_err(|_| Error::key_rejected(JsValue::from_str("unknown alg")))?;
-    let crypto_key =
-        super::import_jwk(subtle_crypto, jwk, algorithm, super::KeyUsage::Verify).await?;
-    Ok(Verifier {
-        subtle_crypto,
-        crypto_key,
-        algorithm,
-    })
 }
