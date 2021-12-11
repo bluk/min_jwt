@@ -24,7 +24,7 @@ impl Error {
         matches!(self.err.code, ErrorCode::MalformedJwt)
     }
 
-    #[cfg(any(feature = "ring", feature = "web_crypto"))]
+    #[cfg(any(feature = "p256", feature = "ring", feature = "web_crypto"))]
     pub(crate) fn invalid_signature() -> Self {
         Error {
             err: Box::new(ErrorImpl {
@@ -35,7 +35,7 @@ impl Error {
 
     /// If the error is due to an invalid signature.
     pub fn is_invalid_signature(&self) -> bool {
-        #[cfg(any(feature = "ring", feature = "web_crypto"))]
+        #[cfg(any(feature = "p256", feature = "ring", feature = "web_crypto"))]
         {
             matches!(self.err.code, ErrorCode::InvalidSignature)
         }
@@ -110,7 +110,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match self.err.code {
             ErrorCode::Base64(_) => "base64 decode error",
-            #[cfg(any(feature = "ring", feature = "web_crypto"))]
+            #[cfg(any(feature = "p256", feature = "ring", feature = "web_crypto"))]
             ErrorCode::InvalidSignature => "invalid signature",
             ErrorCode::MalformedJwt => "malformed jwt",
             #[cfg(feature = "ring")]
@@ -127,7 +127,7 @@ impl error::Error for Error {
         match self.err.code {
             ErrorCode::Base64(ref err) => Some(err),
             ErrorCode::MalformedJwt => None,
-            #[cfg(any(feature = "ring", feature = "web_crypto"))]
+            #[cfg(any(feature = "p256", feature = "ring", feature = "web_crypto"))]
             ErrorCode::InvalidSignature => None,
             #[cfg(feature = "ring")]
             ErrorCode::RingKeyRejected(_) | ErrorCode::RingUnspecified(_) => None,

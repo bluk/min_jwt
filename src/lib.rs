@@ -10,10 +10,12 @@
 
 pub use error::Error;
 
+pub mod algorithm;
 mod error;
 pub mod keys;
 #[cfg(feature = "ring")]
 pub mod ring;
+pub mod signer;
 pub mod time;
 #[cfg(feature = "web_crypto")]
 pub mod web_crypto;
@@ -677,19 +679,25 @@ impl core::str::FromStr for Algorithm {
     }
 }
 
+/// A marker trait for a JWT's header.
+pub trait Header {}
+
+/// A marker trait for a JWT's claims.
+pub trait Claims {}
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// Contains the algorithm and the key ID used to sign the JWT.
 ///
-/// The `Header` type is intended to be used for generic algorithms which only
-/// require common information in JWTs. If more specific fields need to be
-/// deserialized, a specific type would be required to deserialize all of the
-/// fields.
+/// The `BasicHeader` type is intended to be used for generic algorithms which
+/// only require common information in JWTs. If more specific fields need to be
+/// deserialized, a custom application specific type would be required to
+/// deserialize all of the fields.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[non_exhaustive]
-pub struct Header<'a> {
+pub struct BasicHeader<'a> {
     /// The signing algorithm.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub alg: Option<&'a str>,
@@ -701,16 +709,19 @@ pub struct Header<'a> {
     pub typ: Option<&'a str>,
 }
 
+impl<'a> Header for BasicHeader<'a> {}
+
 /// Contains the issuer ID, when the token was issued, and when the token
 /// expires.
 ///
-/// The `Claims` type is intended to be used for generic algorithms which only
-/// require common information in JWTs. For most applications, a specific type
-/// would be required to deserialize all of the fields.
+/// The `BasicClaims` type is intended to be used for generic algorithms which
+/// only require common information in JWTs. For most applications, a custom
+/// application specific type would be required to deserialize all of the
+/// fields.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[non_exhaustive]
-pub struct Claims<'a> {
+pub struct BasicClaims<'a> {
     /// The issuer of the token.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub iss: Option<&'a str>,
@@ -727,6 +738,16 @@ pub struct Claims<'a> {
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub sub: Option<&'a str>,
 }
+
+impl<'a> Claims for BasicClaims<'a> {}
+
+trait EncodePkcs8 {}
+
+trait DecodePkcs8 {}
+
+trait DecodeJwk {}
+
+trait EncodeJwk {}
 
 #[cfg(test)]
 mod tests {

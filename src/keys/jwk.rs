@@ -9,7 +9,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{Algorithm, Error, Header, UnverifiedJwt};
+use crate::{Algorithm, BasicHeader, Error, UnverifiedJwt};
 
 pub(crate) const USAGE_SIGN: &str = "sig";
 
@@ -98,7 +98,7 @@ impl JwkSet {
     #[cfg(feature = "serde_json")]
     pub fn find_signing_key(&self, jwt: &UnverifiedJwt) -> Option<&Jwk> {
         let header = jwt.decode_header().ok()?;
-        let header = serde_json::from_slice::<Header>(&header).ok()?;
+        let header = serde_json::from_slice::<BasicHeader>(&header).ok()?;
         let alg = header.alg;
         let kid = header.kid;
 

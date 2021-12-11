@@ -2,7 +2,8 @@ mod common;
 
 #[cfg(any(feature = "ring"))]
 use min_jwt::{
-    ring::{signer::HmacSigner, verifier::HmacVerifier},
+    ring::verifier::HmacVerifier,
+    signer::{ring::HmacKey, Signer},
     UnverifiedJwt,
 };
 #[cfg(any(feature = "ring"))]
@@ -34,10 +35,11 @@ fn hs384_encode_and_sign_json_str_jwt_io_example() {
     let header = String::from("{\"alg\":\"HS384\",\"typ\":\"JWT\"}");
     let claims = EXPECTED_CLAIMS;
 
-    let signer = HmacSigner::with_key(hmac::Key::new(hmac::HMAC_SHA384, &decoded_hmac_key()));
+    let signing_key = HmacKey::with_hs384(hmac::Key::new(hmac::HMAC_SHA384, &decoded_hmac_key()));
+    let signer = Signer::from(signing_key);
 
     assert_eq!(
-        signer.encode_and_sign_json_str(&header, claims).unwrap(),
+        signer.encode_and_sign_json(&header, claims).unwrap(),
         EXPECTED_JWT_JWT_IO_384
     );
 }

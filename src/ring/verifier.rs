@@ -24,8 +24,8 @@ use crate::{
 /// # use min_jwt::Error;
 /// #
 /// # fn try_main() -> Result<(), Error> {
-/// use min_jwt::{UnverifiedJwt, ring::{signer::EcdsaSigner, verifier::PublicKeyVerifier}};
-/// use ring::{signature::EcdsaKeyPair, signature::KeyPair, signature::UnparsedPublicKey, rand::SystemRandom};
+/// use min_jwt::{UnverifiedJwt, ring::verifier::PublicKeyVerifier, signer::{Signer, ring::EcdsaKeyPair}};
+/// use ring::{signature::KeyPair, signature::UnparsedPublicKey, rand::SystemRandom};
 /// #
 /// # let sys_rand = SystemRandom::new();
 /// #
@@ -34,20 +34,22 @@ use crate::{
 /// #
 /// # // Normally the key's bytes are read from a file or another data store
 /// # // and should not be randomly generated on every invocation
-/// # let pkcs8_bytes = EcdsaKeyPair::generate_pkcs8(
+/// # let pkcs8_bytes = ::ring::signature::EcdsaKeyPair::generate_pkcs8(
 /// #   &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
 /// #   &sys_rand
 /// # )?;
-/// # let key_pair = EcdsaKeyPair::from_pkcs8(
+/// # let key_pair = ::ring::signature::EcdsaKeyPair::from_pkcs8(
 /// #   &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
 /// #   pkcs8_bytes.as_ref()
 /// # )?;
 /// #
 /// # let public_key_bytes = key_pair.public_key().clone();
 /// #
-/// # let signer = EcdsaSigner::with_key_pair(key_pair, &sys_rand);
+/// # let key_pair_with_rand =
+/// #   EcdsaKeyPair::with_es256(key_pair, sys_rand);
+/// # let signer = Signer::from(key_pair_with_rand);
 /// #
-/// # let jwt = signer.encode_and_sign_json_str(&header, &claims)?;
+/// # let jwt = signer.encode_and_sign_json(&header, &claims)?;
 ///
 /// let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
 ///

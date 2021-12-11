@@ -4,5 +4,4 @@
 //!
 //! [ring]: https://github.com/briansmith/ring
 
-pub mod signer;
 pub mod verifier;

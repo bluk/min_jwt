@@ -2,14 +2,12 @@ mod common;
 
 #[cfg(any(feature = "ring"))]
 use min_jwt::{
-    ring::{signer::EcdsaSigner, verifier::PublicKeyVerifier},
+    ring::verifier::PublicKeyVerifier,
+    signer::{ring::EcdsaKeyPair, Signer},
     UnverifiedJwt,
 };
 #[cfg(any(feature = "ring"))]
-use ring::{
-    rand::SystemRandom,
-    signature::{EcdsaKeyPair, UnparsedPublicKey},
-};
+use ring::{rand::SystemRandom, signature::UnparsedPublicKey};
 
 #[cfg(any(feature = "ring"))]
 static EXPECTED_JWT_JWT_IO_384: &str = "eyJhbGciOiJFUzM4NCIsInR5cCI6IkpXVCIsImtpZCI6I\
@@ -37,9 +35,9 @@ static EXPECTED_CLAIMS: &str =
 // dd bs=1 skip=1 if=public_key.p8.der.block of=public_key.p8.der
 
 #[cfg(any(feature = "ring"))]
-fn private_key_pair() -> EcdsaKeyPair {
+fn private_key_pair() -> ::ring::signature::EcdsaKeyPair {
     let private_key = include_bytes!("es384_private_key.p8.der");
-    EcdsaKeyPair::from_pkcs8(
+    ::ring::signature::EcdsaKeyPair::from_pkcs8(
         &ring::signature::ECDSA_P384_SHA384_FIXED_SIGNING,
         &private_key[..],
     )
@@ -54,9 +52,11 @@ fn es384_encode_and_sign_json_str_jwt_io_example() {
     let header = String::from("{\"alg\":\"ES384\",\"typ\":\"JWT\"}");
     let claims = EXPECTED_CLAIMS;
 
-    let signer = EcdsaSigner::with_key_pair(private_key_pair(), &sys_rand);
+    // let signer = EcdsaSigner::with_key_pair(private_key_pair(), &sys_rand);
+    let key_pair_with_rand = EcdsaKeyPair::with_es384(private_key_pair(), sys_rand);
+    let signer = Signer::from(key_pair_with_rand);
 
-    let jwt = signer.encode_and_sign_json_str(&header, claims).unwrap();
+    let jwt = signer.encode_and_sign_json(&header, claims).unwrap();
 
     let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
 
