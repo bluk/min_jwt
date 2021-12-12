@@ -95,24 +95,77 @@ pub mod rsa {
     };
     use rsa::{Hash, PaddingScheme};
 
-    #[derive(Debug)]
-    pub struct RsaPrivateKeySigner<A>
+    use super::Signature;
+
+    pub trait PrivateKey: private::Private {
+        type Signature: Signature;
+
+        fn sign(&self, padding: ::rsa::PaddingScheme, bytes: &[u8]) -> Result<Self::Signature>;
+    }
+
+    mod private {
+        pub trait Private {}
+        impl<T> Private for &T where T: Private {}
+    }
+
+    impl<T> PrivateKey for &T
     where
+        T: PrivateKey,
+    {
+        type Signature = T::Signature;
+
+        fn sign(&self, padding: ::rsa::PaddingScheme, bytes: &[u8]) -> Result<Self::Signature> {
+            T::sign(self, padding, bytes)
+        }
+    }
+
+    impl PrivateKey for ::rsa::RsaPrivateKey {
+        type Signature = Vec<u8>;
+
+        fn sign(&self, padding: ::rsa::PaddingScheme, bytes: &[u8]) -> Result<Self::Signature> {
+            ::rsa::RsaPrivateKey::sign(self, padding, bytes).map_err(|_| todo!())
+        }
+    }
+
+    impl private::Private for ::rsa::RsaPrivateKey {}
+
+    #[derive(Debug)]
+    pub struct RsaPrivateKeySigner<K, A>
+    where
+        K: PrivateKey,
         A: Algorithm,
     {
-        key: rsa::RsaPrivateKey,
+        key: K,
         alg: core::marker::PhantomData<A>,
     }
 
-    impl<A> super::private::Private for RsaPrivateKeySigner<A> where A: Algorithm {}
+    impl<K, A> super::private::Private for RsaPrivateKeySigner<K, A>
+    where
+        K: PrivateKey,
+        A: Algorithm,
+    {
+    }
+
+    impl<K, A> RsaPrivateKeySigner<K, A>
+    where
+        K: PrivateKey,
+        A: Algorithm,
+    {
+        pub fn into_inner(self) -> K {
+            self.key
+        }
+    }
 
     macro_rules! rsa_impl {
         ($alg:ty, $padding:expr) => {
-            impl super::Signer for RsaPrivateKeySigner<$alg> {
-                type Signature = Vec<u8>;
+            impl<K> super::Signer for RsaPrivateKeySigner<K, $alg>
+            where
+                K: PrivateKey,
+            {
+                type Signature = K::Signature;
 
                 fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
-                    rsa::RsaPrivateKey::sign(&self.key, $padding, bytes).map_err(|_| todo!())
+                    self.key.sign($padding, bytes)
                 }
             }
         };
@@ -124,8 +177,11 @@ pub mod rsa {
         }
     });
 
-    impl RsaPrivateKeySigner<Rs256> {
-        pub fn with_rs256(key: rsa::RsaPrivateKey) -> Self {
+    impl<K> RsaPrivateKeySigner<K, Rs256>
+    where
+        K: PrivateKey,
+    {
+        pub fn with_rs256(key: K) -> Self {
             Self {
                 key,
                 alg: PhantomData::default(),
@@ -209,6 +265,10 @@ pub mod ring {
                 secure_random,
             }
         }
+
+        pub fn into_inner(self) -> (::ring::signature::EcdsaKeyPair, R) {
+            (self.key_pair, self.secure_random)
+        }
     }
 
     impl<R> super::Signer for EcdsaKeyPairSigner<R>
@@ -250,6 +310,16 @@ pub mod ring {
         R: SecureRandom,
         A: Algorithm,
     {
+    }
+
+    impl<R, A> RsaKeyPairSigner<R, A>
+    where
+        R: SecureRandom,
+        A: Algorithm,
+    {
+        pub fn into_inner(self) -> (::ring::signature::RsaKeyPair, R) {
+            (self.key_pair, self.secure_random)
+        }
     }
 
     macro_rules! rsa_impl {
