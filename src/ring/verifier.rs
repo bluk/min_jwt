@@ -24,7 +24,7 @@ use crate::{
 /// # use min_jwt::Error;
 /// #
 /// # fn try_main() -> Result<(), Error> {
-/// use min_jwt::{UnverifiedJwt, ring::verifier::PublicKeyVerifier, signer::{Signer, ring::EcdsaKeyPair}};
+/// use min_jwt::{UnverifiedJwt, ring::verifier::PublicKeyVerifier, sign::ring::EcdsaKeyPairSigner};
 /// use ring::{signature::KeyPair, signature::UnparsedPublicKey, rand::SystemRandom};
 /// #
 /// # let sys_rand = SystemRandom::new();
@@ -46,10 +46,9 @@ use crate::{
 /// # let public_key_bytes = key_pair.public_key().clone();
 /// #
 /// # let key_pair_with_rand =
-/// #   EcdsaKeyPair::with_es256(key_pair, sys_rand);
-/// # let signer = Signer::from(key_pair_with_rand);
+/// #   EcdsaKeyPairSigner::with_key_pair_and_random(key_pair, sys_rand);
 /// #
-/// # let jwt = signer.encode_and_sign_json(&header, &claims)?;
+/// # let jwt = min_jwt::encode_and_sign(&header, &claims, &key_pair_with_rand)?;
 ///
 /// let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
 ///

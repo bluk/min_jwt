@@ -49,7 +49,8 @@ fn es384_encode_and_sign_json_str_jwt_io_example() {
     let claims = EXPECTED_CLAIMS;
 
     // let signer = EcdsaSigner::with_key_pair(private_key_pair(), &sys_rand);
-    let key_pair_with_rand = EcdsaKeyPairSigner::with_es384(private_key_pair(), sys_rand);
+    let key_pair_with_rand =
+        EcdsaKeyPairSigner::with_key_pair_and_random(private_key_pair(), sys_rand);
 
     let jwt = min_jwt::encode_and_sign(&header, claims, &key_pair_with_rand).unwrap();
 
