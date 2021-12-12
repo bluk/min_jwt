@@ -35,7 +35,7 @@ fn hs512_encode_and_sign_json_str_jwt_io_example() {
         HmacKeySigner::with_hs512(hmac::Key::new(hmac::HMAC_SHA512, &decoded_hmac_key()));
 
     assert_eq!(
-        min_jwt::sign::encode_and_sign_json(&header, claims, &signing_key).unwrap(),
+        min_jwt::encode_and_sign(&header, claims, &signing_key).unwrap(),
         EXPECTED_JWT_JWT_IO_512
     );
 }

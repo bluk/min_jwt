@@ -37,7 +37,7 @@ fn hs256_encode_and_sign_json_str_rfc7515_appendix_a_1_example() {
         HmacKeySigner::with_hs256(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
 
     assert_eq!(
-        min_jwt::sign::encode_and_sign_json(&header, &claims, &signing_key).unwrap(),
+        min_jwt::encode_and_sign(&header, &claims, &signing_key).unwrap(),
         EXPECTED_JWT_RFC7515_A1
     );
 }
@@ -62,7 +62,7 @@ fn hs256_encode_and_sign_json_bytes_rfc7515_appendix_a_1_example() {
         HmacKeySigner::with_hs256(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
 
     assert_eq!(
-        min_jwt::sign::encode_and_sign_json(&header_bytes, &claims_bytes, &signing_key).unwrap(),
+        min_jwt::encode_and_sign(&header_bytes, &claims_bytes, &signing_key).unwrap(),
         EXPECTED_JWT_RFC7515_A1
     );
 }

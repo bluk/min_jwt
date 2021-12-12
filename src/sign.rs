@@ -19,8 +19,6 @@ impl private::Private for &str {}
 impl Signature for &str {}
 
 pub trait Signer: private::Private {
-    const ALG: &'static str;
-
     type Signature: Signature;
 
     fn sign(&self, bytes: &[u8]) -> Result<Self::Signature>;
@@ -30,8 +28,6 @@ impl<T> Signer for &T
 where
     T: Signer,
 {
-    const ALG: &'static str = T::ALG;
-
     type Signature = T::Signature;
 
     fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
@@ -45,49 +41,6 @@ mod private {
     impl<T> Private for &T where T: Private {}
 }
 
-/// Serializes the types to JSON, base64 encodes the JSON, constructs the signing input, signs the data, and then
-/// returns the JWT.
-///
-/// # Errors
-///
-/// The function may return an error variant because the key pair is invalid.
-#[cfg(all(feature = "serde", feature = "serde_json"))]
-#[inline]
-pub fn encode_and_sign<H, C, S>(header: H, claims: C, signing_key: S) -> Result<String>
-where
-    H: crate::Header + serde::Serialize,
-    C: crate::Claims + serde::Serialize,
-    S: Signer,
-{
-    let header = serde_json::to_vec(&header).unwrap();
-    let claims = serde_json::to_vec(&claims).unwrap();
-    encode_and_sign_json(header, claims, signing_key)
-}
-
-/// Base64 encodes the JSON, constructs the signing input, signs the data, and then
-/// returns the JWT.
-///
-/// # Errors
-///
-/// The function may return an error variant because the key pair is invalid.
-#[inline]
-pub fn encode_and_sign_json<H, C, S>(header: H, claims: C, signing_key: S) -> Result<String>
-where
-    H: AsRef<[u8]>,
-    C: AsRef<[u8]>,
-    S: Signer,
-{
-    let encoded_header = base64::encode_config(header, base64::URL_SAFE_NO_PAD);
-    let encoded_claims = base64::encode_config(claims, base64::URL_SAFE_NO_PAD);
-    let data_to_sign = [encoded_header.as_ref(), encoded_claims.as_ref()].join(".");
-
-    let signature = signing_key.sign(data_to_sign.as_bytes())?;
-    let signature = signature.as_ref();
-    let signature = base64::encode_config(&signature, base64::URL_SAFE_NO_PAD);
-
-    Ok([data_to_sign, signature].join("."))
-}
-
 #[cfg(feature = "p256")]
 mod p256 {
     use crate::error::Result;
@@ -97,8 +50,6 @@ mod p256 {
     impl super::private::Private for p256::ecdsa::SigningKey {}
 
     impl super::Signer for p256::ecdsa::SigningKey {
-        const ALG: &'static str = "ES256";
-
         type Signature = p256::ecdsa::Signature;
 
         fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
@@ -113,7 +64,7 @@ mod p256 {
             const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
 
             let rng = rand::thread_rng();
-            crate::sign::encode_and_sign_json(
+            crate::encode_and_sign(
                 HEADER,
                 crate::tests::jwt_claims_str(),
                 &::p256::ecdsa::SigningKey::random(rng),
@@ -132,8 +83,6 @@ mod rsa {
     impl super::private::Private for rsa::RsaPrivateKey {}
 
     impl super::Signer for rsa::RsaPrivateKey {
-        const ALG: &'static str = "RS256";
-
         type Signature = Vec<u8>;
 
         fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
@@ -181,8 +130,6 @@ pub mod ring {
             where
                 R: SecureRandom,
             {
-                const ALG: &'static str = $alg_str;
-
                 type Signature = ring::signature::Signature;
 
                 fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
@@ -282,8 +229,6 @@ pub mod ring {
             impl super::private::Private for HmacKeySigner<$alg> {}
 
             impl super::Signer for HmacKeySigner<$alg> {
-                const ALG: &'static str = $alg_str;
-
                 type Signature = ::ring::hmac::Tag;
 
                 fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
@@ -371,8 +316,6 @@ pub mod ring {
             where
                 R: SecureRandom,
             {
-                const ALG: &'static str = $alg_str;
-
                 type Signature = Vec<u8>;
 
                 fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
@@ -426,11 +369,7 @@ pub mod ring {
             .unwrap();
 
             let key_pair_with_rand = EcdsaKeyPairSigner::with_es256(key_pair, secure_random);
-            crate::sign::encode_and_sign_json(
-                HEADER,
-                crate::tests::jwt_claims_str(),
-                &key_pair_with_rand,
-            );
+            crate::encode_and_sign(HEADER, crate::tests::jwt_claims_str(), &key_pair_with_rand);
             // assert_eq!("", signer.encode_and_sign_json(HEADER, CLAIMS).unwrap());
         }
     }
