@@ -1,15 +1,15 @@
 mod common;
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 use min_jwt::{
     ring::verifier::HmacVerifier,
     signer::{ring::HmacKey, Signer},
     UnverifiedJwt,
 };
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 use ring::hmac;
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 static EXPECTED_JWT_JWT_IO_512: &str = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.\
                                         eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6I\
                                         kpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdC\
@@ -18,16 +18,16 @@ static EXPECTED_JWT_JWT_IO_512: &str = "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.\
                                         HWKa64zDl2ofkT8F6jBt_K4riU-fPg\
                                         ";
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 static EXPECTED_CLAIMS: &str =
     "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}";
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 fn decoded_hmac_key() -> Vec<u8> {
     "your-512-bit-secret".as_bytes().into()
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs512_encode_and_sign_json_str_jwt_io_example() {
     // See https://jwt.io
@@ -44,7 +44,7 @@ fn hs512_encode_and_sign_json_str_jwt_io_example() {
     );
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs512_verify_valid_signature_jwt_io_example() {
     // See https://jwt.io
@@ -64,7 +64,7 @@ fn hs512_verify_valid_signature_jwt_io_example() {
     );
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs512_verify_invalid_signature() {
     let jwt_with_invalid_signature = String::from(

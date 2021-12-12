@@ -9,7 +9,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{Algorithm, BasicHeader, Error, UnverifiedJwt};
+use crate::{Algorithm, Error};
 
 pub(crate) const USAGE_SIGN: &str = "sig";
 
@@ -70,7 +70,7 @@ impl Jwk {
         if let Some(alg) = self.alg.as_ref() {
             Algorithm::from_str(alg)
         } else {
-            Err(Error::unknown_algorithm())
+            Err(Error::unsupported_algorithm())
         }
     }
 }
@@ -95,10 +95,10 @@ impl JwkSet {
     }
 
     /// Uses a JWT's header's algorithm and key id values to find a JWK.
-    #[cfg(feature = "serde_json")]
-    pub fn find_signing_key(&self, jwt: &UnverifiedJwt) -> Option<&Jwk> {
+    #[cfg(all(feature = "serde", feature = "serde_json"))]
+    pub fn find_signing_key(&self, jwt: &crate::UnverifiedJwt) -> Option<&Jwk> {
         let header = jwt.decode_header().ok()?;
-        let header = serde_json::from_slice::<BasicHeader>(&header).ok()?;
+        let header = serde_json::from_slice::<crate::BasicHeader>(&header).ok()?;
         let alg = header.alg;
         let kid = header.kid;
 

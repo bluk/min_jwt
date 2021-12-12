@@ -1,15 +1,15 @@
 mod common;
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 use min_jwt::{
     ring::verifier::HmacVerifier,
     signer::{ring::HmacKey, Signer},
     UnverifiedJwt,
 };
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 use ring::hmac;
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 static EXPECTED_JWT_RFC7515_A1: &str = "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.\
                                         eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzO\
                                         DAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb2\
@@ -17,20 +17,20 @@ static EXPECTED_JWT_RFC7515_A1: &str = "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9
                                         1r_wW1gFWFOEjXk\
                                         ";
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 static ENCODED_HMAC_KEY_RFC7515_A1: &str =
     "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 static EXPECTED_CLAIMS: &str =
     "{\"iss\":\"joe\",\r\n \"exp\":1300819380,\r\n \"http://example.com/is_root\":true}";
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 fn decoded_hmac_key() -> Vec<u8> {
     base64::decode_config(&ENCODED_HMAC_KEY_RFC7515_A1, base64::URL_SAFE_NO_PAD).unwrap()
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs256_encode_and_sign_json_str_rfc7515_appendix_a_1_example() {
     // See https://tools.ietf.org/html/rfc7515#appendix-A.1
@@ -46,7 +46,7 @@ fn hs256_encode_and_sign_json_str_rfc7515_appendix_a_1_example() {
     );
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs256_encode_and_sign_json_bytes_rfc7515_appendix_a_1_example() {
     // See https://tools.ietf.org/html/rfc7515#appendix-A.1
@@ -73,7 +73,7 @@ fn hs256_encode_and_sign_json_bytes_rfc7515_appendix_a_1_example() {
     );
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs256_verify_valid_signature_rfc7515_appendix_a_1_example() {
     // See https://tools.ietf.org/html/rfc7515#appendix-A.1
@@ -93,7 +93,7 @@ fn hs256_verify_valid_signature_rfc7515_appendix_a_1_example() {
     );
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn hs256_verify_invalid_signature() {
     let jwt_with_invalid_signature = String::from(

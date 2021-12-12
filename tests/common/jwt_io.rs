@@ -1,12 +1,13 @@
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Header {
     pub typ: String,
     pub alg: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Claims {
     pub sub: String,
     pub name: String,

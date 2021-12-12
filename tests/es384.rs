@@ -1,15 +1,15 @@
 mod common;
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 use min_jwt::{
     ring::verifier::PublicKeyVerifier,
     signer::{ring::EcdsaKeyPair, Signer},
     UnverifiedJwt,
 };
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 use ring::{rand::SystemRandom, signature::UnparsedPublicKey};
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 static EXPECTED_JWT_JWT_IO_384: &str = "eyJhbGciOiJFUzM4NCIsInR5cCI6IkpXVCIsImtpZCI6I\
                                         mlUcVhYSTB6YkFuSkNLRGFvYmZoa00xZi02ck1TcFRmeVp\
                                         NUnBfMnRLSTgifQ.eyJzdWIiOiIxMjM0NTY3ODkwIiwibm\
@@ -20,7 +20,7 @@ static EXPECTED_JWT_JWT_IO_384: &str = "eyJhbGciOiJFUzM4NCIsInR5cCI6IkpXVCIsImtp
                                         tP1hiN\
                                         ";
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 static EXPECTED_CLAIMS: &str =
     "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}";
 
@@ -34,7 +34,7 @@ static EXPECTED_CLAIMS: &str =
 // openssl asn1parse -in public_key.pem -offset $((20 + 2)) -out public_key.p8.der.block
 // dd bs=1 skip=1 if=public_key.p8.der.block of=public_key.p8.der
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 fn private_key_pair() -> ::ring::signature::EcdsaKeyPair {
     let private_key = include_bytes!("es384_private_key.p8.der");
     ::ring::signature::EcdsaKeyPair::from_pkcs8(
@@ -44,7 +44,7 @@ fn private_key_pair() -> ::ring::signature::EcdsaKeyPair {
     .unwrap()
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn es384_encode_and_sign_json_str_jwt_io_example() {
     let sys_rand = SystemRandom::new();
@@ -76,7 +76,7 @@ fn es384_encode_and_sign_json_str_jwt_io_example() {
     );
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn es384_verify_valid_signature_jwt_io_example() {
     // See https://jwt.io
@@ -98,7 +98,7 @@ fn es384_verify_valid_signature_jwt_io_example() {
     );
 }
 
-#[cfg(any(feature = "ring"))]
+#[cfg(feature = "ring")]
 #[test]
 fn es384_verify_invalid_signature() {
     let jwt_with_invalid_signature = String::from(

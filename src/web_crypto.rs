@@ -157,10 +157,10 @@ pub(crate) async fn import_jwk<'a, 'b>(
             false,
             &key_usages.import_usage(),
         )
-        .map_err(Error::key_rejected)?;
+        .map_err(|_| Error::key_rejected())?;
     Ok(CryptoKey::from(
         wasm_bindgen_futures::JsFuture::from(import_key_promise)
             .await
-            .map_err(Error::key_rejected)?,
+            .map_err(|_| Error::key_rejected())?,
     ))
 }

@@ -1,6 +1,5 @@
 //! Verify various types of signatures for a JWT.
 
-use wasm_bindgen::prelude::*;
 use web_sys::{CryptoKey, SubtleCrypto};
 
 use crate::{
@@ -27,13 +26,11 @@ impl<'a> Verifier<'a> {
     ) -> Result<Verifier<'a>, Error> {
         if let Some(usage) = jwk.r#use.as_deref() {
             if usage != USAGE_SIGN {
-                return Err(Error::key_rejected(JsValue::from_str("invalid usage")));
+                return Err(Error::key_rejected());
             }
         }
 
-        let algorithm = jwk
-            .algorithm()
-            .map_err(|_| Error::key_rejected(JsValue::from_str("unknown alg")))?;
+        let algorithm = jwk.algorithm().map_err(|_| Error::key_rejected())?;
         let crypto_key =
             super::import_jwk(subtle_crypto, jwk, algorithm, super::KeyUsage::Verify).await?;
         Ok(Verifier {

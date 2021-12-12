@@ -24,7 +24,12 @@ impl Error {
         matches!(self.err.code, ErrorCode::MalformedJwt)
     }
 
-    #[cfg(any(feature = "p256", feature = "ring", feature = "web_crypto"))]
+    #[cfg(any(
+        feature = "p256",
+        feature = "ring",
+        feature = "rsa",
+        feature = "web_crypto"
+    ))]
     pub(crate) fn invalid_signature() -> Self {
         Error {
             err: Box::new(ErrorImpl {
@@ -32,108 +37,63 @@ impl Error {
             }),
         }
     }
-
     /// If the error is due to an invalid signature.
     pub fn is_invalid_signature(&self) -> bool {
-        #[cfg(any(feature = "p256", feature = "ring", feature = "web_crypto"))]
-        {
-            matches!(self.err.code, ErrorCode::InvalidSignature)
-        }
-        #[cfg(not(any(feature = "ring", feature = "web_crypto")))]
-        {
-            false
-        }
+        matches!(self.err.code, ErrorCode::InvalidSignature)
     }
 
     /// If the error is due to a part not being correctly base64 encoded.
     pub fn is_base64_decode_error(&self) -> bool {
-        matches!(self.err.code, ErrorCode::Base64(_))
+        matches!(self.err.code, ErrorCode::Base64Decode(_))
     }
 
-    /// If the error is due to a cryptography error.
-    pub fn is_crypto_error(&self) -> bool {
-        #[cfg(feature = "ring")]
-        {
-            matches!(self.err.code, ErrorCode::RingUnspecified(_))
-        }
-        #[cfg(not(any(feature = "ring")))]
-        {
-            false
-        }
-    }
-
-    #[cfg(feature = "web_crypto")]
-    pub(crate) fn key_rejected(value: wasm_bindgen::JsValue) -> Self {
+    pub(crate) fn key_rejected() -> Self {
         Error {
             err: Box::new(ErrorImpl {
-                code: ErrorCode::WebCryptoKeyRejected(value),
+                code: ErrorCode::KeyRejected,
             }),
         }
     }
 
     /// If the error is due to an invalid key.
     pub fn is_key_rejected(&self) -> bool {
-        #[cfg(all(feature = "ring", not(feature = "web_crypto")))]
-        {
-            matches!(self.err.code, ErrorCode::RingKeyRejected(_))
-        }
-        #[cfg(all(feature = "web_crypto", not(feature = "ring")))]
-        {
-            matches!(self.err.code, ErrorCode::WebCryptoKeyRejected(_))
-        }
-        #[cfg(all(feature = "web_crypto", feature = "ring"))]
-        {
-            matches!(self.err.code, ErrorCode::RingKeyRejected(_))
-                || matches!(self.err.code, ErrorCode::WebCryptoKeyRejected(_))
-        }
-        #[cfg(not(any(feature = "ring", feature = "web_crypto")))]
-        {
-            false
-        }
+        matches!(self.err.code, ErrorCode::KeyRejected)
     }
 
-    pub(crate) fn unknown_algorithm() -> Self {
+    pub(crate) fn unsupported_algorithm() -> Self {
         Error {
             err: Box::new(ErrorImpl {
-                code: ErrorCode::UnknownAlgorithm,
+                code: ErrorCode::UnsupportedAlgorithm,
             }),
         }
     }
 
-    /// If the error is due to an unknown algorithm.
-    pub fn is_unknown_algorithm(&self) -> bool {
-        matches!(self.err.code, ErrorCode::UnknownAlgorithm)
+    /// If the error is due to an unsupported algorithm.
+    pub fn is_unsupported_algorithm(&self) -> bool {
+        matches!(self.err.code, ErrorCode::UnsupportedAlgorithm)
     }
 }
 
 impl error::Error for Error {
     fn description(&self) -> &str {
         match self.err.code {
-            ErrorCode::Base64(_) => "base64 decode error",
-            #[cfg(any(feature = "p256", feature = "ring", feature = "web_crypto"))]
+            ErrorCode::Base64Decode(_) => "base64 decode error",
             ErrorCode::InvalidSignature => "invalid signature",
+            ErrorCode::KeyRejected => "key rejected",
             ErrorCode::MalformedJwt => "malformed jwt",
-            #[cfg(feature = "ring")]
-            ErrorCode::RingUnspecified(_) => "cryptography error",
-            #[cfg(feature = "ring")]
-            ErrorCode::RingKeyRejected(_) => "key rejected",
-            ErrorCode::UnknownAlgorithm => "unknown algorithm",
-            #[cfg(feature = "web_crypto")]
-            ErrorCode::WebCryptoKeyRejected(_) => "key rejected",
+            ErrorCode::Unspecified => "unspecified error",
+            ErrorCode::UnsupportedAlgorithm => "unsupported algorithm",
         }
     }
 
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self.err.code {
-            ErrorCode::Base64(ref err) => Some(err),
-            ErrorCode::MalformedJwt => None,
-            #[cfg(any(feature = "p256", feature = "ring", feature = "web_crypto"))]
+            ErrorCode::Base64Decode(ref err) => Some(err),
             ErrorCode::InvalidSignature => None,
-            #[cfg(feature = "ring")]
-            ErrorCode::RingKeyRejected(_) | ErrorCode::RingUnspecified(_) => None,
-            ErrorCode::UnknownAlgorithm => None,
-            #[cfg(feature = "web_crypto")]
-            ErrorCode::WebCryptoKeyRejected(_) => None,
+            ErrorCode::KeyRejected => None,
+            ErrorCode::MalformedJwt => None,
+            ErrorCode::Unspecified => None,
+            ErrorCode::UnsupportedAlgorithm => None,
         }
     }
 }
@@ -152,10 +112,10 @@ impl Debug for Error {
 
 #[cfg(feature = "ring")]
 impl From<ring::error::KeyRejected> for Error {
-    fn from(error: ring::error::KeyRejected) -> Self {
+    fn from(_: ring::error::KeyRejected) -> Self {
         Error {
             err: Box::new(ErrorImpl {
-                code: ErrorCode::RingKeyRejected(error),
+                code: ErrorCode::KeyRejected,
             }),
         }
     }
@@ -163,10 +123,10 @@ impl From<ring::error::KeyRejected> for Error {
 
 #[cfg(feature = "ring")]
 impl From<ring::error::Unspecified> for Error {
-    fn from(error: ring::error::Unspecified) -> Self {
+    fn from(_: ring::error::Unspecified) -> Self {
         Error {
             err: Box::new(ErrorImpl {
-                code: ErrorCode::RingUnspecified(error),
+                code: ErrorCode::Unspecified,
             }),
         }
     }
@@ -176,7 +136,7 @@ impl From<base64::DecodeError> for Error {
     fn from(error: base64::DecodeError) -> Self {
         Error {
             err: Box::new(ErrorImpl {
-                code: ErrorCode::Base64(error),
+                code: ErrorCode::Base64Decode(error),
             }),
         }
     }
@@ -196,39 +156,23 @@ impl Display for ErrorImpl {
 #[derive(Debug)]
 pub(crate) enum ErrorCode {
     // TODO: Should also have a reference to the str which did not decode
-    Base64(base64::DecodeError),
-    #[cfg(any(feature = "ring", feature = "web_crypto"))]
+    Base64Decode(base64::DecodeError),
     InvalidSignature,
+    KeyRejected,
     MalformedJwt,
-    #[cfg(feature = "ring")]
-    RingKeyRejected(ring::error::KeyRejected),
-    #[cfg(feature = "ring")]
-    RingUnspecified(ring::error::Unspecified),
-    UnknownAlgorithm,
-    #[cfg(feature = "web_crypto")]
-    WebCryptoKeyRejected(wasm_bindgen::JsValue),
+    Unspecified,
+    UnsupportedAlgorithm,
 }
 
 impl Display for ErrorCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            ErrorCode::Base64(ref error) => Display::fmt(error, f),
-            #[cfg(any(feature = "ring", feature = "web_crypto"))]
+            ErrorCode::Base64Decode(ref error) => Display::fmt(error, f),
             ErrorCode::InvalidSignature => f.write_str("invalid signature"),
+            ErrorCode::KeyRejected => f.write_str("invalid signature"),
             ErrorCode::MalformedJwt => f.write_str("malformed jwt"),
-            #[cfg(feature = "ring")]
-            ErrorCode::RingKeyRejected(ref error) => Display::fmt(error, f),
-            #[cfg(feature = "ring")]
-            ErrorCode::RingUnspecified(ref error) => Display::fmt(error, f),
-            ErrorCode::UnknownAlgorithm => f.write_str("unknown algorithm"),
-            #[cfg(feature = "web_crypto")]
-            ErrorCode::WebCryptoKeyRejected(ref error) => {
-                if let Some(error) = error.as_string() {
-                    Display::fmt(&error, f)
-                } else {
-                    f.write_str("key rejected")
-                }
-            }
+            ErrorCode::Unspecified => f.write_str("unspecified error"),
+            ErrorCode::UnsupportedAlgorithm => f.write_str("unsupported algorithm"),
         }
     }
 }

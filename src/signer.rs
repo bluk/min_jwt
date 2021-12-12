@@ -4,16 +4,21 @@
 
 use crate::error::Result;
 
-pub trait Signature: AsRef<[u8]> {}
+pub trait Signature: AsRef<[u8]> + private::Private {}
 
+impl private::Private for Vec<u8> {}
 impl Signature for Vec<u8> {}
 
-pub trait SigningKey {
+pub trait SigningKey: private::Private {
     const ALG: &'static str;
 
     type Signature: Signature;
 
     fn sign(&self, bytes: &[u8]) -> Result<Self::Signature>;
+}
+
+mod private {
+    pub trait Private {}
 }
 
 #[derive(Debug)]
@@ -34,7 +39,7 @@ where
     /// # Errors
     ///
     /// The function may return an error variant because the key pair is invalid.
-    #[cfg(feature = "serde_json")]
+    #[cfg(all(feature = "serde", feature = "serde_json"))]
     #[inline]
     pub fn encode_and_sign<H, C>(&self, header: H, claims: C) -> Result<String>
     where
@@ -75,6 +80,9 @@ mod p256 {
     use crate::error::Result;
 
     impl super::Signature for p256::ecdsa::Signature {}
+    impl super::private::Private for p256::ecdsa::Signature {}
+    impl super::private::Private for p256::ecdsa::SigningKey {}
+    impl super::private::Private for &p256::ecdsa::SigningKey {}
 
     impl super::SigningKey for p256::ecdsa::SigningKey {
         const ALG: &'static str = "ES256";
@@ -112,9 +120,6 @@ mod p256 {
     mod test {
         use crate::signer::*;
 
-        const CLAIMS: &str =
-            "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}";
-
         #[test]
         fn test_rust_crypto_p256() {
             const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
@@ -137,6 +142,9 @@ mod p256 {
 mod rsa {
     use crate::error::Result;
     use rsa::{Hash, PaddingScheme};
+
+    impl super::private::Private for rsa::RsaPrivateKey {}
+    impl super::private::Private for &rsa::RsaPrivateKey {}
 
     impl super::SigningKey for rsa::RsaPrivateKey {
         const ALG: &'static str = "RS256";
@@ -183,30 +191,6 @@ mod rsa {
             Self { key }
         }
     }
-
-    #[cfg(test)]
-    mod test {
-        use crate::signer::*;
-
-        const CLAIMS: &str =
-            "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}";
-
-        #[test]
-        fn test_rust_crypto_p256() {
-            const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
-
-            let rng = rand::thread_rng();
-            let signer = Signer::from(::p256::ecdsa::SigningKey::random(rng));
-
-            let signers = vec![
-                Signer::from(::p256::ecdsa::SigningKey::random(rand::thread_rng())),
-                Signer::from(::p256::ecdsa::SigningKey::random(rand::thread_rng())),
-                Signer::from(::p256::ecdsa::SigningKey::random(rand::thread_rng())),
-            ];
-
-            // assert_eq!("", signer.encode_and_sign_json(HEADER, CLAIMS).unwrap());
-        }
-    }
 }
 
 #[cfg(feature = "ring")]
@@ -218,7 +202,9 @@ pub mod ring {
     use ring::rand::SecureRandom;
 
     impl super::Signature for ::ring::signature::Signature {}
+    impl super::private::Private for ::ring::signature::Signature {}
     impl super::Signature for ::ring::hmac::Tag {}
+    impl super::private::Private for ::ring::hmac::Tag {}
 
     #[derive(Debug)]
     pub struct EcdsaKeyPair<R, A>
@@ -233,6 +219,8 @@ pub mod ring {
 
     macro_rules! ecdsa_impl {
         ($alg:ty, $alg_str:expr) => {
+            impl<R> super::private::Private for EcdsaKeyPair<R, $alg> where R: SecureRandom {}
+
             impl<R> super::SigningKey for EcdsaKeyPair<R, $alg>
             where
                 R: SecureRandom,
@@ -256,6 +244,8 @@ pub mod ring {
                     Self { key }
                 }
             }
+
+            impl<R> super::private::Private for &EcdsaKeyPair<R, $alg> where R: SecureRandom {}
 
             impl<R> super::SigningKey for &EcdsaKeyPair<R, $alg>
             where
@@ -368,6 +358,8 @@ pub mod ring {
 
     macro_rules! hmac_impl {
         ($alg:ty, $alg_str:expr) => {
+            impl super::private::Private for HmacKey<$alg> {}
+
             impl super::SigningKey for HmacKey<$alg> {
                 const ALG: &'static str = $alg_str;
 
@@ -383,6 +375,8 @@ pub mod ring {
                     Self { key }
                 }
             }
+
+            impl super::private::Private for &HmacKey<$alg> {}
 
             impl super::SigningKey for &HmacKey<$alg> {
                 const ALG: &'static str = $alg_str;
@@ -474,6 +468,8 @@ pub mod ring {
 
     macro_rules! rsa_impl {
         ($alg:ty, $alg_str:expr, $ring_alg:expr) => {
+            impl<R> super::private::Private for RsaKeyPair<R, $alg> where R: SecureRandom {}
+
             impl<R> super::SigningKey for RsaKeyPair<R, $alg>
             where
                 R: SecureRandom,
@@ -499,6 +495,8 @@ pub mod ring {
                     Self { key }
                 }
             }
+
+            impl<R> super::private::Private for &RsaKeyPair<R, $alg> where R: SecureRandom {}
 
             impl<R> super::SigningKey for &RsaKeyPair<R, $alg>
             where
@@ -579,7 +577,6 @@ pub mod ring {
 #[cfg(feature = "web_crypto")]
 pub mod web_crypto {
     use js_sys::Uint8Array;
-    use wasm_bindgen::prelude::*;
     use web_sys::{CryptoKey, SubtleCrypto};
 
     use crate::{
@@ -605,13 +602,11 @@ pub mod web_crypto {
         ) -> Result<Signer<'a>, Error> {
             if let Some(usage) = jwk.r#use.as_deref() {
                 if usage != USAGE_SIGN {
-                    return Err(Error::key_rejected(JsValue::from_str("invalid usage")));
+                    return Err(Error::key_rejected());
                 }
             }
 
-            let algorithm = jwk
-                .algorithm()
-                .map_err(|_| Error::key_rejected(JsValue::from_str("unknown alg")))?;
+            let algorithm = jwk.algorithm().map_err(|_| Error::key_rejected())?;
             let crypto_key = crate::web_crypto::import_jwk(
                 subtle_crypto,
                 jwk,
@@ -637,7 +632,7 @@ pub mod web_crypto {
         /// # Errors
         ///
         /// The function may return an error variant because the key pair is invalid.
-        #[cfg(feature = "serde_json")]
+        #[cfg(all(feature = "serde", feature = "serde_json"))]
         #[inline]
         pub async fn encode_and_sign<H, C>(&self, header: H, claims: C) -> Result<String, Error>
         where
@@ -676,11 +671,11 @@ pub mod web_crypto {
                     &self.crypto_key,
                     &mut data_to_sign.clone().into_bytes(),
                 )
-                .map_err(Error::key_rejected)?;
+                .map_err(|_| Error::key_rejected())?;
             let signed_data_array_buffer =
                 wasm_bindgen_futures::JsFuture::from(signed_data_promise)
                     .await
-                    .map_err(Error::key_rejected)?;
+                    .map_err(|_| Error::key_rejected())?;
             let signature = base64::encode_config(
                 &Uint8Array::new(&signed_data_array_buffer).to_vec(),
                 base64::URL_SAFE_NO_PAD,
