@@ -1,7 +1,7 @@
 mod common;
 
 #[cfg(feature = "ring")]
-use min_jwt::{ring::verifier::PublicKeyVerifier, signer::ring::EcdsaKeyPairSigner, UnverifiedJwt};
+use min_jwt::{ring::verifier::PublicKeyVerifier, sign::ring::EcdsaKeyPairSigner, UnverifiedJwt};
 #[cfg(feature = "ring")]
 use ring::{rand::SystemRandom, signature::UnparsedPublicKey};
 
@@ -47,7 +47,7 @@ fn es256_encode_and_sign_json_str_jwt_io_example() {
 
     let key_pair_with_rand = EcdsaKeyPairSigner::with_es256(private_key_pair(), sys_rand);
 
-    let jwt = min_jwt::signer::encode_and_sign_json(&header, claims, &key_pair_with_rand).unwrap();
+    let jwt = min_jwt::sign::encode_and_sign_json(&header, claims, &key_pair_with_rand).unwrap();
 
     let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
 

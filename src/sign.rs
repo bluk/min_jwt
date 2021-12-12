@@ -113,7 +113,7 @@ mod p256 {
             const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
 
             let rng = rand::thread_rng();
-            crate::signer::encode_and_sign_json(
+            crate::sign::encode_and_sign_json(
                 HEADER,
                 crate::tests::jwt_claims_str(),
                 &::p256::ecdsa::SigningKey::random(rng),
@@ -426,7 +426,7 @@ pub mod ring {
             .unwrap();
 
             let key_pair_with_rand = EcdsaKeyPairSigner::with_es256(key_pair, secure_random);
-            crate::signer::encode_and_sign_json(
+            crate::sign::encode_and_sign_json(
                 HEADER,
                 crate::tests::jwt_claims_str(),
                 &key_pair_with_rand,
