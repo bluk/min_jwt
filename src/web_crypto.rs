@@ -4,22 +4,17 @@
 //!
 //! [web_crypto]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API
 
-use js_sys::{Array, ArrayBuffer, Object, Uint8Array};
+use js_sys::{Array, Object};
 use serde::Serialize;
 use std::iter::FromIterator;
 use wasm_bindgen::prelude::*;
 use web_sys::{CryptoKey, SubtleCrypto};
 
-use crate::{
-    error::Error,
-    keys::{jwk::Jwk, pkcs8::Pkcs8Key},
-    Algorithm,
-};
+use crate::{error::Error, keys::jwk::Jwk, Algorithm};
 
-pub mod signer;
 pub mod verifier;
 
-enum KeyUsage {
+pub(crate) enum KeyUsage {
     Sign,
     Verify,
 }
@@ -34,30 +29,12 @@ impl KeyUsage {
     }
 }
 
-fn pkcs8_data_object(bytes: &[u8]) -> ArrayBuffer {
-    use regex::Regex;
-
-    let header_re = Regex::new(r"-+BEGIN.+-+").unwrap();
-    let footer_re = Regex::new(r"-+END.+-+").unwrap();
-
-    let key_data = String::from_utf8(bytes.to_vec())
-        .expect("PKCS8 formatted data can be converted to UTF-8 string")
-        .lines()
-        .filter(|line| !header_re.is_match(line) && !footer_re.is_match(line))
-        .collect::<Vec<&str>>()
-        .join("");
-    // TODO: Use JavaScript window.atob() instead of base64?
-    let b64_decoded_key =
-        base64::decode_config(&key_data[..], base64::STANDARD).expect("base64::decode failed");
-    Uint8Array::from(b64_decoded_key.as_slice()).buffer()
-}
-
 fn jwk_data_object(jwk: &Jwk) -> Object {
     let js_value = JsValue::from_serde(jwk).unwrap();
     Object::from(js_value)
 }
 
-trait WebCryptoAlgorithm {
+pub(crate) trait WebCryptoAlgorithm {
     fn import_algorithm(&self) -> Object;
 
     fn sign_algorithm(&self) -> Object;
@@ -65,6 +42,7 @@ trait WebCryptoAlgorithm {
     fn verify_algorithm(&self) -> Object;
 }
 
+#[cfg(feature = "serde_json")]
 impl WebCryptoAlgorithm for super::Algorithm {
     fn import_algorithm(&self) -> Object {
         // TODO: Avoid use of serde
@@ -164,7 +142,7 @@ impl WebCryptoAlgorithm for super::Algorithm {
     }
 }
 
-async fn import_jwk<'a, 'b>(
+pub(crate) async fn import_jwk<'a, 'b>(
     subtle_crypto: &'a SubtleCrypto,
     jwk: &'b Jwk,
     algorithm: Algorithm,
@@ -176,27 +154,6 @@ async fn import_jwk<'a, 'b>(
             "jwk",
             &jwk_data_object(jwk),
             &algorithm.import_algorithm(),
-            false,
-            &key_usages.import_usage(),
-        )
-        .map_err(Error::key_rejected)?;
-    Ok(CryptoKey::from(
-        wasm_bindgen_futures::JsFuture::from(import_key_promise)
-            .await
-            .map_err(Error::key_rejected)?,
-    ))
-}
-
-async fn import_pkcs8<'a, 'b>(
-    subtle_crypto: &'a SubtleCrypto,
-    pkcs8_key: &'b Pkcs8Key,
-    key_usages: KeyUsage,
-) -> Result<CryptoKey, Error> {
-    let import_key_promise = subtle_crypto
-        .import_key_with_object(
-            "pkcs8",
-            &pkcs8_data_object(&pkcs8_key.data),
-            &pkcs8_key.algorithm.import_algorithm(),
             false,
             &key_usages.import_usage(),
         )
