@@ -1,7 +1,7 @@
 mod common;
 
 #[cfg(feature = "ring")]
-use min_jwt::{ring::verifier::HmacVerifier, signer::ring::HmacKey, UnverifiedJwt};
+use min_jwt::{ring::verifier::HmacVerifier, signer::ring::HmacKeySigner, UnverifiedJwt};
 #[cfg(feature = "ring")]
 use ring::hmac;
 
@@ -33,7 +33,8 @@ fn hs256_encode_and_sign_json_str_rfc7515_appendix_a_1_example() {
 
     let header = String::from("{\"typ\":\"JWT\",\r\n \"alg\":\"HS256\"}");
     let claims = EXPECTED_CLAIMS;
-    let signing_key = HmacKey::with_hs256(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
+    let signing_key =
+        HmacKeySigner::with_hs256(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
 
     assert_eq!(
         min_jwt::signer::encode_and_sign_json(&header, &claims, &signing_key).unwrap(),
@@ -57,7 +58,8 @@ fn hs256_encode_and_sign_json_bytes_rfc7515_appendix_a_1_example() {
         111, 116, 34, 58, 116, 114, 117, 101, 125,
     ];
 
-    let signing_key = HmacKey::with_hs256(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
+    let signing_key =
+        HmacKeySigner::with_hs256(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
 
     assert_eq!(
         min_jwt::signer::encode_and_sign_json(&header_bytes, &claims_bytes, &signing_key).unwrap(),

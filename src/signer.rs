@@ -18,7 +18,7 @@ impl Signature for String {}
 impl private::Private for &str {}
 impl Signature for &str {}
 
-pub trait SigningKey: private::Private {
+pub trait Signer: private::Private {
     const ALG: &'static str;
 
     type Signature: Signature;
@@ -26,9 +26,9 @@ pub trait SigningKey: private::Private {
     fn sign(&self, bytes: &[u8]) -> Result<Self::Signature>;
 }
 
-impl<T> SigningKey for &T
+impl<T> Signer for &T
 where
-    T: SigningKey,
+    T: Signer,
 {
     const ALG: &'static str = T::ALG;
 
@@ -57,7 +57,7 @@ pub fn encode_and_sign<H, C, S>(header: H, claims: C, signing_key: S) -> Result<
 where
     H: crate::Header + serde::Serialize,
     C: crate::Claims + serde::Serialize,
-    S: SigningKey,
+    S: Signer,
 {
     let header = serde_json::to_vec(&header).unwrap();
     let claims = serde_json::to_vec(&claims).unwrap();
@@ -75,7 +75,7 @@ pub fn encode_and_sign_json<H, C, S>(header: H, claims: C, signing_key: S) -> Re
 where
     H: AsRef<[u8]>,
     C: AsRef<[u8]>,
-    S: SigningKey,
+    S: Signer,
 {
     let encoded_header = base64::encode_config(header, base64::URL_SAFE_NO_PAD);
     let encoded_claims = base64::encode_config(claims, base64::URL_SAFE_NO_PAD);
@@ -96,7 +96,7 @@ mod p256 {
     impl super::private::Private for p256::ecdsa::Signature {}
     impl super::private::Private for p256::ecdsa::SigningKey {}
 
-    impl super::SigningKey for p256::ecdsa::SigningKey {
+    impl super::Signer for p256::ecdsa::SigningKey {
         const ALG: &'static str = "ES256";
 
         type Signature = p256::ecdsa::Signature;
@@ -131,7 +131,7 @@ mod rsa {
 
     impl super::private::Private for rsa::RsaPrivateKey {}
 
-    impl super::SigningKey for rsa::RsaPrivateKey {
+    impl super::Signer for rsa::RsaPrivateKey {
         const ALG: &'static str = "RS256";
 
         type Signature = Vec<u8>;
@@ -163,7 +163,7 @@ pub mod ring {
     impl super::private::Private for ::ring::hmac::Tag {}
 
     #[derive(Debug)]
-    pub struct EcdsaKeyPair<R, A>
+    pub struct EcdsaKeyPairSigner<R, A>
     where
         R: SecureRandom,
         A: Algorithm,
@@ -175,9 +175,9 @@ pub mod ring {
 
     macro_rules! ecdsa_impl {
         ($alg:ty, $alg_str:expr) => {
-            impl<R> super::private::Private for EcdsaKeyPair<R, $alg> where R: SecureRandom {}
+            impl<R> super::private::Private for EcdsaKeyPairSigner<R, $alg> where R: SecureRandom {}
 
-            impl<R> super::SigningKey for EcdsaKeyPair<R, $alg>
+            impl<R> super::Signer for EcdsaKeyPairSigner<R, $alg>
             where
                 R: SecureRandom,
             {
@@ -197,7 +197,7 @@ pub mod ring {
     ecdsa_impl!(Es256, "ES256");
     ecdsa_impl!(Es384, "ES384");
 
-    impl<R> EcdsaKeyPair<R, Es256>
+    impl<R> EcdsaKeyPairSigner<R, Es256>
     where
         R: SecureRandom,
     {
@@ -243,7 +243,7 @@ pub mod ring {
         pub fn with_es256(
             key_pair: ::ring::signature::EcdsaKeyPair,
             secure_random: R,
-        ) -> EcdsaKeyPair<R, Es256> {
+        ) -> EcdsaKeyPairSigner<R, Es256> {
             Self {
                 key_pair,
                 secure_random,
@@ -252,14 +252,14 @@ pub mod ring {
         }
     }
 
-    impl<R> EcdsaKeyPair<R, Es384>
+    impl<R> EcdsaKeyPairSigner<R, Es384>
     where
         R: SecureRandom,
     {
         pub fn with_es384(
             key_pair: ::ring::signature::EcdsaKeyPair,
             secure_random: R,
-        ) -> EcdsaKeyPair<R, Es384> {
+        ) -> EcdsaKeyPairSigner<R, Es384> {
             Self {
                 key_pair,
                 secure_random,
@@ -269,7 +269,7 @@ pub mod ring {
     }
 
     #[derive(Debug)]
-    pub struct HmacKey<A>
+    pub struct HmacKeySigner<A>
     where
         A: Algorithm,
     {
@@ -279,9 +279,9 @@ pub mod ring {
 
     macro_rules! hmac_impl {
         ($alg:ty, $alg_str:expr) => {
-            impl super::private::Private for HmacKey<$alg> {}
+            impl super::private::Private for HmacKeySigner<$alg> {}
 
-            impl super::SigningKey for HmacKey<$alg> {
+            impl super::Signer for HmacKeySigner<$alg> {
                 const ALG: &'static str = $alg_str;
 
                 type Signature = ::ring::hmac::Tag;
@@ -297,7 +297,7 @@ pub mod ring {
     hmac_impl!(Hs384, "HS384");
     hmac_impl!(Hs512, "HS512");
 
-    impl HmacKey<Hs256> {
+    impl HmacKeySigner<Hs256> {
         /// Signs header and claims parts with a HMAC secret key.
         ///
         /// ```
@@ -326,7 +326,7 @@ pub mod ring {
         /// #   try_main().unwrap();
         /// # }
         /// ```
-        pub fn with_hs256(key: ::ring::hmac::Key) -> HmacKey<Hs256> {
+        pub fn with_hs256(key: ::ring::hmac::Key) -> HmacKeySigner<Hs256> {
             Self {
                 key,
                 alg: std::marker::PhantomData::<Hs256>::default(),
@@ -334,8 +334,8 @@ pub mod ring {
         }
     }
 
-    impl HmacKey<Hs384> {
-        pub fn with_hs384(key: ::ring::hmac::Key) -> HmacKey<Hs384> {
+    impl HmacKeySigner<Hs384> {
+        pub fn with_hs384(key: ::ring::hmac::Key) -> HmacKeySigner<Hs384> {
             Self {
                 key,
                 alg: std::marker::PhantomData::<Hs384>::default(),
@@ -343,8 +343,8 @@ pub mod ring {
         }
     }
 
-    impl HmacKey<Hs512> {
-        pub fn with_hs512(key: ::ring::hmac::Key) -> HmacKey<Hs512> {
+    impl HmacKeySigner<Hs512> {
+        pub fn with_hs512(key: ::ring::hmac::Key) -> HmacKeySigner<Hs512> {
             Self {
                 key,
                 alg: std::marker::PhantomData::<Hs512>::default(),
@@ -353,7 +353,7 @@ pub mod ring {
     }
 
     #[derive(Debug)]
-    pub struct RsaKeyPair<R, A>
+    pub struct RsaKeyPairSigner<R, A>
     where
         R: SecureRandom,
         A: Algorithm,
@@ -365,9 +365,9 @@ pub mod ring {
 
     macro_rules! rsa_impl {
         ($alg:ty, $alg_str:expr, $ring_alg:expr) => {
-            impl<R> super::private::Private for RsaKeyPair<R, $alg> where R: SecureRandom {}
+            impl<R> super::private::Private for RsaKeyPairSigner<R, $alg> where R: SecureRandom {}
 
-            impl<R> super::SigningKey for RsaKeyPair<R, $alg>
+            impl<R> super::Signer for RsaKeyPairSigner<R, $alg>
             where
                 R: SecureRandom,
             {
@@ -388,7 +388,7 @@ pub mod ring {
 
     rsa_impl!(Rs256, "RS256", ring::signature::RSA_PKCS1_SHA256);
 
-    impl<R> RsaKeyPair<R, Rs256>
+    impl<R> RsaKeyPairSigner<R, Rs256>
     where
         R: SecureRandom,
     {
@@ -396,7 +396,7 @@ pub mod ring {
         pub fn with_rs256(
             key_pair: ::ring::signature::RsaKeyPair,
             secure_random: R,
-        ) -> RsaKeyPair<R, Rs256> {
+        ) -> RsaKeyPairSigner<R, Rs256> {
             Self {
                 key_pair,
                 secure_random,
@@ -407,11 +407,9 @@ pub mod ring {
 
     #[cfg(test)]
     mod test {
-        use super::EcdsaKeyPair;
+        use super::EcdsaKeyPairSigner;
 
         const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
-        const CLAIMS: &str =
-            "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}";
 
         #[test]
         fn test_ring_ecdsa_key_pair() {
@@ -427,8 +425,8 @@ pub mod ring {
             )
             .unwrap();
 
-            let key_pair_with_rand = EcdsaKeyPair::with_es256(key_pair, secure_random);
-            let signer = crate::signer::encode_and_sign_json(
+            let key_pair_with_rand = EcdsaKeyPairSigner::with_es256(key_pair, secure_random);
+            crate::signer::encode_and_sign_json(
                 HEADER,
                 crate::tests::jwt_claims_str(),
                 &key_pair_with_rand,
