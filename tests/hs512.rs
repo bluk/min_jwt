@@ -1,11 +1,7 @@
 mod common;
 
 #[cfg(feature = "ring")]
-use min_jwt::{
-    ring::verifier::HmacVerifier,
-    signer::{ring::HmacKey, Signer},
-    UnverifiedJwt,
-};
+use min_jwt::{ring::verifier::HmacVerifier, signer::ring::HmacKey, UnverifiedJwt};
 #[cfg(feature = "ring")]
 use ring::hmac;
 
@@ -36,10 +32,9 @@ fn hs512_encode_and_sign_json_str_jwt_io_example() {
     let claims = EXPECTED_CLAIMS;
 
     let signing_key = HmacKey::with_hs512(hmac::Key::new(hmac::HMAC_SHA512, &decoded_hmac_key()));
-    let signer = Signer::from(signing_key);
 
     assert_eq!(
-        signer.encode_and_sign_json(&header, claims).unwrap(),
+        min_jwt::signer::encode_and_sign_json(&header, claims, &signing_key).unwrap(),
         EXPECTED_JWT_JWT_IO_512
     );
 }
