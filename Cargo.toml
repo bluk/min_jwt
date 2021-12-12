@@ -18,6 +18,7 @@ include = [
 [dependencies]
 base64 = "0.13.0"
 p256 = { version = "0.9.0", optional = true, default-features = false, features = ["arithmetic", "ecdsa", "ecdsa-core", "jwk", "pem", "pkcs8"] }
+rsa = { version = "0.5.0", optional = true, default-features = false, features = ["std", "pem"] }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 
@@ -45,6 +46,6 @@ features = [
 rand = { version = "0.8" }
 
 [features]
-default = ["ring", "p256", "serde", "serde_json", "web_crypto"]
+default = ["p256", "rsa", "ring", "serde", "serde_json", "web_crypto"]
 
 web_crypto = ["js-sys", "regex", "serde", "serde_json", "wasm-bindgen", "wasm-bindgen-futures", "web-sys"]

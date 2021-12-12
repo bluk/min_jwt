@@ -121,6 +121,82 @@ mod p256 {
     }
 }
 
+#[cfg(feature = "rsa")]
+mod rsa {
+    use crate::error::Result;
+    use rsa::{Hash, PaddingScheme};
+
+    impl super::SigningKey for rsa::RsaPrivateKey {
+        const ALG: &'static str = "RS256";
+
+        type Signature = Vec<u8>;
+
+        fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+            rsa::RsaPrivateKey::sign(
+                self,
+                PaddingScheme::PKCS1v15Sign {
+                    hash: Some(Hash::SHA2_256),
+                },
+                bytes,
+            )
+            .map_err(|_| todo!())
+        }
+    }
+
+    impl From<rsa::RsaPrivateKey> for super::Signer<rsa::RsaPrivateKey> {
+        fn from(key: rsa::RsaPrivateKey) -> Self {
+            Self { key }
+        }
+    }
+
+    impl<'a> super::SigningKey for &'a rsa::RsaPrivateKey {
+        const ALG: &'static str = "RS256";
+
+        type Signature = Vec<u8>;
+
+        fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+            rsa::RsaPrivateKey::sign(
+                self,
+                PaddingScheme::PKCS1v15Sign {
+                    hash: Some(Hash::SHA2_256),
+                },
+                bytes,
+            )
+            .map_err(|_| todo!())
+        }
+    }
+
+    impl<'a> From<&'a rsa::RsaPrivateKey> for super::Signer<&'a rsa::RsaPrivateKey> {
+        fn from(key: &'a rsa::RsaPrivateKey) -> Self {
+            Self { key }
+        }
+    }
+
+    #[cfg(test)]
+    mod test {
+        use crate::signer::*;
+
+        const CLAIMS: &str =
+            "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}";
+
+        #[test]
+        fn test_rust_crypto_p256() {
+            const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
+
+            let rng = rand::thread_rng();
+            let signer = Signer::from(::p256::ecdsa::SigningKey::random(rng));
+
+            let signers = vec![
+                Signer::from(::p256::ecdsa::SigningKey::random(rand::thread_rng())),
+                Signer::from(::p256::ecdsa::SigningKey::random(rand::thread_rng())),
+                Signer::from(::p256::ecdsa::SigningKey::random(rand::thread_rng())),
+            ];
+
+            // assert_eq!("", signer.encode_and_sign_json(HEADER, CLAIMS).unwrap());
+        }
+    }
+}
+
 #[cfg(feature = "ring")]
 pub mod ring {
     use crate::{
