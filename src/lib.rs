@@ -881,66 +881,7 @@ mod tests {
 }
 
 #[cfg(feature = "p256")]
-mod p256 {
-    #[cfg(test)]
-    mod test {
-        #[test]
-        fn test_es256() {
-            const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
-
-            let rng = rand::thread_rng();
-            let key = ::p256::ecdsa::SigningKey::random(rng);
-
-            let jwt = crate::encode_and_sign(HEADER, crate::tests::jwt_claims_str(), key).unwrap();
-        }
-    }
-}
+mod p256;
 
 #[cfg(feature = "ring")]
-mod ring {
-    #[cfg(test)]
-    mod test {
-        use crate::{error::Result, sign::ring::EcdsaKeyPairSigner, UnverifiedJwt};
-        use ring::{rand::SystemRandom, signature::KeyPair, signature::UnparsedPublicKey};
-
-        #[test]
-        fn test_es256() -> Result<()> {
-            const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
-            let sys_rand = SystemRandom::new();
-
-            // Normally the key's bytes are read from a file or another data store
-            // and should not be randomly generated on every invocation
-            let pkcs8_bytes = ::ring::signature::EcdsaKeyPair::generate_pkcs8(
-                &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
-                &sys_rand,
-            )?;
-            let key_pair = ::ring::signature::EcdsaKeyPair::from_pkcs8(
-                &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
-                pkcs8_bytes.as_ref(),
-            )?;
-
-            let public_key_bytes = *key_pair.public_key();
-
-            let key_pair_with_rand =
-                EcdsaKeyPairSigner::with_key_pair_and_random(key_pair, sys_rand);
-
-            let jwt = crate::encode_and_sign(
-                HEADER,
-                crate::tests::jwt_claims_str(),
-                &key_pair_with_rand,
-            )?;
-
-            let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
-
-            let unparsed_public_key = UnparsedPublicKey::new(
-                &ring::signature::ECDSA_P256_SHA256_FIXED,
-                &public_key_bytes,
-            );
-
-            let signature_verified_jwt = crate::verify(&unverified_jwt, &unparsed_public_key);
-            assert!(signature_verified_jwt.is_ok());
-
-            Ok(())
-        }
-    }
-}
+mod ring;

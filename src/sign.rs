@@ -347,33 +347,6 @@ pub mod ring {
             }
         }
     }
-
-    #[cfg(test)]
-    mod test {
-        use super::EcdsaKeyPairSigner;
-
-        const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
-
-        #[test]
-        fn test_ring_ecdsa_key_pair() {
-            let secure_random = ::ring::rand::SystemRandom::new();
-            let key_pair = ::ring::signature::EcdsaKeyPair::from_pkcs8(
-                &::ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
-                ::ring::signature::EcdsaKeyPair::generate_pkcs8(
-                    &::ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
-                    &secure_random,
-                )
-                .unwrap()
-                .as_ref(),
-            )
-            .unwrap();
-
-            let key_pair_with_rand =
-                EcdsaKeyPairSigner::with_key_pair_and_random(key_pair, secure_random);
-            crate::encode_and_sign(HEADER, crate::tests::jwt_claims_str(), &key_pair_with_rand);
-            // assert_eq!("", signer.encode_and_sign_json(HEADER, CLAIMS).unwrap());
-        }
-    }
 }
 
 #[cfg(feature = "web_crypto")]
