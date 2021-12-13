@@ -1,7 +1,7 @@
 mod common;
 
 #[cfg(feature = "ring")]
-use min_jwt::{ring::verifier::PublicKeyVerifier, sign::ring::EcdsaKeyPairSigner, UnverifiedJwt};
+use min_jwt::{sign::ring::EcdsaKeyPairSigner, UnverifiedJwt};
 #[cfg(feature = "ring")]
 use ring::{rand::SystemRandom, signature::UnparsedPublicKey};
 
@@ -58,9 +58,7 @@ fn es256_encode_and_sign_json_str_jwt_io_example() {
     let unparsed_public_key =
         UnparsedPublicKey::new(&ring::signature::ECDSA_P256_SHA256_FIXED, &public_key[..]);
 
-    let public_key_verifier = PublicKeyVerifier::with_public_key(unparsed_public_key);
-
-    let signature_verified_jwt = public_key_verifier.verify(&unverified_jwt).unwrap();
+    let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &unparsed_public_key).unwrap();
 
     assert_eq!(
         String::from_utf8(signature_verified_jwt.decode_claims().unwrap()).unwrap(),
@@ -80,9 +78,8 @@ fn es256_verify_valid_signature_jwt_io_example() {
 
     let unparsed_public_key =
         UnparsedPublicKey::new(&ring::signature::ECDSA_P256_SHA256_FIXED, &public_key[..]);
-    let public_key_verifier = PublicKeyVerifier::with_public_key(unparsed_public_key);
 
-    let signature_verified_jwt = public_key_verifier.verify(&unverified_jwt).unwrap();
+    let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &unparsed_public_key).unwrap();
 
     assert_eq!(
         String::from_utf8(signature_verified_jwt.decode_claims().unwrap()).unwrap(),
@@ -109,9 +106,8 @@ fn es256_verify_invalid_signature() {
 
     let unparsed_public_key =
         UnparsedPublicKey::new(&ring::signature::ECDSA_P256_SHA256_FIXED, &public_key[..]);
-    let public_key_verifier = PublicKeyVerifier::with_public_key(unparsed_public_key);
 
-    let error = public_key_verifier.verify(&unverified_jwt).unwrap_err();
+    let error = min_jwt::verify(&unverified_jwt, &unparsed_public_key).unwrap_err();
 
     assert!(error.is_invalid_signature());
 }

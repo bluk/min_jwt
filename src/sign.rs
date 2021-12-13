@@ -55,34 +55,17 @@ mod private {
 mod p256 {
     use crate::error::Result;
 
-    impl super::Signature for p256::ecdsa::Signature {}
-    impl super::private::Private for p256::ecdsa::Signature {}
-    impl super::private::Private for p256::ecdsa::SigningKey {}
+    impl super::Signature for ::p256::ecdsa::Signature {}
+    impl super::private::Private for ::p256::ecdsa::Signature {}
 
-    impl super::Signer for p256::ecdsa::SigningKey {
-        type Signature = p256::ecdsa::Signature;
+    impl super::Signer for ::p256::ecdsa::SigningKey {
+        type Signature = ::p256::ecdsa::Signature;
 
         fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
-            Ok(p256::ecdsa::signature::Signer::sign(self, bytes))
+            Ok(::p256::ecdsa::signature::Signer::sign(self, bytes))
         }
     }
-
-    #[cfg(test)]
-    mod test {
-        #[test]
-        fn test_rust_crypto_p256() {
-            const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
-
-            let rng = rand::thread_rng();
-            crate::encode_and_sign(
-                HEADER,
-                crate::tests::jwt_claims_str(),
-                &::p256::ecdsa::SigningKey::random(rng),
-            );
-
-            // assert_eq!("", signer.encode_and_sign_json(HEADER, CLAIMS).unwrap());
-        }
-    }
+    impl super::private::Private for ::p256::ecdsa::SigningKey {}
 }
 
 #[cfg(feature = "rsa")]
@@ -190,6 +173,11 @@ pub mod rsa {
     }
 }
 
+/// Ring implementation of signers and verifiers.
+///
+/// [Ring][ring] is a library for crytography operations which many Rust libraries depend on.
+///
+/// [ring]: https://github.com/briansmith/ring
 #[cfg(feature = "ring")]
 pub mod ring {
     use crate::{

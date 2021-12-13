@@ -13,10 +13,9 @@ pub use error::Error;
 pub mod algorithm;
 mod error;
 pub mod keys;
-#[cfg(feature = "ring")]
-pub mod ring;
 pub mod sign;
 pub mod time;
+pub mod verify;
 #[cfg(feature = "web_crypto")]
 pub mod web_crypto;
 
@@ -326,7 +325,6 @@ impl<'a> UnverifiedJwt<'a> {
 /// # #[cfg(feature = "ring")]
 /// # fn try_main() -> Result<(), Error> {
 /// use min_jwt::UnverifiedJwt;
-/// use min_jwt::ring::verifier::HmacVerifier;
 /// use ring::hmac;
 ///
 /// let jwt_str = String::from("\
@@ -337,9 +335,8 @@ impl<'a> UnverifiedJwt<'a> {
 ///
 /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
 /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-/// let hmac_verifier = HmacVerifier::with_key(hmac_key);
 ///
-/// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+/// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
 ///
 /// let decoded_claims = signature_verified_jwt.decode_claims()?;
 ///
@@ -369,7 +366,6 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -380,9 +376,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
     ///
     /// let decoded_header = signature_verified_jwt.decode_header()?;
     ///
@@ -412,7 +407,6 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -423,9 +417,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
     ///
     /// let decoded_claims = signature_verified_jwt.decode_claims()?;
     ///
@@ -456,7 +449,6 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -467,9 +459,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
     ///
     /// let decoded_signature = signature_verified_jwt.decode_signature()?;
     ///
@@ -497,7 +488,6 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -508,9 +498,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", signature_verified_jwt .signed_data());
     ///
@@ -539,7 +528,6 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -550,9 +538,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9", signature_verified_jwt.encoded_header());
     ///
@@ -584,7 +571,6 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -595,9 +581,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
     ///
     /// assert_eq!("eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", signature_verified_jwt.encoded_claims());
     ///
@@ -628,7 +613,6 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
-    /// use min_jwt::ring::verifier::HmacVerifier;
     /// use ring::hmac;
     ///
     /// let jwt_str = String::from("\
@@ -639,9 +623,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
-    /// let hmac_verifier = HmacVerifier::with_key(hmac_key);
     ///
-    /// let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt)?;
+    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
     ///
     /// assert_eq!("SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", signature_verified_jwt.encoded_signature());
     ///
@@ -752,7 +735,6 @@ trait EncodeJwk {}
 ///
 /// The function may return an error variant because the key pair is invalid.
 #[cfg(all(feature = "serde", feature = "serde_json"))]
-#[inline]
 pub fn serialize_encode_and_sign<H, C, S>(header: H, claims: C, signing_key: S) -> Result<String>
 where
     H: crate::Header + serde::Serialize,
@@ -770,7 +752,6 @@ where
 /// # Errors
 ///
 /// The function may return an error variant because the key pair is invalid.
-#[inline]
 pub fn encode_and_sign<H, C, S>(header: H, claims: C, signing_key: S) -> Result<String>
 where
     H: AsRef<[u8]>,
@@ -786,6 +767,26 @@ where
     let signature = base64::encode_config(&signature, base64::URL_SAFE_NO_PAD);
 
     Ok([data_to_sign, signature].join("."))
+}
+
+/// Attempts to verify a JWT's signature.
+///
+/// # Errors
+///
+/// If the public key or signature is invalid, the function will return an error variant.
+pub fn verify<'a, V>(
+    unverified_jwt: &'a UnverifiedJwt<'a>,
+    verifying_key: V,
+) -> Result<SignatureVerifiedJwt<'a>>
+where
+    V: verify::Verifier,
+{
+    let signed_data = unverified_jwt.signed_data().as_bytes();
+    let decoded_signature = unverified_jwt.decode_signature()?;
+
+    verifying_key
+        .verify(signed_data, decoded_signature)
+        .map(|_| SignatureVerifiedJwt { unverified_jwt })
 }
 
 #[cfg(test)]
@@ -876,5 +877,70 @@ mod tests {
         let jwt = String::from("abc.defg");
         let error = UnverifiedJwt::with_str(&jwt).unwrap_err();
         assert!(error.is_malformed_jwt())
+    }
+}
+
+#[cfg(feature = "p256")]
+mod p256 {
+    #[cfg(test)]
+    mod test {
+        #[test]
+        fn test_es256() {
+            const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
+
+            let rng = rand::thread_rng();
+            let key = ::p256::ecdsa::SigningKey::random(rng);
+
+            let jwt = crate::encode_and_sign(HEADER, crate::tests::jwt_claims_str(), key).unwrap();
+        }
+    }
+}
+
+#[cfg(feature = "ring")]
+mod ring {
+    #[cfg(test)]
+    mod test {
+        use crate::{error::Result, sign::ring::EcdsaKeyPairSigner, UnverifiedJwt};
+        use ring::{rand::SystemRandom, signature::KeyPair, signature::UnparsedPublicKey};
+
+        #[test]
+        fn test_es256() -> Result<()> {
+            const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
+            let sys_rand = SystemRandom::new();
+
+            // Normally the key's bytes are read from a file or another data store
+            // and should not be randomly generated on every invocation
+            let pkcs8_bytes = ::ring::signature::EcdsaKeyPair::generate_pkcs8(
+                &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
+                &sys_rand,
+            )?;
+            let key_pair = ::ring::signature::EcdsaKeyPair::from_pkcs8(
+                &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
+                pkcs8_bytes.as_ref(),
+            )?;
+
+            let public_key_bytes = *key_pair.public_key();
+
+            let key_pair_with_rand =
+                EcdsaKeyPairSigner::with_key_pair_and_random(key_pair, sys_rand);
+
+            let jwt = crate::encode_and_sign(
+                HEADER,
+                crate::tests::jwt_claims_str(),
+                &key_pair_with_rand,
+            )?;
+
+            let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
+
+            let unparsed_public_key = UnparsedPublicKey::new(
+                &ring::signature::ECDSA_P256_SHA256_FIXED,
+                &public_key_bytes,
+            );
+
+            let signature_verified_jwt = crate::verify(&unverified_jwt, &unparsed_public_key);
+            assert!(signature_verified_jwt.is_ok());
+
+            Ok(())
+        }
     }
 }

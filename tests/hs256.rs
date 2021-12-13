@@ -1,7 +1,7 @@
 mod common;
 
 #[cfg(feature = "ring")]
-use min_jwt::{ring::verifier::HmacVerifier, UnverifiedJwt};
+use min_jwt::UnverifiedJwt;
 #[cfg(feature = "ring")]
 use ring::hmac;
 
@@ -81,10 +81,11 @@ fn hs256_verify_valid_signature_rfc7515_appendix_a_1_example() {
 
     let unverified_jwt = UnverifiedJwt::with_str(jwt).unwrap();
 
-    let hmac_verifier =
-        HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
-
-    let signature_verified_jwt = hmac_verifier.verify(&unverified_jwt).unwrap();
+    let signature_verified_jwt = min_jwt::verify(
+        &unverified_jwt,
+        &hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()),
+    )
+    .unwrap();
 
     assert_eq!(
         String::from_utf8(signature_verified_jwt.decode_claims().unwrap()).unwrap(),
@@ -106,10 +107,11 @@ fn hs256_verify_invalid_signature() {
 
     let unverified_jwt = UnverifiedJwt::with_str(&jwt_with_invalid_signature).unwrap();
 
-    let hmac_verifier =
-        HmacVerifier::with_key(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
-
-    let error = hmac_verifier.verify(&unverified_jwt).unwrap_err();
+    let error = min_jwt::verify(
+        &unverified_jwt,
+        &hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()),
+    )
+    .unwrap_err();
 
     assert!(error.is_invalid_signature());
 }

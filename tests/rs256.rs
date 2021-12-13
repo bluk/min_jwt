@@ -1,7 +1,7 @@
 mod common;
 
 #[cfg(feature = "ring")]
-use min_jwt::{ring::verifier::PublicKeyVerifier, UnverifiedJwt};
+use min_jwt::UnverifiedJwt;
 #[cfg(feature = "ring")]
 use ring::signature::{self, UnparsedPublicKey};
 
@@ -33,11 +33,9 @@ fn rs256_verify_valid_signature_jwt_io_example() {
     let public_key =
         UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, &public_key[..]);
 
-    let public_key_verifier = PublicKeyVerifier::with_public_key(public_key);
-
     let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
 
-    let signature_verified_jwt = public_key_verifier.verify(&unverified_jwt).unwrap();
+    let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &public_key).unwrap();
 
     assert_eq!(encoded_header, signature_verified_jwt.encoded_header());
     assert_eq!(encoded_claims, signature_verified_jwt.encoded_claims());
@@ -89,10 +87,8 @@ fn rs256_verify_invalid_signature() {
     let public_key =
         UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, &public_key[..]);
 
-    let public_key_verifier = PublicKeyVerifier::with_public_key(public_key);
-
     let unverified_jwt = UnverifiedJwt::with_str(&jwt).unwrap();
 
-    let error = public_key_verifier.verify(&unverified_jwt).unwrap_err();
+    let error = min_jwt::verify(&unverified_jwt, &public_key).unwrap_err();
     assert!(error.is_invalid_signature());
 }
