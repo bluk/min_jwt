@@ -2,11 +2,81 @@
 //!
 //! JSON Web Tokens are a method for representing claims between two parties.
 //!
-//! JWTs are useful in some scenarios, but there are many use cases where JWTs are not ideal. If
-//! you search on the Internet, you can find many articles and comments which may help you decide
-//! if JWTs are appropriate for your use case.
+//! They are used in authentication flows with a third party provider (e.g.
+//! Sign in with...) amongst other scenarios.
 //!
-//! This crate currently provides basic functionality to sign and verify the signatures of JWTs.
+//! This crate provides functionality to sign and verify the signatures of
+//! JWTs.
+//!
+//! ## Cryptography Features/Dependencies
+//!
+//! This crate depends on other crates for all cryptographic operations.
+//! Find a supported crypto crate below which supports the algorithms required.
+//!
+//! | Dependent Crate(s)       | Algorithm(s) Supported | Feature(s)
+//! | ------------------       | ---------------------- | ----------
+//! | [p256][p256]             | ES256                  | p256
+//! | [ring][ring]             | ES256, HS256, RS256    | ring
+//! | [rsa][rsa], [sha2][sha2] | RS256                  | rsa, sha2
+//!
+//! For instance, if you need `ES256` support, you may choose to use the `p256`
+//! crate and/or the `ring` crate.  Suppose you chose the `p256` crate. In your
+//! crate, depend on this crate and the relevant dependent crate in your
+//! `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! min_jwt = { version = "0.2.0", features = [ "p256", "serde", "serde_json"] }
+//! p256 = { version = "0.9.0", features = [ "ecdsa", "jwk", "pem"] }
+//! ```
+//!
+//! Be sure to enable the relevant features as well.
+//!
+//! When choosing a cryptography implementation, you may want to consider
+//! compatibility with your environment, the ability to import the signing and
+//! verifying keys in the given formats, and the security properties of the
+//! code (e.g. an audited implementation, resistence to timing attacks, etc.).
+//!
+//! ## Usage
+//!
+//! The [encode_and_sign] and [verify][fn@verify] functions are the primary functions for this crate.
+//!
+//! To use the functions, construct the cryptography crate's key. The
+//! cryptography crate may provide methods to import a key in PKCS8 PEM, PKCS8
+//! DER, JSON Web Key (JWK), and other formats.
+//!
+//! Then, use the key as either a [sign::Signer] or [verify::Verifier]
+//! parameter. The key may need to be wrapped in a provided type.
+//! See the [sign] or [verify][mod@verify] modules for more documentation and examples.
+//!
+//! ## Examples
+//!
+//! # Sign using ES256 with `p256` crate
+//!
+//! ```
+//! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
+//! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
+//! use p256::elliptic_curve::pkcs8::FromPrivateKey;
+//!
+//! // The private key must be formatted without extra spaces or new lines.
+//! let private_key =
+//! "-----BEGIN PRIVATE KEY-----
+//! MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8UmkmK0KO64KCDRZ
+//! b4RCAHRZ0AfRWBn3Pv6hTv1VR9mhRANCAAR6sST7OqgbWhgEsPeiG7PS3MiVTtfM
+//! UbXT3wdwI67QKZUCynxkthepgPe2zr6PQJX8jbJ/PDH+iMGub5n+lJCc
+//! -----END PRIVATE KEY-----";
+//!
+//! let secret_key = ::p256::SecretKey::from_pkcs8_pem(&private_key).unwrap();
+//! let signing_key = ::p256::ecdsa::SigningKey::from(secret_key);
+//! let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
+//! # Ok::<(), min_jwt::Error>(())
+//! ```
+//!
+//! [p256]: https://github.com/RustCrypto/elliptic-curves
+//! [ring]: https://github.com/briansmith/ring
+//! [rsa]: https://github.com/RustCrypto/RSA
+//! [rust_crypto]: https://github.com/RustCrypto
+//! [sha2]: https://github.com/RustCrypto/hashes
 
 pub use error::Error;
 

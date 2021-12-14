@@ -1,6 +1,18 @@
 //! Sign JWTs using various signature algorithms.
 //!
-//! See the tests for how to use a specific signing algorithm.
+//! The [encode_and_sign](super::encode_and_sign) and
+//! [serialize_encode_and_sign](super::serialize_encode_and_sign) functions sign
+//! JWTs.
+//!
+//! Both functions require a [Signer] which abstracts the implementation and
+//! necessary parameters for signing the encoded data. This crate either directly
+//! implements the `Signer` trait on the foreign types or it creates a wrapping
+//! type which implements the `Signer` trait.
+//!
+//! Find the implementations on foreign types and implementators listed under
+//! the [Signer]'s documentation to discover what is available.
+//!
+//! See the implementation modules for specific examples.
 
 use crate::error::Result;
 
@@ -52,21 +64,7 @@ mod private {
 }
 
 #[cfg(feature = "p256")]
-mod p256 {
-    use crate::error::Result;
-
-    impl super::Signature for ::p256::ecdsa::Signature {}
-    impl super::private::Private for ::p256::ecdsa::Signature {}
-
-    impl super::Signer for ::p256::ecdsa::SigningKey {
-        type Signature = ::p256::ecdsa::Signature;
-
-        fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
-            Ok(::p256::ecdsa::signature::Signer::sign(self, bytes))
-        }
-    }
-    impl super::private::Private for ::p256::ecdsa::SigningKey {}
-}
+pub mod p256;
 
 #[cfg(feature = "rsa")]
 pub mod rsa {
