@@ -51,7 +51,7 @@
 //!
 //! ## Examples
 //!
-//! # Sign using ES256 with `p256` crate
+//! ### Sign using ES256 with `p256` crate
 //!
 //! ```
 //! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
@@ -87,7 +87,7 @@ pub mod sign;
 pub mod time;
 pub mod verify;
 #[cfg(feature = "web_crypto")]
-pub mod web_crypto;
+mod web_crypto;
 
 use error::Result;
 

@@ -212,3 +212,6 @@ mod ring {
 
     impl super::private::Private for ::ring::hmac::Key {}
 }
+
+#[cfg(feature = "web_crypto")]
+pub mod web_crypto;

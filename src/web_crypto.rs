@@ -12,8 +12,6 @@ use web_sys::{CryptoKey, SubtleCrypto};
 
 use crate::{error::Error, keys::jwk::Jwk, Algorithm};
 
-pub mod verifier;
-
 pub(crate) enum KeyUsage {
     Sign,
     Verify,

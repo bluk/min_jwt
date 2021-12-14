@@ -8,7 +8,7 @@ use crate::{
     Algorithm, SignatureVerifiedJwt, UnverifiedJwt,
 };
 
-use super::WebCryptoAlgorithm;
+use crate::web_crypto::WebCryptoAlgorithm;
 
 /// A key used to verify JWT signatures.
 #[derive(Debug)]
@@ -31,8 +31,13 @@ impl<'a> Verifier<'a> {
         }
 
         let algorithm = jwk.algorithm().map_err(|_| Error::key_rejected())?;
-        let crypto_key =
-            super::import_jwk(subtle_crypto, jwk, algorithm, super::KeyUsage::Verify).await?;
+        let crypto_key = crate::web_crypto::import_jwk(
+            subtle_crypto,
+            jwk,
+            algorithm,
+            crate::web_crypto::KeyUsage::Verify,
+        )
+        .await?;
         Ok(Verifier {
             subtle_crypto,
             crypto_key,
