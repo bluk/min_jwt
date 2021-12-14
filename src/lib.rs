@@ -56,7 +56,7 @@
 //! ```
 //! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
-//! use p256::elliptic_curve::pkcs8::FromPrivateKey;
+//! use p256::pkcs8::FromPrivateKey;
 //!
 //! // The private key must be formatted without extra spaces or new lines.
 //! let private_key =
@@ -858,12 +858,13 @@ where
 /// # Errors
 ///
 /// If the public key or signature is invalid, the function will return an error variant.
-pub fn verify<'a, I, V>(unverified_jwt: I, verifying_key: V) -> Result<SignatureVerifiedJwt<'a>>
+pub fn verify<'a, V>(
+    unverified_jwt: &'a UnverifiedJwt<'a>,
+    verifying_key: V,
+) -> Result<SignatureVerifiedJwt<'a>>
 where
-    I: core::convert::Into<&'a UnverifiedJwt<'a>>,
     V: verify::Verifier,
 {
-    let unverified_jwt = unverified_jwt.into();
     let signed_data = unverified_jwt.signed_data().as_bytes();
     let decoded_signature = unverified_jwt.decode_signature()?;
 

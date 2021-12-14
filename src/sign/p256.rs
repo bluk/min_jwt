@@ -8,16 +8,6 @@
 //!
 //! # Examples
 //!
-//! ## Basic
-//!
-//! ```
-//! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
-//! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
-//! let signing_key = ::p256::ecdsa::SigningKey::random(rand::thread_rng());
-//! let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
-//! # Ok::<(), min_jwt::Error>(())
-//! ```
-//!
 //! ## PKCS8
 //!
 //! The `pem` feature on the `p256` dependency must be enabled.
@@ -25,7 +15,7 @@
 //! ```
 //! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
-//! use p256::elliptic_curve::pkcs8::FromPrivateKey;
+//! use ::p256::pkcs8::FromPrivateKey;
 //!
 //! // The private key must be formatted without extra spaces or new lines.
 //! let private_key =
@@ -38,6 +28,7 @@
 //! let secret_key = ::p256::SecretKey::from_pkcs8_pem(&private_key).unwrap();
 //! let signing_key = ::p256::ecdsa::SigningKey::from(secret_key);
 //! let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
+//! # assert_eq!("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw", jwt);
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
 //!
@@ -61,6 +52,7 @@
 //! let secret_key = ::p256::SecretKey::from_jwk_str(jwk).unwrap();
 //! let signing_key = ::p256::ecdsa::SigningKey::from(secret_key);
 //! let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
+//! # assert_eq!("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw", jwt);
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
 
