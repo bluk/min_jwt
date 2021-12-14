@@ -9,7 +9,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{Algorithm, Error};
+use crate::{error::Error, Algorithm};
 
 pub(crate) const USAGE_SIGN: &str = "sig";
 

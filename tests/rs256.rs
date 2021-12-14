@@ -160,7 +160,7 @@ fn rs256_verify_valid_signature_jwt_io_example_with_rsa() {
     feature = "sha2"
 ))]
 #[test]
-fn test_rs256_with_rsa() -> Result<(), min_jwt::Error> {
+fn test_rs256_with_rsa() -> Result<(), min_jwt::error::Error> {
     use min_jwt::{BasicHeader, UnverifiedJwt};
 
     const HEADER: &str = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";

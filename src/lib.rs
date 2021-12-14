@@ -377,6 +377,8 @@ impl<'a> UnverifiedJwt<'a> {
     }
 
     fn split(jwt: &str) -> Result<SplitJwt<'_>> {
+        use crate::error::Error;
+
         let mut parts = jwt.rsplitn(2, '.');
         let (signature, signed_data) = match (parts.next(), parts.next()) {
             (Some(signature), Some(signed_data)) => (signature, signed_data),
@@ -735,13 +737,13 @@ pub enum Algorithm {
 }
 
 impl core::str::FromStr for Algorithm {
-    type Err = Error;
+    type Err = crate::error::Error;
 
     fn from_str(s: &str) -> core::result::Result<Self, Self::Err> {
         match s {
             "ES256" => Ok(Algorithm::Es256),
             "RS256" => Ok(Algorithm::Rs256),
-            _ => Err(Error::unsupported_algorithm()),
+            _ => Err(crate::error::Error::unsupported_algorithm()),
         }
     }
 }
