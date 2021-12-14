@@ -7,6 +7,18 @@
 pub trait Algorithm: private::Private {}
 
 #[derive(Debug)]
+pub struct Es256;
+
+impl private::Private for Es256 {}
+impl Algorithm for Es256 {}
+
+#[derive(Debug)]
+pub struct Hs256;
+
+impl private::Private for Hs256 {}
+impl Algorithm for Hs256 {}
+
+#[derive(Debug)]
 pub struct Rs256;
 
 impl private::Private for Rs256 {}
