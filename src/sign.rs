@@ -70,20 +70,18 @@ mod p256 {
 
 #[cfg(feature = "rsa")]
 pub mod rsa {
-    use std::marker::PhantomData;
+    use core::marker::PhantomData;
 
-    use crate::{
-        algorithm::{Algorithm, Rs256},
-        error::Result,
-    };
-    use rsa::{Hash, PaddingScheme};
+    use crate::{algorithm::Algorithm, error::Result};
 
     use super::Signature;
 
     pub trait PrivateKey: private::Private {
         type Signature: Signature;
 
-        fn sign(&self, padding: ::rsa::PaddingScheme, bytes: &[u8]) -> Result<Self::Signature>;
+        fn sign<B>(&self, padding: ::rsa::PaddingScheme, bytes: B) -> Result<Self::Signature>
+        where
+            B: AsRef<[u8]>;
     }
 
     mod private {
@@ -97,7 +95,10 @@ pub mod rsa {
     {
         type Signature = T::Signature;
 
-        fn sign(&self, padding: ::rsa::PaddingScheme, bytes: &[u8]) -> Result<Self::Signature> {
+        fn sign<B>(&self, padding: ::rsa::PaddingScheme, bytes: B) -> Result<Self::Signature>
+        where
+            B: AsRef<[u8]>,
+        {
             T::sign(self, padding, bytes)
         }
     }
@@ -105,8 +106,11 @@ pub mod rsa {
     impl PrivateKey for ::rsa::RsaPrivateKey {
         type Signature = Vec<u8>;
 
-        fn sign(&self, padding: ::rsa::PaddingScheme, bytes: &[u8]) -> Result<Self::Signature> {
-            ::rsa::RsaPrivateKey::sign(self, padding, bytes).map_err(|_| todo!())
+        fn sign<B>(&self, padding: ::rsa::PaddingScheme, bytes: B) -> Result<Self::Signature>
+        where
+            B: AsRef<[u8]>,
+        {
+            ::rsa::RsaPrivateKey::sign(self, padding, bytes.as_ref()).map_err(|_| todo!())
         }
     }
 
@@ -139,28 +143,8 @@ pub mod rsa {
         }
     }
 
-    macro_rules! rsa_impl {
-        ($alg:ty, $padding:expr) => {
-            impl<K> super::Signer for RsaPrivateKeySigner<K, $alg>
-            where
-                K: PrivateKey,
-            {
-                type Signature = K::Signature;
-
-                fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
-                    self.key.sign($padding, bytes)
-                }
-            }
-        };
-    }
-
-    rsa_impl!(Rs256, {
-        PaddingScheme::PKCS1v15Sign {
-            hash: Some(Hash::SHA2_256),
-        }
-    });
-
-    impl<K> RsaPrivateKeySigner<K, Rs256>
+    #[cfg(feature = "sha2")]
+    impl<K> RsaPrivateKeySigner<K, crate::algorithm::Rs256>
     where
         K: PrivateKey,
     {
@@ -169,6 +153,23 @@ pub mod rsa {
                 key,
                 alg: PhantomData::default(),
             }
+        }
+    }
+
+    #[cfg(feature = "sha2")]
+    impl<K> super::Signer for RsaPrivateKeySigner<K, crate::algorithm::Rs256>
+    where
+        K: PrivateKey,
+    {
+        type Signature = K::Signature;
+
+        fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+            use sha2::{Digest, Sha256};
+
+            self.key.sign(
+                ::rsa::PaddingScheme::new_pkcs1v15_sign(Some(::rsa::Hash::SHA2_256)),
+                Sha256::digest(bytes),
+            )
         }
     }
 }

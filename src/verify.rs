@@ -50,6 +50,130 @@ mod p256 {
     impl super::private::Private for ::p256::ecdsa::VerifyingKey {}
 }
 
+#[cfg(feature = "rsa")]
+pub mod rsa {
+    use crate::{
+        algorithm::Algorithm,
+        error::{Error, Result},
+    };
+    use core::marker::PhantomData;
+
+    impl super::private::Private for ::rsa::RsaPublicKey {}
+
+    pub trait PublicKey: private::Private {
+        fn verify<M, S>(
+            &self,
+            message: M,
+            signature: S,
+            padding: ::rsa::PaddingScheme,
+        ) -> Result<()>
+        where
+            M: AsRef<[u8]>,
+            S: AsRef<[u8]>;
+    }
+
+    mod private {
+        pub trait Private {}
+        impl<T> Private for &T where T: Private {}
+    }
+
+    impl<T> PublicKey for &T
+    where
+        T: PublicKey,
+    {
+        fn verify<M, S>(
+            &self,
+            message: M,
+            signature: S,
+            padding: ::rsa::PaddingScheme,
+        ) -> Result<()>
+        where
+            M: AsRef<[u8]>,
+            S: AsRef<[u8]>,
+        {
+            T::verify(self, message, signature, padding)
+        }
+    }
+
+    impl PublicKey for ::rsa::RsaPublicKey {
+        fn verify<M, S>(
+            &self,
+            message: M,
+            signature: S,
+            padding: ::rsa::PaddingScheme,
+        ) -> Result<()>
+        where
+            M: AsRef<[u8]>,
+            S: AsRef<[u8]>,
+        {
+            ::rsa::PublicKey::verify(self, padding, message.as_ref(), signature.as_ref())
+                .map_err(|_| Error::invalid_signature())
+        }
+    }
+
+    impl private::Private for ::rsa::RsaPublicKey {}
+
+    #[derive(Debug)]
+    pub struct RsaPublicKeyVerifier<K, A>
+    where
+        K: PublicKey,
+        A: Algorithm,
+    {
+        key: K,
+        alg: PhantomData<A>,
+    }
+
+    impl<K, A> super::private::Private for RsaPublicKeyVerifier<K, A>
+    where
+        K: PublicKey,
+        A: Algorithm,
+    {
+    }
+
+    impl<K, A> RsaPublicKeyVerifier<K, A>
+    where
+        K: PublicKey,
+        A: Algorithm,
+    {
+        pub fn into_inner(self) -> K {
+            self.key
+        }
+    }
+
+    #[cfg(feature = "sha2")]
+    impl<K> RsaPublicKeyVerifier<K, crate::algorithm::Rs256>
+    where
+        K: PublicKey,
+    {
+        pub fn with_rs256(key: K) -> Self {
+            Self {
+                key,
+                alg: PhantomData::default(),
+            }
+        }
+    }
+
+    #[cfg(feature = "sha2")]
+    impl<K> super::Verifier for RsaPublicKeyVerifier<K, crate::algorithm::Rs256>
+    where
+        K: PublicKey,
+    {
+        fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
+        where
+            M: AsRef<[u8]>,
+            S: AsRef<[u8]>,
+        {
+            use sha2::{Digest, Sha256};
+
+            self.key.verify(
+                Sha256::digest(message),
+                signature,
+                ::rsa::PaddingScheme::new_pkcs1v15_sign(Some(::rsa::Hash::SHA2_256)),
+            )
+        }
+    }
+}
+
 /// Ring implementation of signers and verifiers.
 ///
 /// [Ring][ring] is a library for crytography operations which many Rust libraries depend on.

@@ -78,6 +78,20 @@ struct SplitJwt<'a> {
     signature: &'a str,
 }
 
+impl<'a> core::convert::TryFrom<&'a str> for UnverifiedJwt<'a> {
+    type Error = crate::error::Error;
+
+    fn try_from(value: &'a str) -> Result<Self> {
+        let split_jwt = Self::split(value)?;
+        Ok(UnverifiedJwt {
+            header: split_jwt.header,
+            claims: split_jwt.claims,
+            signed_data: split_jwt.signed_data,
+            signature: split_jwt.signature,
+        })
+    }
+}
+
 impl<'a> UnverifiedJwt<'a> {
     /// Attempts to construct an `UnverifiedJwt`.
     ///
@@ -774,13 +788,12 @@ where
 /// # Errors
 ///
 /// If the public key or signature is invalid, the function will return an error variant.
-pub fn verify<'a, V>(
-    unverified_jwt: &'a UnverifiedJwt<'a>,
-    verifying_key: V,
-) -> Result<SignatureVerifiedJwt<'a>>
+pub fn verify<'a, I, V>(unverified_jwt: I, verifying_key: V) -> Result<SignatureVerifiedJwt<'a>>
 where
+    I: core::convert::Into<&'a UnverifiedJwt<'a>>,
     V: verify::Verifier,
 {
+    let unverified_jwt = unverified_jwt.into();
     let signed_data = unverified_jwt.signed_data().as_bytes();
     let decoded_signature = unverified_jwt.decode_signature()?;
 
@@ -885,3 +898,6 @@ mod p256;
 
 #[cfg(feature = "ring")]
 mod ring;
+
+#[cfg(feature = "rsa")]
+mod rsa;
