@@ -121,7 +121,7 @@ pub mod rsa {
         A: Algorithm,
     {
         key: K,
-        alg: core::marker::PhantomData<A>,
+        alg: PhantomData<A>,
     }
 
     impl<K, A> super::private::Private for RsaPrivateKeySigner<K, A>
@@ -183,6 +183,7 @@ pub mod ring {
         algorithm::{Algorithm, Rs256},
         error::{Error, Result},
     };
+    use core::marker::PhantomData;
     use ring::rand::SecureRandom;
 
     impl super::Signature for ::ring::signature::Signature {}
@@ -289,7 +290,7 @@ pub mod ring {
     {
         key_pair: ::ring::signature::RsaKeyPair,
         secure_random: R,
-        alg: std::marker::PhantomData<A>,
+        alg: PhantomData<A>,
     }
 
     impl<R, A> super::private::Private for RsaKeyPairSigner<R, A>
@@ -342,7 +343,7 @@ pub mod ring {
             Self {
                 key_pair,
                 secure_random,
-                alg: std::marker::PhantomData::<Rs256>::default(),
+                alg: PhantomData::<Rs256>::default(),
             }
         }
     }

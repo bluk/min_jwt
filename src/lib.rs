@@ -81,7 +81,7 @@
 pub use error::Error;
 
 pub mod algorithm;
-mod error;
+pub mod error;
 pub mod keys;
 pub mod sign;
 pub mod time;

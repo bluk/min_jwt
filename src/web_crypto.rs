@@ -4,9 +4,9 @@
 //!
 //! [web_crypto]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API
 
+use core::iter::FromIterator;
 use js_sys::{Array, Object};
 use serde::Serialize;
-use std::iter::FromIterator;
 use wasm_bindgen::prelude::*;
 use web_sys::{CryptoKey, SubtleCrypto};
 

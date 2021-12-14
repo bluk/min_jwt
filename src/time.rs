@@ -6,7 +6,8 @@ pub trait DurationSinceEpoch {
     fn as_secs(&self) -> u64;
 }
 
-use std::time::{Duration, SystemTime};
+use core::time::Duration;
+use std::time::SystemTime;
 
 /// Duration since the epoch represented by standard library types.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]

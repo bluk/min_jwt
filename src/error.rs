@@ -1,8 +1,11 @@
-use std::convert::From;
-use std::error;
-use std::fmt::{self, Debug, Display};
-use std::result;
+//! Error type.
 
+use core::convert::From;
+use core::fmt::{self, Debug, Display};
+use core::result;
+use std::error;
+
+/// Result type with crate [Error].
 pub type Result<T> = result::Result<T, Error>;
 
 /// Represents all possible errors from this crate.
@@ -155,7 +158,6 @@ impl Display for ErrorImpl {
 
 #[derive(Debug)]
 pub(crate) enum ErrorCode {
-    // TODO: Should also have a reference to the str which did not decode
     Base64Decode(base64::DecodeError),
     InvalidSignature,
     KeyRejected,
