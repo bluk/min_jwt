@@ -56,19 +56,47 @@
 //! ```
 //! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
-//! use p256::pkcs8::FromPrivateKey;
+//! let jwk = r#"
+//! {
+//!     "kty": "EC",
+//!     "crv": "P-256",
+//!     "x": "erEk-zqoG1oYBLD3ohuz0tzIlU7XzFG1098HcCOu0Ck",
+//!     "y": "lQLKfGS2F6mA97bOvo9AlfyNsn88Mf6Iwa5vmf6UkJw",
+//!     "d": "8UmkmK0KO64KCDRZb4RCAHRZ0AfRWBn3Pv6hTv1VR9k"
+//! }
+//! "#;
 //!
-//! // The private key must be formatted without extra spaces or new lines.
-//! let private_key =
-//! "-----BEGIN PRIVATE KEY-----
-//! MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8UmkmK0KO64KCDRZ
-//! b4RCAHRZ0AfRWBn3Pv6hTv1VR9mhRANCAAR6sST7OqgbWhgEsPeiG7PS3MiVTtfM
-//! UbXT3wdwI67QKZUCynxkthepgPe2zr6PQJX8jbJ/PDH+iMGub5n+lJCc
-//! -----END PRIVATE KEY-----";
-//!
-//! let secret_key = ::p256::SecretKey::from_pkcs8_pem(&private_key).unwrap();
+//! let secret_key = ::p256::SecretKey::from_jwk_str(jwk).unwrap();
 //! let signing_key = ::p256::ecdsa::SigningKey::from(secret_key);
 //! let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
+//! # assert_eq!("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw", jwt);
+//! # Ok::<(), min_jwt::Error>(())
+//! ```
+//!
+//! ### Verify using RS256 with 'rsa' and 'sha2' crates
+//!
+//! ```
+//! # let jwt_str = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw";
+//! use ::rsa::pkcs8::FromPublicKey;
+//! use ::min_jwt::UnverifiedJwt;
+//!
+//! // The key must be formatted without extra spaces or new lines.
+//! let public_key = "-----BEGIN PUBLIC KEY-----
+//! MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyfEiSb2ElqylyAfWkbV0
+//! JmKwzaYH2JtWi05dELrGpSI+OM2mNmFnpxZVUUx77GWASD+u/EbDpB7TxoL8wW6r
+//! SFuduTIb63uhqeilkj6VhpPXVLpZg6m8korAXPGaN5BBMTyBAbpWk9e72z5gOGaF
+//! GI4xOv0v3N0MX2h9uXJvhPTpOdKn6jXEflUFF89OWGEh/3JnyZbX5p8+F8BAuseb
+//! 8gfpqT2Ct6KT5GrNiA7dPwjN7XFvVnvyYgR7+QXTVNRMrcrEUoJbR4DG+QVeyIRh
+//! 0JGqXtm901cviPBRbicIMn2f8qfs15XMSeHWrgel21Cv1wQh3I4xy+soZuZZ2i/p
+//! zwIDAQAB
+//! -----END PUBLIC KEY-----";
+//!
+//! let public_key = ::rsa::RsaPublicKey::from_public_key_pem(public_key).unwrap();
+//! let verifier = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(public_key);
+//! let jwt = UnverifiedJwt::with_str(jwt_str)?;
+//! let result = min_jwt::verify(&jwt, &verifier)?;
+//! let header = result.decode_header();
+//! let claims = result.decode_header();
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
 //!
@@ -377,8 +405,6 @@ impl<'a> UnverifiedJwt<'a> {
     }
 
     fn split(jwt: &str) -> Result<SplitJwt<'_>> {
-        use crate::error::Error;
-
         let mut parts = jwt.rsplitn(2, '.');
         let (signature, signed_data) = match (parts.next(), parts.next()) {
             (Some(signature), Some(signed_data)) => (signature, signed_data),
