@@ -14,7 +14,7 @@
 //!
 //! ```
 //! # let jwt_str = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw";
-//! use ::p256::pkcs8::FromPublicKey;
+//! use ::p256::pkcs8::DecodePublicKey;
 //! use ::min_jwt::UnverifiedJwt;
 //!
 //! // The private key must be formatted without extra spaces or new lines.

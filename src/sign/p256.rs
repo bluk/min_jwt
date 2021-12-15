@@ -15,7 +15,7 @@
 //! ```
 //! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
-//! use ::p256::pkcs8::FromPrivateKey;
+//! use ::p256::pkcs8::DecodePrivateKey;
 //!
 //! // The private key must be formatted without extra spaces or new lines.
 //! let private_key =
