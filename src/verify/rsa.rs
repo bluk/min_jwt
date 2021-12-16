@@ -15,9 +15,8 @@
 //! The `pem` feature on the `rsa` dependency must be enabled.
 //!
 //! ```
-//! # let jwt_str = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw";
+//! # let jwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw";
 //! use ::rsa::pkcs8::FromPublicKey;
-//! use ::min_jwt::UnverifiedJwt;
 //!
 //! // The key must be formatted without extra spaces or new lines.
 //! let public_key = "-----BEGIN PUBLIC KEY-----
@@ -31,9 +30,10 @@
 //! -----END PUBLIC KEY-----";
 //!
 //! let public_key = ::rsa::RsaPublicKey::from_public_key_pem(public_key).unwrap();
+//!
 //! let verifier = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(public_key);
-//! let jwt = UnverifiedJwt::with_str(jwt_str)?;
-//! let result = min_jwt::verify(&jwt, &verifier)?;
+//! let result = min_jwt::verify(jwt, &verifier)?;
+//!
 //! let header = result.decode_header();
 //! let claims = result.decode_header();
 //! # Ok::<(), min_jwt::Error>(())

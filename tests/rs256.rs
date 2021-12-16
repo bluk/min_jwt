@@ -31,9 +31,7 @@ fn rs256_verify_valid_signature_jwt_io_example() {
     let public_key =
         UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, &public_key[..]);
 
-    let unverified_jwt = min_jwt::UnverifiedJwt::with_str(&jwt).unwrap();
-
-    let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &public_key).unwrap();
+    let signature_verified_jwt = min_jwt::verify(&jwt, &public_key).unwrap();
 
     assert_eq!(encoded_header, signature_verified_jwt.encoded_header());
     assert_eq!(encoded_claims, signature_verified_jwt.encoded_claims());
@@ -85,9 +83,7 @@ fn rs256_verify_invalid_signature() {
     let public_key =
         UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, &public_key[..]);
 
-    let unverified_jwt = min_jwt::UnverifiedJwt::with_str(&jwt).unwrap();
-
-    let error = min_jwt::verify(&unverified_jwt, &public_key).unwrap_err();
+    let error = min_jwt::verify(&jwt, &public_key).unwrap_err();
     assert!(error.is_invalid_signature());
 }
 
@@ -127,9 +123,7 @@ fn rs256_verify_valid_signature_jwt_io_example_with_rsa() {
     let public_key = RsaPublicKey::from_public_key_pem(public_key).unwrap();
     let verifier = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(public_key);
 
-    let unverified_jwt = min_jwt::UnverifiedJwt::with_str(&jwt).unwrap();
-
-    let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &verifier).unwrap();
+    let signature_verified_jwt = min_jwt::verify(&jwt, &verifier).unwrap();
 
     assert_eq!(encoded_header, signature_verified_jwt.encoded_header());
     assert_eq!(encoded_claims, signature_verified_jwt.encoded_claims());
@@ -161,7 +155,7 @@ fn rs256_verify_valid_signature_jwt_io_example_with_rsa() {
 ))]
 #[test]
 fn test_rs256_with_rsa() -> Result<(), min_jwt::error::Error> {
-    use min_jwt::{BasicHeader, UnverifiedJwt};
+    use min_jwt::BasicHeader;
 
     const HEADER: &str = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
     const CLAIMS: &str =
@@ -176,9 +170,8 @@ fn test_rs256_with_rsa() -> Result<(), min_jwt::error::Error> {
 
     let jwt = min_jwt::encode_and_sign(HEADER, CLAIMS, &signing_key)?;
 
-    let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     let verifying_key = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(&verifying_key);
-    let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &verifying_key)?;
+    let signature_verified_jwt = min_jwt::verify(&jwt, &verifying_key)?;
 
     let decoded_header = signature_verified_jwt.decode_header()?;
     let deserialized_header = serde_json::from_slice::<BasicHeader>(&decoded_header).unwrap();

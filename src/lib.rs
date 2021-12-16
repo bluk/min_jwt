@@ -68,6 +68,7 @@
 //!
 //! let secret_key = ::p256::SecretKey::from_jwk_str(jwk).unwrap();
 //! let signing_key = ::p256::ecdsa::SigningKey::from(secret_key);
+//!
 //! let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
 //! # assert_eq!("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw", jwt);
 //! # Ok::<(), min_jwt::Error>(())
@@ -76,9 +77,8 @@
 //! ### Verify using RS256 with `rsa` and `sha2` crates
 //!
 //! ```
-//! # let jwt_str = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw";
+//! # let jwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw";
 //! use ::rsa::pkcs8::FromPublicKey;
-//! use ::min_jwt::UnverifiedJwt;
 //!
 //! // The key must be formatted without extra spaces or new lines.
 //! let public_key = "-----BEGIN PUBLIC KEY-----
@@ -92,9 +92,10 @@
 //! -----END PUBLIC KEY-----";
 //!
 //! let public_key = ::rsa::RsaPublicKey::from_public_key_pem(public_key).unwrap();
+//!
 //! let verifier = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(public_key);
-//! let jwt = UnverifiedJwt::with_str(jwt_str)?;
-//! let result = min_jwt::verify(&jwt, &verifier)?;
+//! let result = min_jwt::verify(jwt, &verifier)?;
+//!
 //! let header = result.decode_header();
 //! let claims = result.decode_header();
 //! # Ok::<(), min_jwt::Error>(())
@@ -133,11 +134,11 @@ use error::Result;
 /// # fn try_main() -> Result<(), Error> {
 /// use min_jwt::UnverifiedJwt;
 ///
-/// let jwt_str = String::from("\
+/// let jwt = "\
 /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
 /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-/// ");
-/// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+/// ";
+/// let unverified_jwt = UnverifiedJwt::with_str(jwt)?;
 ///
 /// /* if need to read the header */
 /// let decoded_header = unverified_jwt.decode_header()?;
@@ -207,11 +208,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(jwt)?;
     /// #   Ok(())
     /// # }
     /// # fn main() {
@@ -240,11 +241,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     ///
     /// let decoded_header = unverified_jwt.decode_header()?;
     ///
@@ -291,11 +292,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     ///
     /// let decoded_signature = unverified_jwt.decode_signature()?;
     ///
@@ -324,11 +325,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", unverified_jwt.signed_data());
     ///
@@ -355,11 +356,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9", unverified_jwt.encoded_header());
     ///
@@ -386,11 +387,11 @@ impl<'a> UnverifiedJwt<'a> {
     /// # fn try_main() -> Result<(), Error> {
     /// use min_jwt::UnverifiedJwt;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
+    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
     ///
     /// assert_eq!("SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", unverified_jwt.encoded_signature());
     ///
@@ -436,19 +437,17 @@ impl<'a> UnverifiedJwt<'a> {
 /// #
 /// # #[cfg(feature = "ring")]
 /// # fn try_main() -> Result<(), Error> {
-/// use min_jwt::UnverifiedJwt;
 /// use ring::hmac;
 ///
-/// let jwt_str = String::from("\
+/// let jwt = "\
 /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
 /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-/// ");
-/// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+/// ";
 ///
 /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
 /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
 ///
-/// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
+/// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
 ///
 /// let decoded_claims = signature_verified_jwt.decode_claims()?;
 ///
@@ -462,7 +461,7 @@ impl<'a> UnverifiedJwt<'a> {
 /// ```
 #[derive(Debug)]
 pub struct SignatureVerifiedJwt<'a> {
-    unverified_jwt: &'a UnverifiedJwt<'a>,
+    unverified_jwt: UnverifiedJwt<'a>,
 }
 
 impl<'a> SignatureVerifiedJwt<'a> {
@@ -477,19 +476,17 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
     ///
     /// let decoded_header = signature_verified_jwt.decode_header()?;
     ///
@@ -518,19 +515,17 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
     ///
     /// let decoded_claims = signature_verified_jwt.decode_claims()?;
     ///
@@ -560,19 +555,17 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
     ///
     /// let decoded_signature = signature_verified_jwt.decode_signature()?;
     ///
@@ -599,19 +592,17 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", signature_verified_jwt .signed_data());
     ///
@@ -639,19 +630,17 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9", signature_verified_jwt.encoded_header());
     ///
@@ -682,19 +671,17 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
     ///
     /// assert_eq!("eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", signature_verified_jwt.encoded_claims());
     ///
@@ -724,19 +711,17 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// #
     /// # #[cfg(feature = "ring")]
     /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::UnverifiedJwt;
     /// use ring::hmac;
     ///
-    /// let jwt_str = String::from("\
+    /// let jwt = "\
     /// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ikpva\
     /// G4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\
-    /// ");
-    /// let unverified_jwt = UnverifiedJwt::with_str(&jwt_str)?;
+    /// ";
     ///
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(&unverified_jwt, &hmac_key)?;
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
     ///
     /// assert_eq!("SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", signature_verified_jwt.encoded_signature());
     ///
@@ -886,13 +871,11 @@ where
 /// # Errors
 ///
 /// If the public key or signature is invalid, the function will return an error variant.
-pub fn verify<'a, V>(
-    unverified_jwt: &'a UnverifiedJwt<'a>,
-    verifying_key: V,
-) -> Result<SignatureVerifiedJwt<'a>>
+pub fn verify<V>(unverified_jwt: &str, verifying_key: V) -> Result<SignatureVerifiedJwt<'_>>
 where
     V: verify::Verifier,
 {
+    let unverified_jwt = UnverifiedJwt::with_str(unverified_jwt)?;
     let signed_data = unverified_jwt.signed_data().as_bytes();
     let decoded_signature = unverified_jwt.decode_signature()?;
 

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{error::Result, BasicHeader, UnverifiedJwt};
+    use crate::{error::Result, BasicHeader};
 
     #[cfg(all(feature = "serde", feature = "serde_json"))]
     #[test]
@@ -11,9 +11,8 @@ mod tests {
         let signing_key = ::p256::ecdsa::SigningKey::random(rand::thread_rng());
         let jwt = crate::encode_and_sign(HEADER, &claims, &signing_key)?;
 
-        let unverified_jwt = UnverifiedJwt::with_str(&jwt)?;
         let verifying_key = signing_key.verifying_key();
-        let signature_verified_jwt = crate::verify(&unverified_jwt, &verifying_key)?;
+        let signature_verified_jwt = crate::verify(&jwt, &verifying_key)?;
 
         let decoded_header = signature_verified_jwt.decode_header()?;
         let deserialized_header = serde_json::from_slice::<BasicHeader>(&decoded_header).unwrap();

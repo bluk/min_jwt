@@ -13,9 +13,8 @@
 //! The `pem` feature on the `p256` dependency must be enabled.
 //!
 //! ```
-//! # let jwt_str = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw";
+//! # let jwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw";
 //! use ::p256::pkcs8::DecodePublicKey;
-//! use ::min_jwt::UnverifiedJwt;
 //!
 //! // The private key must be formatted without extra spaces or new lines.
 //! let public_key = "-----BEGIN PUBLIC KEY-----
@@ -25,8 +24,9 @@
 //!
 //! let public_key = ::p256::PublicKey::from_public_key_pem(public_key).unwrap();
 //! let verifying_key = ::p256::ecdsa::VerifyingKey::from(public_key);
-//! let jwt = UnverifiedJwt::with_str(jwt_str)?;
-//! let result = min_jwt::verify(&jwt, &verifying_key)?;
+//!
+//! let result = min_jwt::verify(jwt, &verifying_key)?;
+//!
 //! let header = result.decode_header();
 //! let claims = result.decode_header();
 //! # Ok::<(), min_jwt::Error>(())
@@ -37,8 +37,7 @@
 //! The `jwk` feature on the `p256` dependency must be enabled.
 //!
 //! ```
-//! # let jwt_str = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw";
-//! use ::min_jwt::UnverifiedJwt;
+//! # let jwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw";
 //!
 //! let jwk = r#"
 //! {
@@ -51,8 +50,9 @@
 //!
 //! let public_key = ::p256::PublicKey::from_jwk_str(jwk).unwrap();
 //! let verifying_key = ::p256::ecdsa::VerifyingKey::from(public_key);
-//! let jwt = UnverifiedJwt::with_str(jwt_str)?;
-//! let result = min_jwt::verify(&jwt, &verifying_key)?;
+//!
+//! let result = min_jwt::verify(jwt, &verifying_key)?;
+//!
 //! let header = result.decode_header();
 //! let claims = result.decode_header();
 //! # Ok::<(), min_jwt::Error>(())

@@ -88,8 +88,9 @@ impl<'a> Verifier<'a> {
     /// If the public key or signature is invalid, the function will return an error variant.
     pub async fn verify<'b>(
         &self,
-        unverified_jwt: &'b UnverifiedJwt<'b>,
+        unverified_jwt: &'b str,
     ) -> Result<SignatureVerifiedJwt<'b>, Error> {
+        let unverified_jwt = UnverifiedJwt::with_str(unverified_jwt)?;
         let mut signed_data = unverified_jwt.signed_data().as_bytes().to_vec();
         let mut decoded_signature = unverified_jwt.decode_signature()?;
 
