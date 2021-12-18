@@ -29,7 +29,8 @@ mod tests {
         let jwt =
             crate::encode_and_sign(HEADER, crate::tests::jwt_claims_str(), &key_pair_with_rand)?;
 
-        let signature_verified_jwt = crate::verify(&jwt, &verifying_key)?;
+        let verifier = crate::verify::ring::RsaKeyVerifier::with_rs256(&verifying_key);
+        let signature_verified_jwt = crate::verify(&jwt, &verifier)?;
 
         let decoded_header = signature_verified_jwt.decode_header()?;
         let deserialized_header = serde_json::from_slice::<BasicHeader>(&decoded_header).unwrap();

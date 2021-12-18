@@ -40,6 +40,8 @@ fn private_key_pair() -> ::ring::signature::EcdsaKeyPair {
 #[cfg(feature = "ring")]
 #[test]
 fn es256_encode_and_sign_json_str_jwt_io_example() {
+    use min_jwt::verify::ring::EcdsaKeyVerifier;
+
     let sys_rand = SystemRandom::new();
 
     let header = String::from("{\"alg\":\"ES256\",\"typ\":\"JWT\"}");
@@ -55,7 +57,8 @@ fn es256_encode_and_sign_json_str_jwt_io_example() {
     let unparsed_public_key =
         UnparsedPublicKey::new(&ring::signature::ECDSA_P256_SHA256_FIXED, &public_key[..]);
 
-    let signature_verified_jwt = min_jwt::verify(&jwt, &unparsed_public_key).unwrap();
+    let verifier = EcdsaKeyVerifier::with_es256(&unparsed_public_key);
+    let signature_verified_jwt = min_jwt::verify(&jwt, &verifier).unwrap();
 
     assert_eq!(
         String::from_utf8(signature_verified_jwt.decode_claims().unwrap()).unwrap(),
@@ -66,6 +69,8 @@ fn es256_encode_and_sign_json_str_jwt_io_example() {
 #[cfg(feature = "ring")]
 #[test]
 fn es256_verify_valid_signature_jwt_io_example() {
+    use min_jwt::verify::ring::EcdsaKeyVerifier;
+
     // See https://jwt.io
     let jwt = EXPECTED_JWT_JWT_IO_256;
 
@@ -74,7 +79,8 @@ fn es256_verify_valid_signature_jwt_io_example() {
     let unparsed_public_key =
         UnparsedPublicKey::new(&ring::signature::ECDSA_P256_SHA256_FIXED, &public_key[..]);
 
-    let signature_verified_jwt = min_jwt::verify(jwt, &unparsed_public_key).unwrap();
+    let verifier = EcdsaKeyVerifier::with_es256(&unparsed_public_key);
+    let signature_verified_jwt = min_jwt::verify(jwt, &verifier).unwrap();
 
     assert_eq!(
         String::from_utf8(signature_verified_jwt.decode_claims().unwrap()).unwrap(),
@@ -85,6 +91,8 @@ fn es256_verify_valid_signature_jwt_io_example() {
 #[cfg(feature = "ring")]
 #[test]
 fn es256_verify_invalid_signature() {
+    use min_jwt::verify::ring::EcdsaKeyVerifier;
+
     let jwt_with_invalid_signature = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.\
          eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik\
          pvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6\
@@ -98,7 +106,8 @@ fn es256_verify_invalid_signature() {
     let unparsed_public_key =
         UnparsedPublicKey::new(&ring::signature::ECDSA_P256_SHA256_FIXED, &public_key[..]);
 
-    let error = min_jwt::verify(jwt_with_invalid_signature, &unparsed_public_key).unwrap_err();
+    let verifier = EcdsaKeyVerifier::with_es256(&unparsed_public_key);
+    let error = min_jwt::verify(jwt_with_invalid_signature, &verifier).unwrap_err();
 
     assert!(error.is_invalid_signature());
 }

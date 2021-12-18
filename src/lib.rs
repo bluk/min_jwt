@@ -447,7 +447,8 @@ impl<'a> UnverifiedJwt<'a> {
 /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
 /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
 ///
-/// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
+/// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+/// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
 ///
 /// let decoded_claims = signature_verified_jwt.decode_claims()?;
 ///
@@ -486,7 +487,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// let decoded_header = signature_verified_jwt.decode_header()?;
     ///
@@ -525,7 +527,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// let decoded_claims = signature_verified_jwt.decode_claims()?;
     ///
@@ -565,7 +568,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// let decoded_signature = signature_verified_jwt.decode_signature()?;
     ///
@@ -602,7 +606,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", signature_verified_jwt .signed_data());
     ///
@@ -640,7 +645,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9", signature_verified_jwt.encoded_header());
     ///
@@ -681,7 +687,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// assert_eq!("eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", signature_verified_jwt.encoded_claims());
     ///
@@ -721,7 +728,8 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// let hmac_key_bytes = String::from("your-256-bit-secret").into_bytes();
     /// let hmac_key = hmac::Key::new(hmac::HMAC_SHA256, &hmac_key_bytes);
     ///
-    /// let signature_verified_jwt = min_jwt::verify(jwt, &hmac_key)?;
+    /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(&hmac_key);
+    /// let signature_verified_jwt = min_jwt::verify(jwt, &verifier)?;
     ///
     /// assert_eq!("SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", signature_verified_jwt.encoded_signature());
     ///

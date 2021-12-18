@@ -49,47 +49,9 @@ mod private {
 
 #[cfg(feature = "p256")]
 pub mod p256;
+#[cfg(feature = "ring")]
+pub mod ring;
 #[cfg(feature = "rsa")]
 pub mod rsa;
-
-/// Ring implementation of signers and verifiers.
-///
-/// [Ring][ring] is a library for crytography operations which many Rust libraries depend on.
-///
-/// [ring]: https://github.com/briansmith/ring
-#[cfg(feature = "ring")]
-mod ring {
-    use crate::error::{Error, Result};
-
-    impl<B> super::Verifier for ::ring::signature::UnparsedPublicKey<B>
-    where
-        B: AsRef<[u8]>,
-    {
-        fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-        where
-            M: AsRef<[u8]>,
-            S: AsRef<[u8]>,
-        {
-            ::ring::signature::UnparsedPublicKey::verify(self, message.as_ref(), signature.as_ref())
-                .map_err(|_| Error::invalid_signature())
-        }
-    }
-
-    impl<B> super::private::Private for ::ring::signature::UnparsedPublicKey<B> where B: AsRef<[u8]> {}
-
-    impl super::Verifier for ::ring::hmac::Key {
-        fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-        where
-            M: AsRef<[u8]>,
-            S: AsRef<[u8]>,
-        {
-            ::ring::hmac::verify(self, message.as_ref(), signature.as_ref())
-                .map_err(|_| Error::invalid_signature())
-        }
-    }
-
-    impl super::private::Private for ::ring::hmac::Key {}
-}
-
 #[cfg(feature = "web_crypto")]
 pub mod web_crypto;
