@@ -27,18 +27,18 @@ fn decoded_hmac_key() -> Vec<u8> {
 #[cfg(feature = "ring")]
 #[test]
 fn hs256_encode_and_sign_json_str_rfc7515_appendix_a_1_example() {
+    use min_jwt::sign::ring::HmacKeySigner;
+
     // See https://tools.ietf.org/html/rfc7515#appendix-A.1
 
     let header = String::from("{\"typ\":\"JWT\",\r\n \"alg\":\"HS256\"}");
     let claims = EXPECTED_CLAIMS;
 
+    let key = hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key());
+    let signer = HmacKeySigner::with_hs256(&key);
+
     assert_eq!(
-        min_jwt::encode_and_sign(
-            &header,
-            &claims,
-            &hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key())
-        )
-        .unwrap(),
+        min_jwt::encode_and_sign(&header, &claims, &signer).unwrap(),
         EXPECTED_JWT_RFC7515_A1
     );
 }
@@ -46,6 +46,8 @@ fn hs256_encode_and_sign_json_str_rfc7515_appendix_a_1_example() {
 #[cfg(feature = "ring")]
 #[test]
 fn hs256_encode_and_sign_json_bytes_rfc7515_appendix_a_1_example() {
+    use min_jwt::sign::ring::HmacKeySigner;
+
     // See https://tools.ietf.org/html/rfc7515#appendix-A.1
 
     let header_bytes = [
@@ -59,13 +61,10 @@ fn hs256_encode_and_sign_json_bytes_rfc7515_appendix_a_1_example() {
         111, 116, 34, 58, 116, 114, 117, 101, 125,
     ];
 
+    let signer = HmacKeySigner::with_hs256(hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key()));
+
     assert_eq!(
-        min_jwt::encode_and_sign(
-            &header_bytes,
-            &claims_bytes,
-            &hmac::Key::new(hmac::HMAC_SHA256, &decoded_hmac_key())
-        )
-        .unwrap(),
+        min_jwt::encode_and_sign(&header_bytes, &claims_bytes, &signer,).unwrap(),
         EXPECTED_JWT_RFC7515_A1
     );
 }

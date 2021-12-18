@@ -4,9 +4,69 @@
 //!
 //! | Algorithm | Type | Wrapper Type |
 //! | --------- | ---- | ------------ |
-//! | rs256     | [::ring::signature::RsaKeyPair] | [RsaKeyPairSigner] |
+//! | es256     | [::ring::signature::EcdsaKeyPair] | [EcdsaKeyPairSigner] |
+//! | hs256     | [::ring::hmac::Key]               | [HmacKeySigner] |
+//! | rs256     | [::ring::signature::RsaKeyPair]   | [RsaKeyPairSigner] |
 //!
 //! # Examples
+//!
+//! ## ES256 PKCS8
+//!
+//! ```
+//! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
+//! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
+//! # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
+//! #   use ::p256::pkcs8::{DecodePrivateKey, EncodePrivateKey};
+//! #   let secret_key = ::p256::SecretKey::from_pkcs8_pem(&private_key).unwrap();
+//! #   secret_key.to_pkcs8_der().unwrap()
+//! # }
+//! // The private key must be formatted without extra spaces or new lines.
+//! let private_key =
+//! "-----BEGIN PRIVATE KEY-----
+//! MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8UmkmK0KO64KCDRZ
+//! b4RCAHRZ0AfRWBn3Pv6hTv1VR9mhRANCAAR6sST7OqgbWhgEsPeiG7PS3MiVTtfM
+//! UbXT3wdwI67QKZUCynxkthepgPe2zr6PQJX8jbJ/PDH+iMGub5n+lJCc
+//! -----END PRIVATE KEY-----";
+//!
+//! // Convert the PKCS8 PEM data to PKCS8 DER formatting
+//! let private_key = convert_pkcs8_pem_to_der(private_key);
+//!
+//! let private_key = ::ring::signature::EcdsaKeyPair::from_pkcs8(
+//!   &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
+//!   private_key.as_ref(),
+//! ).unwrap();
+//! let secure_random = ::ring::rand::SystemRandom::new();
+//!
+//! let signer = min_jwt::sign::ring::EcdsaKeyPairSigner::with_es256(private_key, secure_random);
+//! let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
+//!
+//! # use ::p256::pkcs8::DecodePublicKey;
+//! # let public_key = "-----BEGIN PUBLIC KEY-----
+//! # MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEerEk+zqoG1oYBLD3ohuz0tzIlU7X
+//! # zFG1098HcCOu0CmVAsp8ZLYXqYD3ts6+j0CV/I2yfzwx/ojBrm+Z/pSQnA==
+//! # -----END PUBLIC KEY-----";
+//! #
+//! # let public_key = ::p256::PublicKey::from_public_key_pem(public_key).unwrap();
+//! # let verifying_key = ::p256::ecdsa::VerifyingKey::from(public_key);
+//! #
+//! # let result = min_jwt::verify(&jwt, &verifying_key)?;
+//! # Ok::<(), min_jwt::Error>(())
+//! ```
+//!
+//! ## HS256
+//!
+//! ```
+//! # let header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
+//! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
+//! let encoded_hmac_key: &str =
+//! "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
+//! let hmac_key = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
+//! let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key);
+//!
+//! let signer = min_jwt::sign::ring::HmacKeySigner::with_hs256(hmac_key);
+//! let jwt = min_jwt::encode_and_sign(header, claims, &signer);
+//! # Ok::<(), min_jwt::Error>(())
+//! ```
 //!
 //! ## RS256 PKCS8
 //!
@@ -60,31 +120,141 @@
 //! # assert_eq!("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw", jwt);
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
+
+use super::Signature;
 use crate::{
-    algorithm::{Algorithm, Rs256},
+    algorithm::{Algorithm, Es256, Hs256, Rs256},
     error::{Error, Result},
 };
+use ::ring::rand::SecureRandom;
 use core::marker::PhantomData;
-use ring::rand::SecureRandom;
+use ring::signature::EcdsaKeyPair;
 
-impl super::Signature for ::ring::signature::Signature {}
+impl Signature for ::ring::signature::Signature {}
 impl super::private::Private for ::ring::signature::Signature {}
-impl super::Signature for ::ring::hmac::Tag {}
+impl Signature for ::ring::hmac::Tag {}
 impl super::private::Private for ::ring::hmac::Tag {}
 
-#[derive(Debug)]
-pub struct EcdsaKeyPairSigner<R>
-where
-    R: SecureRandom,
-{
-    key_pair: ::ring::signature::EcdsaKeyPair,
-    secure_random: R,
+mod private {
+    pub trait Private {}
+    impl<T> Private for &T where T: Private {}
 }
 
-impl<R> super::private::Private for EcdsaKeyPairSigner<R> where R: SecureRandom {}
+pub trait EcdsaKey: private::Private {
+    type Signature: Signature;
 
-impl<R> EcdsaKeyPairSigner<R>
+    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    where
+        B: AsRef<[u8]>;
+}
+
+impl<T> EcdsaKey for &T
 where
+    T: EcdsaKey,
+{
+    type Signature = T::Signature;
+
+    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    where
+        B: AsRef<[u8]>,
+    {
+        T::sign(self, secure_random, bytes)
+    }
+}
+
+impl private::Private for ::ring::signature::EcdsaKeyPair {}
+
+impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
+    type Signature = ::ring::signature::Signature;
+
+    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    where
+        B: AsRef<[u8]>,
+    {
+        EcdsaKeyPair::sign(self, secure_random, bytes.as_ref()).map_err(|_| todo!())
+    }
+}
+
+/// Wrapper for [::ring::signature::EcdsaKeyPair].
+///
+/// # Examples
+///
+/// ## ES256 PKCS8
+///
+/// ```
+/// # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
+/// # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
+/// # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
+/// #   use ::p256::pkcs8::{DecodePrivateKey, EncodePrivateKey};
+/// #   let secret_key = ::p256::SecretKey::from_pkcs8_pem(&private_key).unwrap();
+/// #   secret_key.to_pkcs8_der().unwrap()
+/// # }
+/// // The private key must be formatted without extra spaces or new lines.
+/// let private_key =
+/// "-----BEGIN PRIVATE KEY-----
+/// MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8UmkmK0KO64KCDRZ
+/// b4RCAHRZ0AfRWBn3Pv6hTv1VR9mhRANCAAR6sST7OqgbWhgEsPeiG7PS3MiVTtfM
+/// UbXT3wdwI67QKZUCynxkthepgPe2zr6PQJX8jbJ/PDH+iMGub5n+lJCc
+/// -----END PRIVATE KEY-----";
+///
+/// // Convert the PKCS8 PEM data to PKCS8 DER formatting
+/// let private_key = convert_pkcs8_pem_to_der(private_key);
+///
+/// let private_key = ::ring::signature::EcdsaKeyPair::from_pkcs8(
+///   &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
+///   private_key.as_ref(),
+/// ).unwrap();
+/// let secure_random = ::ring::rand::SystemRandom::new();
+///
+/// let signer = min_jwt::sign::ring::EcdsaKeyPairSigner::with_es256(private_key, secure_random);
+/// let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
+///
+/// # use ::p256::pkcs8::DecodePublicKey;
+/// # let public_key = "-----BEGIN PUBLIC KEY-----
+/// # MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEerEk+zqoG1oYBLD3ohuz0tzIlU7X
+/// # zFG1098HcCOu0CmVAsp8ZLYXqYD3ts6+j0CV/I2yfzwx/ojBrm+Z/pSQnA==
+/// # -----END PUBLIC KEY-----";
+/// #
+/// # let public_key = ::p256::PublicKey::from_public_key_pem(public_key).unwrap();
+/// # let verifying_key = ::p256::ecdsa::VerifyingKey::from(public_key);
+/// #
+/// # let result = min_jwt::verify(&jwt, &verifying_key)?;
+/// # Ok::<(), min_jwt::Error>(())
+/// ```
+#[derive(Debug)]
+pub struct EcdsaKeyPairSigner<K, R, A>
+where
+    K: EcdsaKey,
+    R: SecureRandom,
+    A: Algorithm,
+{
+    key_pair: K,
+    secure_random: R,
+    algorithm: PhantomData<A>,
+}
+
+impl<K, R, A> super::private::Private for EcdsaKeyPairSigner<K, R, A>
+where
+    K: EcdsaKey,
+    R: SecureRandom,
+    A: Algorithm,
+{
+}
+
+impl<K, R, A> EcdsaKeyPairSigner<K, R, A>
+where
+    K: EcdsaKey,
+    R: SecureRandom,
+    A: Algorithm,
+{
+    pub fn into_inner(self) -> (K, R) {
+        (self.key_pair, self.secure_random)
+    }
+}
+
+impl<K, R> EcdsaKeyPairSigner<K, R, Es256>
+where
+    K: EcdsaKey,
     R: SecureRandom,
 {
     /// Signs header and claims parts with an ECDSA key.
@@ -112,7 +282,7 @@ where
     ///   pkcs8_bytes.as_ref()
     /// )?;
     ///
-    /// let signing_key = EcdsaKeyPairSigner::with_key_pair_and_random(key_pair, sys_rand);
+    /// let signing_key = EcdsaKeyPairSigner::with_es256(key_pair, sys_rand);
     ///
     /// /* the header and claims could be serialized by Serde */
     /// /* in the end, the serialized JSON should be referenced as either &str or &[u8] */
@@ -125,43 +295,171 @@ where
     /// #   try_main().unwrap();
     /// # }
     /// ```
-    pub fn with_key_pair_and_random(
-        key_pair: ::ring::signature::EcdsaKeyPair,
-        secure_random: R,
-    ) -> EcdsaKeyPairSigner<R> {
+    pub fn with_es256(key_pair: K, secure_random: R) -> EcdsaKeyPairSigner<K, R, Es256> {
         Self {
             key_pair,
             secure_random,
+            algorithm: PhantomData::default(),
         }
     }
-
-    pub fn into_inner(self) -> (::ring::signature::EcdsaKeyPair, R) {
-        (self.key_pair, self.secure_random)
-    }
 }
 
-impl<R> super::Signer for EcdsaKeyPairSigner<R>
+impl<K, R, A> super::Signer for EcdsaKeyPairSigner<K, R, A>
 where
+    K: EcdsaKey,
     R: SecureRandom,
+    A: Algorithm,
 {
-    type Signature = ring::signature::Signature;
+    type Signature = K::Signature;
 
     fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
-        self.key_pair
-            .sign(&self.secure_random, bytes)
-            .map_err(|_| todo!())
+        self.key_pair.sign(&self.secure_random, bytes)
     }
 }
 
-impl super::private::Private for ::ring::hmac::Key {}
+pub trait HmacKey: private::Private {
+    type Signature: Signature;
 
-impl super::Signer for ::ring::hmac::Key {
+    fn sign<B>(&self, bytes: B) -> Result<Self::Signature>
+    where
+        B: AsRef<[u8]>;
+}
+
+impl<T> HmacKey for &T
+where
+    T: HmacKey,
+{
+    type Signature = T::Signature;
+
+    fn sign<B>(&self, bytes: B) -> Result<Self::Signature>
+    where
+        B: AsRef<[u8]>,
+    {
+        T::sign(self, bytes)
+    }
+}
+
+impl HmacKey for ::ring::hmac::Key {
     type Signature = ::ring::hmac::Tag;
 
-    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
-        Ok(::ring::hmac::sign(self, bytes))
+    fn sign<B>(&self, bytes: B) -> Result<Self::Signature>
+    where
+        B: AsRef<[u8]>,
+    {
+        Ok(::ring::hmac::sign(self, bytes.as_ref()))
     }
 }
+impl private::Private for ::ring::hmac::Key {}
+
+/// Wrapper for [::ring::hmac::Key].
+///
+/// # Examples
+///
+/// ## HS256
+/// ```
+/// # let header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
+/// # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
+/// let encoded_hmac_key: &str =
+/// "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
+/// let hmac_key = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
+/// let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key);
+///
+/// let signer = min_jwt::sign::ring::HmacKeySigner::with_hs256(hmac_key);
+/// let jwt = min_jwt::encode_and_sign(header, claims, &signer);
+/// # Ok::<(), min_jwt::Error>(())
+/// ```
+pub struct HmacKeySigner<K, A>
+where
+    K: HmacKey,
+    A: Algorithm,
+{
+    key: K,
+    algorithm: PhantomData<A>,
+}
+
+impl<K, A> super::private::Private for HmacKeySigner<K, A>
+where
+    K: HmacKey,
+    A: Algorithm,
+{
+}
+
+impl<K, A> HmacKeySigner<K, A>
+where
+    K: HmacKey,
+    A: Algorithm,
+{
+    pub fn into_inner(self) -> K {
+        self.key
+    }
+}
+
+impl<K, A> super::Signer for HmacKeySigner<K, A>
+where
+    K: HmacKey,
+    A: Algorithm,
+{
+    type Signature = K::Signature;
+
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+        self.key.sign(bytes)
+    }
+}
+
+impl<K> HmacKeySigner<K, Hs256>
+where
+    K: HmacKey,
+{
+    pub fn with_hs256(key: K) -> HmacKeySigner<K, Hs256> {
+        Self {
+            key,
+            algorithm: PhantomData::default(),
+        }
+    }
+}
+
+pub trait RsaKey: private::Private {
+    type Signature: Signature;
+
+    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    where
+        B: AsRef<[u8]>;
+}
+
+impl<T> RsaKey for &T
+where
+    T: RsaKey,
+{
+    type Signature = T::Signature;
+
+    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    where
+        B: AsRef<[u8]>,
+    {
+        T::sign(self, secure_random, bytes)
+    }
+}
+
+impl RsaKey for ::ring::signature::RsaKeyPair {
+    type Signature = Vec<u8>;
+
+    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    where
+        B: AsRef<[u8]>,
+    {
+        let mut signature = vec![0; self.public_modulus_len()];
+        ::ring::signature::RsaKeyPair::sign(
+            self,
+            &ring::signature::RSA_PKCS1_SHA256,
+            secure_random,
+            bytes.as_ref(),
+            &mut signature,
+        )
+        .map_err(|_| Error::invalid_signature())?;
+        Ok(signature)
+    }
+}
+impl private::Private for ::ring::signature::RsaKeyPair {}
 
 /// Wrapper for [::ring::signature::RsaKeyPair].
 ///
@@ -213,69 +511,63 @@ impl super::Signer for ::ring::hmac::Key {
 ///
 /// let private_key = ::ring::signature::RsaKeyPair::from_pkcs8(private_key.as_ref()).unwrap();
 /// let secure_random = ::ring::rand::SystemRandom::new();
+///
 /// let signer = min_jwt::sign::ring::RsaKeyPairSigner::with_rs256(private_key, secure_random);
 /// let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
 /// # assert_eq!("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw", jwt);
 /// # Ok::<(), min_jwt::Error>(())
 /// ```
 #[derive(Debug)]
-pub struct RsaKeyPairSigner<R, A>
+pub struct RsaKeyPairSigner<K, R, A>
 where
+    K: RsaKey,
     R: SecureRandom,
     A: Algorithm,
 {
-    key_pair: ::ring::signature::RsaKeyPair,
+    key_pair: K,
     secure_random: R,
     alg: PhantomData<A>,
 }
 
-impl<R, A> super::private::Private for RsaKeyPairSigner<R, A>
+impl<K, R, A> super::private::Private for RsaKeyPairSigner<K, R, A>
 where
+    K: RsaKey,
     R: SecureRandom,
     A: Algorithm,
 {
 }
 
-impl<R, A> RsaKeyPairSigner<R, A>
+impl<K, R, A> RsaKeyPairSigner<K, R, A>
 where
+    K: RsaKey,
     R: SecureRandom,
     A: Algorithm,
 {
-    pub fn into_inner(self) -> (::ring::signature::RsaKeyPair, R) {
+    pub fn into_inner(self) -> (K, R) {
         (self.key_pair, self.secure_random)
     }
 }
 
-macro_rules! rsa_impl {
-    ($alg:ty, $alg_str:expr, $ring_alg:expr) => {
-        impl<R> super::Signer for RsaKeyPairSigner<R, $alg>
-        where
-            R: SecureRandom,
-        {
-            type Signature = Vec<u8>;
+impl<K, R, A> super::Signer for RsaKeyPairSigner<K, R, A>
+where
+    K: RsaKey,
+    R: SecureRandom,
+    A: Algorithm,
+{
+    type Signature = K::Signature;
 
-            fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
-                let mut signature = vec![0; self.key_pair.public_modulus_len()];
-                self.key_pair
-                    .sign(&$ring_alg, &self.secure_random, bytes, &mut signature)
-                    .map_err(|_| Error::invalid_signature())?;
-                Ok(signature)
-            }
-        }
-    };
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+        self.key_pair.sign(&self.secure_random, bytes)
+    }
 }
 
-rsa_impl!(Rs256, "RS256", ring::signature::RSA_PKCS1_SHA256);
-
-impl<R> RsaKeyPairSigner<R, Rs256>
+impl<K, R> RsaKeyPairSigner<K, R, Rs256>
 where
+    K: RsaKey,
     R: SecureRandom,
 {
     /// Signs header and claims parts with an RSA key.
-    pub fn with_rs256(
-        key_pair: ::ring::signature::RsaKeyPair,
-        secure_random: R,
-    ) -> RsaKeyPairSigner<R, Rs256> {
+    pub fn with_rs256(key_pair: K, secure_random: R) -> RsaKeyPairSigner<K, R, Rs256> {
         Self {
             key_pair,
             secure_random,

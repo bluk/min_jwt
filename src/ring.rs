@@ -24,8 +24,7 @@ mod tests {
         let verifying_key = *signing_key_pair.public_key();
         let verifying_key =
             UnparsedPublicKey::new(&ring::signature::ECDSA_P256_SHA256_FIXED, verifying_key);
-        let key_pair_with_rand =
-            EcdsaKeyPairSigner::with_key_pair_and_random(signing_key_pair, sys_rand);
+        let key_pair_with_rand = EcdsaKeyPairSigner::with_es256(signing_key_pair, sys_rand);
 
         let jwt =
             crate::encode_and_sign(HEADER, crate::tests::jwt_claims_str(), &key_pair_with_rand)?;

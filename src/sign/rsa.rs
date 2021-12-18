@@ -65,8 +65,7 @@ use crate::{algorithm::Algorithm, error::Result};
 
 use super::Signature;
 
-/// Types which can sign a digest.
-pub trait PrivateKey: private::Private {
+pub trait Key: private::Private {
     type Signature: Signature;
 
     fn sign<B>(&self, padding: ::rsa::PaddingScheme, bytes: B) -> Result<Self::Signature>
@@ -79,9 +78,9 @@ mod private {
     impl<T> Private for &T where T: Private {}
 }
 
-impl<T> PrivateKey for &T
+impl<T> Key for &T
 where
-    T: PrivateKey,
+    T: Key,
 {
     type Signature = T::Signature;
 
@@ -93,7 +92,7 @@ where
     }
 }
 
-impl PrivateKey for ::rsa::RsaPrivateKey {
+impl Key for ::rsa::RsaPrivateKey {
     type Signature = Vec<u8>;
 
     fn sign<B>(&self, padding: ::rsa::PaddingScheme, bytes: B) -> Result<Self::Signature>
@@ -157,7 +156,7 @@ impl private::Private for ::rsa::RsaPrivateKey {}
 #[derive(Debug)]
 pub struct RsaPrivateKeySigner<K, A>
 where
-    K: PrivateKey,
+    K: Key,
     A: Algorithm,
 {
     key: K,
@@ -166,14 +165,14 @@ where
 
 impl<K, A> super::private::Private for RsaPrivateKeySigner<K, A>
 where
-    K: PrivateKey,
+    K: Key,
     A: Algorithm,
 {
 }
 
 impl<K, A> RsaPrivateKeySigner<K, A>
 where
-    K: PrivateKey,
+    K: Key,
     A: Algorithm,
 {
     pub fn into_inner(self) -> K {
@@ -184,7 +183,7 @@ where
 #[cfg(feature = "sha2")]
 impl<K> RsaPrivateKeySigner<K, crate::algorithm::Rs256>
 where
-    K: PrivateKey,
+    K: Key,
 {
     pub fn with_rs256(key: K) -> Self {
         Self {
@@ -197,7 +196,7 @@ where
 #[cfg(feature = "sha2")]
 impl<K> super::Signer for RsaPrivateKeySigner<K, crate::algorithm::Rs256>
 where
-    K: PrivateKey,
+    K: Key,
 {
     type Signature = K::Signature;
 

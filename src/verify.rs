@@ -20,7 +20,7 @@ use crate::error::Result;
 /// can directly verify a signature.
 ///
 /// In other cases, a new type composed of multiple fields may be needed because
-/// the verifyign key's verify method may require more parameters.
+/// the verifying key's verify method may require more parameters.
 pub trait Verifier: private::Private {
     fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
     where
