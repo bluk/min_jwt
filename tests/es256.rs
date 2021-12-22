@@ -5,7 +5,7 @@ use min_jwt::sign::ring::EcdsaKeyPairSigner;
 #[cfg(feature = "ring")]
 use ring::{rand::SystemRandom, signature::UnparsedPublicKey};
 
-#[cfg(feature = "ring")]
+#[cfg(any(feature = "p256", feature = "ring"))]
 static EXPECTED_JWT_JWT_IO_256: &str = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.\
                                         eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik\
                                         pvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6\
@@ -14,7 +14,7 @@ static EXPECTED_JWT_JWT_IO_256: &str = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.\
                                         HWP_3cYHBw7AhHale5wky6-sVA\
                                         ";
 
-#[cfg(feature = "ring")]
+#[cfg(any(feature = "p256", feature = "ring"))]
 static EXPECTED_CLAIMS: &str =
     "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}";
 

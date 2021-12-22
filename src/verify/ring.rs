@@ -13,6 +13,8 @@
 //! ## ES256 PKCS8
 //!
 //! ```
+//! # #[cfg(all(feature="p256", feature="ring"))]
+//! # fn try_main() -> Result<(), min_jwt::error::Error> {
 //! # fn convert_pkcs8_pem_to_spk(public_key: &str) -> impl AsRef<[u8]> {
 //! #   use ::p256::pkcs8::{DecodePublicKey, EncodePublicKey};
 //! #   let public_key = ::p256::PublicKey::from_public_key_pem(&public_key).unwrap();
@@ -44,6 +46,11 @@
 //! let header = verified_jwt.decode_header();
 //! let claims = verified_jwt.decode_claims();
 //! # Ok::<(), min_jwt::Error>(())
+//! # }
+//! # fn main() {
+//! #   #[cfg(all(feature="p256", feature="ring"))]
+//! #   try_main().unwrap();
+//! # }
 //! ```
 //!
 //! ## HS256

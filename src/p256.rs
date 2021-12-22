@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use crate::{error::Result, BasicHeader};
-
     #[cfg(all(feature = "serde", feature = "serde_json"))]
     #[test]
-    fn test_es256() -> Result<()> {
+    fn test_es256() -> crate::error::Result<()> {
+        use crate::BasicHeader;
+
         const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
         let claims = crate::tests::jwt_claims_str();
 

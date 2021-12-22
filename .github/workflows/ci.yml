@@ -46,7 +46,9 @@ jobs:
       - run: cargo build --release --no-default-features --features p256,serde,serde_json
       - run: cargo build --release --no-default-features --features rsa,sha2,serde,serde_json
       - run: cargo build --release --no-default-features --features ring,serde,serde_json
-      - run: cargo build --release --no-default-features --features web_crypto
+      - run: cargo build --release --no-default-features --features ring,p256,serde,serde_json
+      - run: cargo build --release --no-default-features --features ring,rsa,sha2,serde,serde_json
+      - run: cargo build --release --no-default-features --features web_crypto,serde,serde_json
       - run: cargo build --release --all-features
   test:
     name: Test

@@ -13,6 +13,8 @@
 //! ## ES256 PKCS8
 //!
 //! ```
+//! # #[cfg(all(feature="p256", feature="ring"))]
+//! # fn try_main() -> Result<(), min_jwt::error::Error> {
 //! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
 //! # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
@@ -53,6 +55,11 @@
 //! #
 //! # let result = min_jwt::verify(&jwt, &verifying_key)?;
 //! # Ok::<(), min_jwt::Error>(())
+//! # }
+//! # fn main() {
+//! #   #[cfg(all(feature="p256", feature="ring"))]
+//! #   try_main().unwrap();
+//! # }
 //! ```
 //!
 //! ## HS256
@@ -74,6 +81,8 @@
 //! ## RS256 PKCS8
 //!
 //! ```
+//! # #[cfg(all(feature="ring", feature="rsa"))]
+//! # fn try_main() -> Result<(), min_jwt::error::Error> {
 //! # let header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
 //! # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
@@ -126,6 +135,11 @@
 //! let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
 //! # assert_eq!("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw", jwt);
 //! # Ok::<(), min_jwt::Error>(())
+//! # }
+//! # fn main() {
+//! #   #[cfg(all(feature="ring", feature="rsa"))]
+//! #   try_main().unwrap();
+//! # }
 //! ```
 
 use super::Signature;
@@ -133,8 +147,8 @@ use crate::{
     algorithm::{Algorithm, Es256, Hs256, Rs256},
     error::{Error, Result},
 };
-use ::ring::rand::SecureRandom;
 use core::marker::PhantomData;
+use ring::rand::SecureRandom;
 use ring::signature::EcdsaKeyPair;
 
 impl Signature for ::ring::signature::Signature {}
@@ -189,6 +203,8 @@ impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
 /// ## ES256 PKCS8
 ///
 /// ```
+/// # #[cfg(all(feature="p256", feature="ring"))]
+/// # fn try_main() -> Result<(), min_jwt::error::Error> {
 /// # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
 /// # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
 /// # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
@@ -229,6 +245,11 @@ impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
 /// #
 /// # let result = min_jwt::verify(&jwt, &verifying_key)?;
 /// # Ok::<(), min_jwt::Error>(())
+/// # }
+/// # fn main() {
+/// #   #[cfg(all(feature="p256", feature="ring"))]
+/// #   try_main().unwrap();
+/// # }
 /// ```
 #[derive(Debug)]
 pub struct EcdsaKeyPairSigner<K, R, A>
@@ -439,6 +460,8 @@ impl private::Private for ::ring::signature::RsaKeyPair {}
 /// ## RS256 PKCS8
 ///
 /// ```
+/// # #[cfg(all(feature="ring", feature="rsa"))]
+/// # fn try_main() -> Result<(), min_jwt::error::Error> {
 /// # let header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
 /// # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
 /// # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
@@ -491,6 +514,11 @@ impl private::Private for ::ring::signature::RsaKeyPair {}
 /// let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
 /// # assert_eq!("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw", jwt);
 /// # Ok::<(), min_jwt::Error>(())
+/// # }
+/// # fn main() {
+/// #   #[cfg(all(feature="ring", feature="rsa"))]
+/// #   try_main().unwrap();
+/// # }
 /// ```
 #[derive(Debug)]
 pub struct RsaKeyPairSigner<K, R, A>
