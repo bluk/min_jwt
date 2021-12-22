@@ -70,8 +70,6 @@ fn es256_verify_valid_signature_jwt_io_example() {
     // See https://jwt.io
     let jwt = EXPECTED_JWT_JWT_IO_256;
 
-    // Ring does not accept PKCS8 PEM/DER formatted keys so a conversion is needed.
-    //
     // See https://github.com/briansmith/ring/issues/881
     // See https://github.com/Keats/jsonwebtoken/pull/73#issuecomment-460322317
     //
@@ -104,8 +102,6 @@ fn es256_verify_invalid_signature() {
          HWP_3cYHBw7AhHale5wky6-sVA\
          ";
 
-    // Ring does not accept PKCS8 PEM/DER formatted keys so a conversion is needed.
-    //
     // See https://github.com/briansmith/ring/issues/881
     // See https://github.com/Keats/jsonwebtoken/pull/73#issuecomment-460322317
     //

@@ -22,14 +22,14 @@ pub trait Signature: AsRef<[u8]> + private::Private {}
 impl private::Private for Vec<u8> {}
 impl Signature for Vec<u8> {}
 
-impl private::Private for &[u8] {}
-impl Signature for &[u8] {}
+// impl private::Private for &[u8] {}
+// impl Signature for &[u8] {}
 
-impl private::Private for String {}
-impl Signature for String {}
+// impl private::Private for String {}
+// impl Signature for String {}
 
-impl private::Private for &str {}
-impl Signature for &str {}
+// impl private::Private for &str {}
+// impl Signature for &str {}
 
 /// A type which can sign a byte buffer.
 ///

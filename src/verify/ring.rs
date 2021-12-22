@@ -22,14 +22,14 @@
 //! #   public_key
 //! # }
 //! # let jwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw";
-//! // The key must be formatted without extra spaces or new lines.
-//! let public_key = "-----BEGIN PUBLIC KEY-----
+//! let public_key =
+//! "-----BEGIN PUBLIC KEY-----
 //! MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEerEk+zqoG1oYBLD3ohuz0tzIlU7X
 //! zFG1098HcCOu0CmVAsp8ZLYXqYD3ts6+j0CV/I2yfzwx/ojBrm+Z/pSQnA==
 //! -----END PUBLIC KEY-----";
 //!
-//! // Convert the PKCS8 PEM to SPK for ring.
-//! // Note that ring requires SPK (not SPKI) formatted keys.
+//! // Convert the PKCS8 PEM to SPK.
+//! // Note that ring requires SPK (not SPKI) keys for ECDSA_P256_SHA256 public keys.
 //! // See https://github.com/briansmith/ring/issues/881
 //! let public_key = convert_pkcs8_pem_to_spk(public_key);
 //!
@@ -50,10 +50,10 @@
 //!
 //! ```
 //! # let jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.tAzkR2NyvqGKrIras8IDsoczvrYWD0gAM3E6H5qGZVg";
-//! let encoded_hmac_key: &str =
-//! "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
-//! let hmac_key = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
-//! let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key);
+//! # let encoded_hmac_key: &str =
+//! # "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
+//! # let hmac_key_bytes = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
+//! let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key_bytes);
 //!
 //! let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(hmac_key);
 //! let verified_jwt = min_jwt::verify(jwt, &verifier)?;
@@ -72,8 +72,8 @@
 //! #   let public_key = ::rsa::RsaPublicKey::from_public_key_pem(&public_key).unwrap();
 //! #   public_key.to_pkcs1_der().unwrap()
 //! # }
-//! // The key must be formatted without extra spaces or new lines.
-//! let public_key = "-----BEGIN PUBLIC KEY-----
+//! let public_key =
+//! "-----BEGIN PUBLIC KEY-----
 //! MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyfEiSb2ElqylyAfWkbV0
 //! JmKwzaYH2JtWi05dELrGpSI+OM2mNmFnpxZVUUx77GWASD+u/EbDpB7TxoL8wW6r
 //! SFuduTIb63uhqeilkj6VhpPXVLpZg6m8korAXPGaN5BBMTyBAbpWk9e72z5gOGaF
@@ -83,7 +83,7 @@
 //! zwIDAQAB
 //! -----END PUBLIC KEY-----";
 //!
-//! // Convert the PKCS8 PEM data to PKCS1 DER
+//! // Convert the PKCS8 PEM to PKCS1 DER for RSA public keys.
 //! let public_key = convert_pkcs8_pem_to_pkcs1_der(public_key);
 //!
 //! let public_key = ::ring::signature::UnparsedPublicKey::new(
@@ -203,14 +203,14 @@ key_verifier!(EcdsaKeyVerifier, EcdsaKey);
 /// #   public_key
 /// # }
 /// # let jwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw";
-/// // The key must be formatted without extra spaces or new lines.
-/// let public_key = "-----BEGIN PUBLIC KEY-----
+/// let public_key =
+/// "-----BEGIN PUBLIC KEY-----
 /// MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEerEk+zqoG1oYBLD3ohuz0tzIlU7X
 /// zFG1098HcCOu0CmVAsp8ZLYXqYD3ts6+j0CV/I2yfzwx/ojBrm+Z/pSQnA==
 /// -----END PUBLIC KEY-----";
 ///
-/// // Convert the PKCS8 PEM to SPK for ring.
-/// // Note that ring requires SPK (not SPKI) formatted keys.
+/// // Convert the PKCS8 PEM to SPK.
+/// // Note that ring requires SPK (not SPKI) keys for ECDSA_P256_SHA256 public keys.
 /// // See https://github.com/briansmith/ring/issues/881
 /// let public_key = convert_pkcs8_pem_to_spk(public_key);
 ///
@@ -262,8 +262,8 @@ key_verifier!(RsaKeyVerifier, RsaKey);
 /// #   let public_key = ::rsa::RsaPublicKey::from_public_key_pem(&public_key).unwrap();
 /// #   public_key.to_pkcs1_der().unwrap()
 /// # }
-/// // The key must be formatted without extra spaces or new lines.
-/// let public_key = "-----BEGIN PUBLIC KEY-----
+/// let public_key =
+/// "-----BEGIN PUBLIC KEY-----
 /// MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyfEiSb2ElqylyAfWkbV0
 /// JmKwzaYH2JtWi05dELrGpSI+OM2mNmFnpxZVUUx77GWASD+u/EbDpB7TxoL8wW6r
 /// SFuduTIb63uhqeilkj6VhpPXVLpZg6m8korAXPGaN5BBMTyBAbpWk9e72z5gOGaF
@@ -273,7 +273,7 @@ key_verifier!(RsaKeyVerifier, RsaKey);
 /// zwIDAQAB
 /// -----END PUBLIC KEY-----";
 ///
-/// // Convert the PKCS8 PEM data to PKCS1 DER
+/// // Convert the PKCS8 PEM to PKCS1 DER for RSA public keys.
 /// let public_key = convert_pkcs8_pem_to_pkcs1_der(public_key);
 ///
 /// let public_key = ::ring::signature::UnparsedPublicKey::new(
@@ -349,10 +349,10 @@ impl private::Private for ::ring::hmac::Key {}
 ///
 /// ```
 /// # let jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.tAzkR2NyvqGKrIras8IDsoczvrYWD0gAM3E6H5qGZVg";
-/// let encoded_hmac_key: &str =
-/// "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
-/// let hmac_key = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
-/// let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key);
+/// # let encoded_hmac_key: &str =
+/// # "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
+/// # let hmac_key_bytes = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
+/// let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key_bytes);
 ///
 /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(hmac_key);
 /// let verified_jwt = min_jwt::verify(jwt, &verifier)?;

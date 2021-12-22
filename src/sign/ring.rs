@@ -20,7 +20,6 @@
 //! #   let secret_key = ::p256::SecretKey::from_pkcs8_pem(&private_key).unwrap();
 //! #   secret_key.to_pkcs8_der().unwrap()
 //! # }
-//! // The private key must be formatted without extra spaces or new lines.
 //! let private_key =
 //! "-----BEGIN PRIVATE KEY-----
 //! MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8UmkmK0KO64KCDRZ
@@ -28,7 +27,7 @@
 //! UbXT3wdwI67QKZUCynxkthepgPe2zr6PQJX8jbJ/PDH+iMGub5n+lJCc
 //! -----END PRIVATE KEY-----";
 //!
-//! // Convert the PKCS8 PEM data to PKCS8 DER formatting
+//! // Convert the PKCS8 PEM to DER
 //! let private_key = convert_pkcs8_pem_to_der(private_key);
 //!
 //! let private_key = ::ring::signature::EcdsaKeyPair::from_pkcs8(
@@ -37,11 +36,14 @@
 //! ).unwrap();
 //! let secure_random = ::ring::rand::SystemRandom::new();
 //!
-//! let signer = min_jwt::sign::ring::EcdsaKeyPairSigner::with_es256(private_key, secure_random);
+//! let signer = min_jwt::sign::ring::EcdsaKeyPairSigner::with_es256(
+//!   private_key,
+//!   secure_random
+//! );
 //! let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
-//!
 //! # use ::p256::pkcs8::DecodePublicKey;
-//! # let public_key = "-----BEGIN PUBLIC KEY-----
+//! # let public_key =
+//! # "-----BEGIN PUBLIC KEY-----
 //! # MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEerEk+zqoG1oYBLD3ohuz0tzIlU7X
 //! # zFG1098HcCOu0CmVAsp8ZLYXqYD3ts6+j0CV/I2yfzwx/ojBrm+Z/pSQnA==
 //! # -----END PUBLIC KEY-----";
@@ -58,14 +60,13 @@
 //! ```
 //! # let header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
-//! let encoded_hmac_key: &str =
-//! "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
-//! let hmac_key = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
-//! let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key);
+//! # let encoded_hmac_key: &str =
+//! # "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
+//! # let hmac_key_bytes = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
+//! let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key_bytes);
 //!
 //! let signer = min_jwt::sign::ring::HmacKeySigner::with_hs256(hmac_key);
 //! let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
-//!
 //! # assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.tAzkR2NyvqGKrIras8IDsoczvrYWD0gAM3E6H5qGZVg", jwt);
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
@@ -80,7 +81,6 @@
 //! #   let private_key = ::rsa::RsaPrivateKey::from_pkcs8_pem(&private_key).unwrap();
 //! #   private_key.to_pkcs8_der().unwrap()
 //! # }
-//! // The private key must be formatted without extra spaces or new lines.
 //! let private_key =
 //! "-----BEGIN PRIVATE KEY-----
 //! MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDJ8SJJvYSWrKXI
@@ -111,13 +111,18 @@
 //! 4eEjZ7+NQEVHHG2ZVHFCcMBv
 //! -----END PRIVATE KEY-----";
 //!
-//! // Convert the PKCS8 PEM data to PKCS8 DER formatting
+//! // Convert the PKCS8 PEM to DER
 //! let private_key = convert_pkcs8_pem_to_der(private_key);
 //!
-//! let private_key = ::ring::signature::RsaKeyPair::from_pkcs8(private_key.as_ref()).unwrap();
+//! let private_key = ::ring::signature::RsaKeyPair::from_pkcs8(
+//!   private_key.as_ref()
+//! ).unwrap();
 //! let secure_random = ::ring::rand::SystemRandom::new();
 //!
-//! let signer = min_jwt::sign::ring::RsaKeyPairSigner::with_rs256(private_key, secure_random);
+//! let signer = min_jwt::sign::ring::RsaKeyPairSigner::with_rs256(
+//!   private_key,
+//!   secure_random
+//! );
 //! let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
 //! # assert_eq!("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw", jwt);
 //! # Ok::<(), min_jwt::Error>(())
@@ -191,7 +196,6 @@ impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
 /// #   let secret_key = ::p256::SecretKey::from_pkcs8_pem(&private_key).unwrap();
 /// #   secret_key.to_pkcs8_der().unwrap()
 /// # }
-/// // The private key must be formatted without extra spaces or new lines.
 /// let private_key =
 /// "-----BEGIN PRIVATE KEY-----
 /// MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8UmkmK0KO64KCDRZ
@@ -199,7 +203,7 @@ impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
 /// UbXT3wdwI67QKZUCynxkthepgPe2zr6PQJX8jbJ/PDH+iMGub5n+lJCc
 /// -----END PRIVATE KEY-----";
 ///
-/// // Convert the PKCS8 PEM data to PKCS8 DER formatting
+/// // Convert the PKCS8 PEM to DER
 /// let private_key = convert_pkcs8_pem_to_der(private_key);
 ///
 /// let private_key = ::ring::signature::EcdsaKeyPair::from_pkcs8(
@@ -208,11 +212,14 @@ impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
 /// ).unwrap();
 /// let secure_random = ::ring::rand::SystemRandom::new();
 ///
-/// let signer = min_jwt::sign::ring::EcdsaKeyPairSigner::with_es256(private_key, secure_random);
+/// let signer = min_jwt::sign::ring::EcdsaKeyPairSigner::with_es256(
+///   private_key,
+///   secure_random
+/// );
 /// let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
-///
 /// # use ::p256::pkcs8::DecodePublicKey;
-/// # let public_key = "-----BEGIN PUBLIC KEY-----
+/// # let public_key =
+/// # "-----BEGIN PUBLIC KEY-----
 /// # MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEerEk+zqoG1oYBLD3ohuz0tzIlU7X
 /// # zFG1098HcCOu0CmVAsp8ZLYXqYD3ts6+j0CV/I2yfzwx/ojBrm+Z/pSQnA==
 /// # -----END PUBLIC KEY-----";
@@ -259,44 +266,6 @@ where
     K: EcdsaKey,
     R: SecureRandom,
 {
-    /// Signs header and claims parts with an ECDSA key.
-    ///
-    /// ```
-    /// # use min_jwt::Error;
-    /// #
-    /// # fn try_main() -> Result<(), Error> {
-    /// use min_jwt::sign::ring::EcdsaKeyPairSigner;
-    /// use ring::{rand::SystemRandom};
-    ///
-    /// let sys_rand = SystemRandom::new();
-    ///
-    /// let header = String::from("{\"alg\":\"ES256\",\"typ\":\"JWT\"}");
-    /// let claims = String::from("{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}");
-    ///
-    /// // Normally the key's bytes are read from a file or another data store
-    /// // and should not be randomly generated on every invocation
-    /// let pkcs8_bytes = ::ring::signature::EcdsaKeyPair::generate_pkcs8(
-    ///   &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
-    ///   &sys_rand
-    /// )?;
-    /// let key_pair = ::ring::signature::EcdsaKeyPair::from_pkcs8(
-    ///   &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
-    ///   pkcs8_bytes.as_ref()
-    /// )?;
-    ///
-    /// let signing_key = EcdsaKeyPairSigner::with_es256(key_pair, sys_rand);
-    ///
-    /// /* the header and claims could be serialized by Serde */
-    /// /* in the end, the serialized JSON should be referenced as either &str or &[u8] */
-    ///
-    /// let jwt = min_jwt::encode_and_sign(&header, &claims, &signing_key)?;
-    ///
-    /// #   Ok(())
-    /// # }
-    /// # fn main() {
-    /// #   try_main().unwrap();
-    /// # }
-    /// ```
     pub fn with_es256(key_pair: K, secure_random: R) -> EcdsaKeyPairSigner<K, R, Es256> {
         Self {
             key_pair,
@@ -361,10 +330,10 @@ impl private::Private for ::ring::hmac::Key {}
 /// ```
 /// # let header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
 /// # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
-/// let encoded_hmac_key: &str =
-/// "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
-/// let hmac_key = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
-/// let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key);
+/// # let encoded_hmac_key: &str =
+/// # "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
+/// # let hmac_key_bytes = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
+/// let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key_bytes);
 ///
 /// let signer = min_jwt::sign::ring::HmacKeySigner::with_hs256(hmac_key);
 /// let jwt = min_jwt::encode_and_sign(header, claims, &signer);
@@ -477,7 +446,6 @@ impl private::Private for ::ring::signature::RsaKeyPair {}
 /// #   let private_key = ::rsa::RsaPrivateKey::from_pkcs8_pem(&private_key).unwrap();
 /// #   private_key.to_pkcs8_der().unwrap()
 /// # }
-/// // The private key must be formatted without extra spaces or new lines.
 /// let private_key =
 /// "-----BEGIN PRIVATE KEY-----
 /// MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDJ8SJJvYSWrKXI
@@ -508,13 +476,18 @@ impl private::Private for ::ring::signature::RsaKeyPair {}
 /// 4eEjZ7+NQEVHHG2ZVHFCcMBv
 /// -----END PRIVATE KEY-----";
 ///
-/// // Convert the PKCS8 PEM data to PKCS8 DER formatting
+/// // Convert the PKCS8 PEM to DER
 /// let private_key = convert_pkcs8_pem_to_der(private_key);
 ///
-/// let private_key = ::ring::signature::RsaKeyPair::from_pkcs8(private_key.as_ref()).unwrap();
+/// let private_key = ::ring::signature::RsaKeyPair::from_pkcs8(
+///   private_key.as_ref()
+/// ).unwrap();
 /// let secure_random = ::ring::rand::SystemRandom::new();
 ///
-/// let signer = min_jwt::sign::ring::RsaKeyPairSigner::with_rs256(private_key, secure_random);
+/// let signer = min_jwt::sign::ring::RsaKeyPairSigner::with_rs256(
+///   private_key,
+///   secure_random
+/// );
 /// let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
 /// # assert_eq!("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw", jwt);
 /// # Ok::<(), min_jwt::Error>(())

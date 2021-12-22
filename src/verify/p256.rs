@@ -16,8 +16,8 @@
 //! # let jwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw";
 //! use ::p256::pkcs8::DecodePublicKey;
 //!
-//! // The key must be formatted without extra spaces or new lines.
-//! let public_key = "-----BEGIN PUBLIC KEY-----
+//! let public_key =
+//! "-----BEGIN PUBLIC KEY-----
 //! MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEerEk+zqoG1oYBLD3ohuz0tzIlU7X
 //! zFG1098HcCOu0CmVAsp8ZLYXqYD3ts6+j0CV/I2yfzwx/ojBrm+Z/pSQnA==
 //! -----END PUBLIC KEY-----";

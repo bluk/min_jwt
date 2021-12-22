@@ -17,7 +17,6 @@
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
 //! use ::p256::pkcs8::DecodePrivateKey;
 //!
-//! // The private key must be formatted without extra spaces or new lines.
 //! let private_key =
 //! "-----BEGIN PRIVATE KEY-----
 //! MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg8UmkmK0KO64KCDRZ
