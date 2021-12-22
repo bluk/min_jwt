@@ -54,6 +54,8 @@
 //! ### Sign using ES256 with `p256` crate
 //!
 //! ```
+//! # #[cfg(feature = "p256")]
+//! # fn try_main() -> Result<(), min_jwt::error::Error> {
 //! # let header = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
 //! let jwk = r#"
@@ -72,11 +74,18 @@
 //! let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
 //! # assert_eq!("eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8YxlsgkCsEKso_qvYgg0DR6_Q1pZO6SVeOTLFhgDFku9l_cIoL1A6js5rhjw", jwt);
 //! # Ok::<(), min_jwt::Error>(())
+//! # }
+//! # fn main() {
+//! #   #[cfg(feature = "p256")]
+//! #   try_main().unwrap();
+//! # }
 //! ```
 //!
 //! ### Verify using RS256 with `rsa` and `sha2` crates
 //!
 //! ```
+//! # #[cfg(feature = "rsa")]
+//! # fn try_main() -> Result<(), min_jwt::error::Error> {
 //! # let jwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw";
 //! use ::rsa::pkcs8::FromPublicKey;
 //!
@@ -99,6 +108,11 @@
 //! let header = result.decode_header();
 //! let claims = result.decode_claims();
 //! # Ok::<(), min_jwt::Error>(())
+//! # }
+//! # fn main() {
+//! #   #[cfg(feature = "rsa")]
+//! #   try_main().unwrap();
+//! # }
 //! ```
 //!
 //! [p256]: https://github.com/RustCrypto/elliptic-curves
