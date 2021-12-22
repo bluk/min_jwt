@@ -25,10 +25,10 @@
 //! let public_key = ::p256::PublicKey::from_public_key_pem(public_key).unwrap();
 //! let verifying_key = ::p256::ecdsa::VerifyingKey::from(public_key);
 //!
-//! let result = min_jwt::verify(jwt, &verifying_key)?;
+//! let verified_jwt = min_jwt::verify(jwt, &verifying_key)?;
 //!
-//! let header = result.decode_header();
-//! let claims = result.decode_header();
+//! let header = verified_jwt.decode_header();
+//! let claims = verified_jwt.decode_claims();
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
 //!
@@ -51,10 +51,10 @@
 //! let public_key = ::p256::PublicKey::from_jwk_str(jwk).unwrap();
 //! let verifying_key = ::p256::ecdsa::VerifyingKey::from(public_key);
 //!
-//! let result = min_jwt::verify(jwt, &verifying_key)?;
+//! let verified_jwt = min_jwt::verify(jwt, &verifying_key)?;
 //!
-//! let header = result.decode_header();
-//! let claims = result.decode_header();
+//! let header = verified_jwt.decode_header();
+//! let claims = verified_jwt.decode_claims();
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
 

@@ -6,7 +6,7 @@ use ring::signature::{self, UnparsedPublicKey};
 #[cfg(all(feature = "ring", feature = "serde", feature = "serde_json"))]
 #[test]
 fn rs256_verify_valid_signature_jwt_io_example() {
-    use min_jwt::verify::ring::EcdsaKeyVerifier;
+    use min_jwt::verify::ring::RsaKeyVerifier;
 
     let encoded_header = String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9");
 
@@ -33,7 +33,7 @@ fn rs256_verify_valid_signature_jwt_io_example() {
     let public_key =
         UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, &public_key[..]);
 
-    let verifier = EcdsaKeyVerifier::with_es256(&public_key);
+    let verifier = RsaKeyVerifier::with_rs256(&public_key);
     let signature_verified_jwt = min_jwt::verify(&jwt, &verifier).unwrap();
 
     assert_eq!(encoded_header, signature_verified_jwt.encoded_header());
@@ -61,7 +61,7 @@ fn rs256_verify_valid_signature_jwt_io_example() {
 #[cfg(feature = "ring")]
 #[test]
 fn rs256_verify_invalid_signature() {
-    use min_jwt::verify::ring::EcdsaKeyVerifier;
+    use min_jwt::verify::ring::RsaKeyVerifier;
 
     let encoded_header = String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9");
 
@@ -88,7 +88,7 @@ fn rs256_verify_invalid_signature() {
     let public_key =
         UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, &public_key[..]);
 
-    let verifier = EcdsaKeyVerifier::with_es256(&public_key);
+    let verifier = RsaKeyVerifier::with_rs256(&public_key);
     let error = min_jwt::verify(&jwt, &verifier).unwrap_err();
     assert!(error.is_invalid_signature());
 }

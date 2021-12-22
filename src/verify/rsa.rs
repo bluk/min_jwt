@@ -35,7 +35,7 @@
 //! let result = min_jwt::verify(jwt, &verifier)?;
 //!
 //! let header = result.decode_header();
-//! let claims = result.decode_header();
+//! let claims = result.decode_claims();
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
 

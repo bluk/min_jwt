@@ -64,7 +64,9 @@
 //! let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key);
 //!
 //! let signer = min_jwt::sign::ring::HmacKeySigner::with_hs256(hmac_key);
-//! let jwt = min_jwt::encode_and_sign(header, claims, &signer);
+//! let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
+//!
+//! # assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.tAzkR2NyvqGKrIras8IDsoczvrYWD0gAM3E6H5qGZVg", jwt);
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
 //!
