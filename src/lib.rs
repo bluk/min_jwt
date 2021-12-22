@@ -84,7 +84,7 @@
 //! ### Verify using RS256 with `rsa` and `sha2` crates
 //!
 //! ```
-//! # #[cfg(feature = "rsa")]
+//! # #[cfg(all(feature = "rsa", feature = "sha2"))]
 //! # fn try_main() -> Result<(), min_jwt::error::Error> {
 //! # let jwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw";
 //! use ::rsa::pkcs8::FromPublicKey;
@@ -110,7 +110,7 @@
 //! # Ok::<(), min_jwt::Error>(())
 //! # }
 //! # fn main() {
-//! #   #[cfg(feature = "rsa")]
+//! #   #[cfg(all(feature = "rsa", feature = "sha2"))]
 //! #   try_main().unwrap();
 //! # }
 //! ```
@@ -143,9 +143,7 @@ use error::Result;
 /// what to do with the JWT.
 ///
 /// ```
-/// # use min_jwt::Error;
-/// #
-/// # fn try_main() -> Result<(), Error> {
+/// # fn try_main() -> Result<(), min_jwt::error::Error> {
 /// use min_jwt::UnverifiedJwt;
 ///
 /// let jwt = "\
