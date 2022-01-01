@@ -908,6 +908,7 @@ where
 mod tests {
     use super::{SplitJwt, UnverifiedJwt};
 
+    #[cfg(any(feature = "ring", feature = "p256"))]
     pub(crate) fn jwt_claims_str() -> String {
         String::from(
             "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"admin\":true,\"iat\":1516239022}",

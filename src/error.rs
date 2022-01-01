@@ -50,6 +50,7 @@ impl Error {
         matches!(self.err.code, ErrorCode::Base64Decode(_))
     }
 
+    #[cfg(feature = "web_crypto")]
     pub(crate) fn key_rejected() -> Self {
         Error {
             err: Box::new(ErrorImpl {
@@ -159,9 +160,12 @@ impl Display for ErrorImpl {
 #[derive(Debug)]
 pub(crate) enum ErrorCode {
     Base64Decode(base64::DecodeError),
+    #[allow(dead_code)]
     InvalidSignature,
+    #[allow(dead_code)]
     KeyRejected,
     MalformedJwt,
+    #[allow(dead_code)]
     Unspecified,
     UnsupportedAlgorithm,
 }

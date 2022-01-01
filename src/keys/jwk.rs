@@ -9,8 +9,6 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, Algorithm};
-
 pub(crate) const USAGE_SIGN: &str = "sig";
 
 /// A JSON Web Key.
@@ -64,13 +62,15 @@ pub struct Jwk {
 }
 
 impl Jwk {
-    pub(crate) fn algorithm(&self) -> Result<Algorithm, Error> {
+    #[cfg(feature = "web_crypto")]
+    pub(crate) fn algorithm(&self) -> Result<crate::Algorithm, crate::error::Error> {
+        use crate::Algorithm;
         use core::str::FromStr;
 
         if let Some(alg) = self.alg.as_ref() {
             Algorithm::from_str(alg)
         } else {
-            Err(Error::unsupported_algorithm())
+            Err(crate::error::Error::unsupported_algorithm())
         }
     }
 }
