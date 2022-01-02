@@ -1,3 +1,6 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![warn(missing_docs, rust_2018_idioms)]
+
 //! # Minimal JWT
 //!
 //! JSON Web Tokens are a method for representing claims between two parties.
@@ -228,7 +231,7 @@ impl<'a> UnverifiedJwt<'a> {
     /// #   try_main().unwrap();
     /// # }
     /// ```
-    pub fn with_str(jwt: &str) -> Result<UnverifiedJwt> {
+    pub fn with_str(jwt: &str) -> Result<UnverifiedJwt<'_>> {
         let split_jwt = Self::split(jwt)?;
         Ok(UnverifiedJwt {
             header: split_jwt.header,
@@ -763,6 +766,7 @@ pub trait Header {}
 /// A marker trait for a JWT's claims.
 pub trait Claims {}
 
+#[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -819,16 +823,14 @@ pub struct BasicClaims<'a> {
 
 impl<'a> Claims for BasicClaims<'a> {}
 
-trait DecodeJwk {}
-
-trait EncodeJwk {}
-
 /// Serializes the types to JSON, base64 encodes the JSON, constructs the
 /// signing input, signs the data, and then returns the JWT.
 ///
 /// # Errors
 ///
 /// The function may return an error variant because the key pair is invalid.
+#[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "serde_json")))]
 #[cfg(all(feature = "serde", feature = "serde_json"))]
 pub fn serialize_encode_and_sign<H, C, S>(header: H, claims: C, signing_key: S) -> Result<String>
 where
@@ -975,10 +977,11 @@ mod tests {
 }
 
 #[cfg(feature = "p256")]
+#[cfg_attr(docsrs, doc(cfg(feature = "p256")))]
 mod p256;
-
 #[cfg(feature = "ring")]
+#[cfg_attr(docsrs, doc(cfg(feature = "ring")))]
 mod ring;
-
 #[cfg(feature = "rsa")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rsa")))]
 mod rsa;

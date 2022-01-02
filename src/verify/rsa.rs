@@ -122,6 +122,7 @@ where
 }
 
 #[cfg(feature = "sha2")]
+#[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
 impl<K> RsaPublicKeyVerifier<K, crate::algorithm::Rs256>
 where
     K: PublicKey,
@@ -135,6 +136,7 @@ where
 }
 
 #[cfg(feature = "sha2")]
+#[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
 impl<K> super::Verifier for RsaPublicKeyVerifier<K, crate::algorithm::Rs256>
 where
     K: PublicKey,

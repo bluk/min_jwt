@@ -40,6 +40,7 @@ impl Signature for Vec<u8> {}
 /// the signing key's sign method may require more parameters (e.g. a random
 /// number generator).
 pub trait Signer: private::Private {
+    /// Returned signature type which implmenets the [Signature] trait.
     type Signature: Signature;
 
     /// Returns a signature from a byte buffer.
@@ -64,8 +65,11 @@ mod private {
 }
 
 #[cfg(feature = "p256")]
+#[cfg_attr(docsrs, doc(cfg(feature = "p256")))]
 pub mod p256;
 #[cfg(feature = "ring")]
+#[cfg_attr(docsrs, doc(cfg(feature = "ring")))]
 pub mod ring;
 #[cfg(feature = "rsa")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rsa")))]
 pub mod rsa;

@@ -22,6 +22,7 @@ use crate::error::Result;
 /// In other cases, a new type composed of multiple fields may be needed because
 /// the verifying key's verify method may require more parameters.
 pub trait Verifier: private::Private {
+    /// Verifies the signature for the given message.
     fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
     where
         M: AsRef<[u8]>,
@@ -48,8 +49,11 @@ mod private {
 }
 
 #[cfg(feature = "p256")]
+#[cfg_attr(docsrs, doc(cfg(feature = "p256")))]
 pub mod p256;
 #[cfg(feature = "ring")]
+#[cfg_attr(docsrs, doc(cfg(feature = "ring")))]
 pub mod ring;
 #[cfg(feature = "rsa")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rsa")))]
 pub mod rsa;

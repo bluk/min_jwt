@@ -194,6 +194,7 @@ where
 }
 
 #[cfg(feature = "sha2")]
+#[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
 impl<K> RsaPrivateKeySigner<K, crate::algorithm::Rs256>
 where
     K: Key,
@@ -207,6 +208,7 @@ where
 }
 
 #[cfg(feature = "sha2")]
+#[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
 impl<K> super::Signer for RsaPrivateKeySigner<K, crate::algorithm::Rs256>
 where
     K: Key,

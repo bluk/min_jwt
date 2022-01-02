@@ -27,12 +27,10 @@ impl Error {
         matches!(self.err.code, ErrorCode::MalformedJwt)
     }
 
-    #[cfg(any(
-        feature = "p256",
-        feature = "ring",
-        feature = "rsa",
-        feature = "web_crypto"
-    ))]
+    #[cfg(any(feature = "p256", feature = "ring", feature = "rsa",))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "p256")))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "ring")))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "rsa")))]
     pub(crate) fn invalid_signature() -> Self {
         Error {
             err: Box::new(ErrorImpl {
@@ -48,15 +46,6 @@ impl Error {
     /// If the error is due to a part not being correctly base64 encoded.
     pub fn is_base64_decode_error(&self) -> bool {
         matches!(self.err.code, ErrorCode::Base64Decode(_))
-    }
-
-    #[cfg(feature = "web_crypto")]
-    pub(crate) fn key_rejected() -> Self {
-        Error {
-            err: Box::new(ErrorImpl {
-                code: ErrorCode::KeyRejected,
-            }),
-        }
     }
 
     /// If the error is due to an invalid key.
@@ -94,12 +83,13 @@ impl Display for Error {
 }
 
 impl Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Error({:?})", self.err.code.to_string(),)
     }
 }
 
 #[cfg(feature = "ring")]
+#[cfg_attr(docsrs, doc(cfg(feature = "ring")))]
 impl From<ring::error::KeyRejected> for Error {
     fn from(_: ring::error::KeyRejected) -> Self {
         Error {
@@ -111,6 +101,7 @@ impl From<ring::error::KeyRejected> for Error {
 }
 
 #[cfg(feature = "ring")]
+#[cfg_attr(docsrs, doc(cfg(feature = "ring")))]
 impl From<ring::error::Unspecified> for Error {
     fn from(_: ring::error::Unspecified) -> Self {
         Error {
@@ -137,7 +128,7 @@ struct ErrorImpl {
 }
 
 impl Display for ErrorImpl {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt(&self.code, f)
     }
 }

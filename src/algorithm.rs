@@ -6,18 +6,21 @@
 /// A marker trait for an Algorithm.
 pub trait Algorithm: private::Private {}
 
+/// ECDSA using P-256 and SHA-256.
 #[derive(Debug)]
 pub struct Es256;
 
 impl private::Private for Es256 {}
 impl Algorithm for Es256 {}
 
+/// HMAC using SHA-256.
 #[derive(Debug)]
 pub struct Hs256;
 
 impl private::Private for Hs256 {}
 impl Algorithm for Hs256 {}
 
+/// RSASSA-PKCS-v1_5 using SHA-256.
 #[derive(Debug)]
 pub struct Rs256;
 
