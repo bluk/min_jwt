@@ -1,11 +1,17 @@
 # CHANGELOG
 
-## Unreleased
+## v0.2.1
 
 ### Changed
 
-* Move `signer` and `verifier` modules underneath `ring` module.
-* Allow `ring` dependency to be optional.
+* Update to document all features on doc.rs.
+
+## v0.2.0
+
+### Changed
+
+* Major refactor to basic functions for signing and verifying a JWT.
+* Allow different crypto implementations which are enabled via cargo features.
 
 ## v0.1.0
 
