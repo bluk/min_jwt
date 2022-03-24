@@ -4,9 +4,12 @@ version = "0.3.0"
 license = "MIT OR Apache-2.0"
 description = "Minimal JSON Web Token library"
 repository = "https://github.com/bluk/min_jwt"
+documentation = "https://docs.rs/min_jwt"
 authors = ["Bryant Luk <code@bryantluk.com>"]
 edition = "2021"
 readme = "README.md"
+keywords = ["jwt", "jws", "jose", "token", "authentication"]
+categories = ["authentication", "web-programming", "wasm", "cryptography", "encoding"]
 include = [
   "src/**/*.rs",
   "Cargo.toml",
