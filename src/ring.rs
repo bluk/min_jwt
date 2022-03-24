@@ -33,7 +33,8 @@ mod tests {
         let signature_verified_jwt = crate::verify(&jwt, &verifier)?;
 
         let decoded_header = signature_verified_jwt.decode_header()?;
-        let deserialized_header = serde_json::from_slice::<BasicHeader>(&decoded_header).unwrap();
+        let deserialized_header =
+            serde_json::from_slice::<BasicHeader<'_>>(&decoded_header).unwrap();
         assert_eq!(
             deserialized_header,
             BasicHeader {
