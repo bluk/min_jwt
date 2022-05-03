@@ -1,7 +1,7 @@
 //! Sign JWTs using various signature algorithms.
 //!
-//! The [encode_and_sign](super::encode_and_sign) and
-//! [serialize_encode_and_sign](super::serialize_encode_and_sign) functions sign
+//! The [`encode_and_sign`](super::encode_and_sign) and
+//! [`serialize_encode_and_sign`](super::serialize_encode_and_sign) functions sign
 //! JWTs.
 //!
 //! Both functions require a [Signer] which abstracts the implementation and

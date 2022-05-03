@@ -4,7 +4,7 @@
 //!
 //! | Algorithm | Type | Wrapper Type |
 //! | --------- | ---- | ------------ |
-//! | rs256     | [::rsa::RsaPublicKey] | [RsaPublicKeyVerifier] |
+//! | rs256     | [`::rsa::RsaPublicKey`] | [`RsaPublicKeyVerifier`] |
 //!
 //! Note that you will also need the `sha2` feature enabled.
 //!

@@ -229,6 +229,7 @@ impl<'a> UnverifiedJwt<'a> {
     /// #   try_main().unwrap();
     /// # }
     /// ```
+    #[must_use]
     pub fn signed_data(&self) -> &'a str {
         self.signed_data
     }
@@ -260,6 +261,7 @@ impl<'a> UnverifiedJwt<'a> {
     /// #   try_main().unwrap();
     /// # }
     /// ```
+    #[must_use]
     pub fn encoded_header(&self) -> &'a str {
         self.header
     }
@@ -291,6 +293,7 @@ impl<'a> UnverifiedJwt<'a> {
     /// #   try_main().unwrap();
     /// # }
     /// ```
+    #[must_use]
     pub fn encoded_signature(&self) -> &'a str {
         self.signature
     }
@@ -509,6 +512,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # }
     /// ```
     #[inline]
+    #[must_use]
     pub fn signed_data(&self) -> &'a str {
         self.unverified_jwt.signed_data()
     }
@@ -550,6 +554,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # }
     /// ```
     #[inline]
+    #[must_use]
     pub fn encoded_header(&self) -> &'a str {
         self.unverified_jwt.encoded_header()
     }
@@ -592,6 +597,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # }
     /// ```
     #[inline]
+    #[must_use]
     pub fn encoded_claims(&self) -> &'a str {
         self.unverified_jwt.claims
     }
@@ -633,6 +639,7 @@ impl<'a> SignatureVerifiedJwt<'a> {
     /// # }
     /// ```
     #[inline]
+    #[must_use]
     pub fn encoded_signature(&self) -> &'a str {
         self.unverified_jwt.encoded_signature()
     }
@@ -829,28 +836,28 @@ mod tests {
     fn split_unverified_jwt_too_many_parts() {
         let jwt = String::from("abc.defg.lmnop.vwxyz");
         let error = UnverifiedJwt::split(&jwt).unwrap_err();
-        assert!(error.is_malformed_jwt())
+        assert!(error.is_malformed_jwt());
     }
 
     #[test]
     fn with_str_unverified_jwt_too_many_parts() {
         let jwt = String::from("abc.defg.lmnop.vwxyz");
         let error = UnverifiedJwt::with_str(&jwt).unwrap_err();
-        assert!(error.is_malformed_jwt())
+        assert!(error.is_malformed_jwt());
     }
 
     #[test]
     fn split_unverified_jwt_too_few_parts() {
         let jwt = String::from("abc.defg");
         let error = UnverifiedJwt::split(&jwt).unwrap_err();
-        assert!(error.is_malformed_jwt())
+        assert!(error.is_malformed_jwt());
     }
 
     #[test]
     fn with_str_unverified_jwt_too_few_parts() {
         let jwt = String::from("abc.defg");
         let error = UnverifiedJwt::with_str(&jwt).unwrap_err();
-        assert!(error.is_malformed_jwt())
+        assert!(error.is_malformed_jwt());
     }
 }
 

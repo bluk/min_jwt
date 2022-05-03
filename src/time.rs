@@ -15,6 +15,7 @@ pub struct StdDurationSinceEpoch(Duration);
 
 impl StdDurationSinceEpoch {
     /// Returns the current duration since the epoch.
+    #[must_use]
     pub fn now() -> Self {
         StdDurationSinceEpoch(
             SystemTime::now()

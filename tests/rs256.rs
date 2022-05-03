@@ -55,7 +55,7 @@ fn rs256_verify_valid_signature_jwt_io_example() {
     assert_eq!("1234567890", claims.sub);
     assert_eq!("John Doe", claims.name);
     assert!(claims.admin);
-    assert_eq!(1516239022, claims.iat);
+    assert_eq!(1_516_239_022, claims.iat);
 }
 
 #[cfg(feature = "ring")]
@@ -101,7 +101,7 @@ fn rs256_verify_invalid_signature() {
 ))]
 #[test]
 fn rs256_verify_valid_signature_jwt_io_example_with_rsa() {
-    use rsa::RsaPublicKey;
+    use rsa::{pkcs8::FromPublicKey, RsaPublicKey};
 
     let encoded_header = String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9");
 
@@ -125,7 +125,6 @@ fn rs256_verify_valid_signature_jwt_io_example_with_rsa() {
     );
 
     let public_key = include_str!("rs256_public_key_rsa.pem");
-    use rsa::pkcs8::FromPublicKey;
     let public_key = RsaPublicKey::from_public_key_pem(public_key).unwrap();
     let verifier = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(public_key);
 
@@ -150,7 +149,7 @@ fn rs256_verify_valid_signature_jwt_io_example_with_rsa() {
     assert_eq!("1234567890", claims.sub);
     assert_eq!("John Doe", claims.name);
     assert!(claims.admin);
-    assert_eq!(1516239022, claims.iat);
+    assert_eq!(1_516_239_022, claims.iat);
 }
 
 #[cfg(all(

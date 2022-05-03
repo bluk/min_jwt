@@ -4,9 +4,9 @@
 //!
 //! | Algorithm | Type | Wrapper Type |
 //! | --------- | ---- | ------------ |
-//! | es256     | [::ring::signature::UnparsedPublicKey]   | [EcdsaKeyVerifier] |
-//! | hs256     | [::ring::hmac::Key]                      | [HmacKeyVerifier]  |
-//! | rs256     | [::ring::signature::UnparsedPublicKey]   | [RsaKeyVerifier]   |
+//! | es256     | [`::ring::signature::UnparsedPublicKey`]   |`EcdsaKeyVerifier`er] |
+//! | hs256     | [`::ring::hmac::Key`]                      | [`HmacKeyVerifier`]  |
+//! | rs256     | [`::ring::signature::UnparsedPublicKey`]   | [`RsaKeyVerifier`]   |
 //!
 //! # Examples
 //!
@@ -194,7 +194,7 @@ macro_rules! key_verifier {
 
 key_verifier!(EcdsaKeyVerifier, EcdsaKey);
 
-/// Wrapper for [::ring::signature::UnparsedPublicKey].
+/// Wrapper for [`::ring::signature::UnparsedPublicKey`].
 ///
 /// # Examples
 ///
@@ -256,7 +256,7 @@ where
 
 key_verifier!(RsaKeyVerifier, RsaKey);
 
-/// Wrapper for [::ring::signature::UnparsedPublicKey].
+/// Wrapper for [`::ring::signature::UnparsedPublicKey`].
 ///
 /// # Examples
 ///
@@ -348,7 +348,7 @@ impl HmacKey for ::ring::hmac::Key {
 }
 impl private::Private for ::ring::hmac::Key {}
 
-/// Wrapper for [::ring::hmac::Key].
+/// Wrapper for [`::ring::hmac::Key`].
 ///
 /// # Examples
 ///

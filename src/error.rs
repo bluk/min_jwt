@@ -23,6 +23,7 @@ impl Error {
     }
 
     /// If the error is due to the JWT being malformed.
+    #[must_use]
     pub fn is_malformed_jwt(&self) -> bool {
         matches!(self.err.code, ErrorCode::MalformedJwt)
     }
@@ -39,16 +40,19 @@ impl Error {
         }
     }
     /// If the error is due to an invalid signature.
+    #[must_use]
     pub fn is_invalid_signature(&self) -> bool {
         matches!(self.err.code, ErrorCode::InvalidSignature)
     }
 
     /// If the error is due to a part not being correctly base64 encoded.
+    #[must_use]
     pub fn is_base64_decode_error(&self) -> bool {
         matches!(self.err.code, ErrorCode::Base64Decode(_))
     }
 
     /// If the error is due to an invalid key.
+    #[must_use]
     pub fn is_key_rejected(&self) -> bool {
         matches!(self.err.code, ErrorCode::KeyRejected)
     }
@@ -68,10 +72,10 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self.err.code {
             ErrorCode::Base64Decode(ref err) => Some(err),
-            ErrorCode::InvalidSignature => None,
-            ErrorCode::KeyRejected => None,
-            ErrorCode::MalformedJwt => None,
-            ErrorCode::Unspecified => None,
+            ErrorCode::InvalidSignature
+            | ErrorCode::KeyRejected
+            | ErrorCode::MalformedJwt
+            | ErrorCode::Unspecified => None,
         }
     }
 }
@@ -149,8 +153,9 @@ impl Display for ErrorCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             ErrorCode::Base64Decode(ref error) => Display::fmt(error, f),
-            ErrorCode::InvalidSignature => f.write_str("invalid signature"),
-            ErrorCode::KeyRejected => f.write_str("invalid signature"),
+            ErrorCode::InvalidSignature | ErrorCode::KeyRejected => {
+                f.write_str("invalid signature")
+            }
             ErrorCode::MalformedJwt => f.write_str("malformed jwt"),
             ErrorCode::Unspecified => f.write_str("unspecified error"),
         }

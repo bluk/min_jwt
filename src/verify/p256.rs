@@ -4,7 +4,7 @@
 //!
 //! | Algorithm | Type | Wrapper Type |
 //! | --------- | ---- | ------------ |
-//! | es256     | [::p256::ecdsa::VerifyingKey] | N/A |
+//! | es256     | [`::p256::ecdsa::VerifyingKey`] | N/A |
 //!
 //! # Examples
 //!

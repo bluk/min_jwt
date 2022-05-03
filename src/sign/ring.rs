@@ -4,9 +4,9 @@
 //!
 //! | Algorithm | Type | Wrapper Type |
 //! | --------- | ---- | ------------ |
-//! | es256     | [::ring::signature::EcdsaKeyPair] | [EcdsaKeyPairSigner] |
-//! | hs256     | [::ring::hmac::Key]               | [HmacKeySigner] |
-//! | rs256     | [::ring::signature::RsaKeyPair]   | [RsaKeyPairSigner] |
+//! | es256     | [`::ring::signature::EcdsaKeyPair`] | [`EcdsaKeyPairSigner`] |
+//! | hs256     | [`::ring::hmac::Key`]               | [`HmacKeySigner`] |
+//! | rs256     | [`::ring::signature::RsaKeyPair`]   |`RsaKeyPairSigner`er] |
 //!
 //! # Examples
 //!
@@ -196,7 +196,7 @@ impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
     }
 }
 
-/// Wrapper for [::ring::signature::EcdsaKeyPair].
+/// Wrapper for [`::ring::signature::EcdsaKeyPair`].
 ///
 /// # Examples
 ///
@@ -343,7 +343,7 @@ impl HmacKey for ::ring::hmac::Key {
 }
 impl private::Private for ::ring::hmac::Key {}
 
-/// Wrapper for [::ring::hmac::Key].
+/// Wrapper for [`::ring::hmac::Key`].
 ///
 /// # Examples
 ///
@@ -453,7 +453,7 @@ impl RsaKey for ::ring::signature::RsaKeyPair {
 }
 impl private::Private for ::ring::signature::RsaKeyPair {}
 
-/// Wrapper for [::ring::signature::RsaKeyPair].
+/// Wrapper for [`::ring::signature::RsaKeyPair`].
 ///
 /// # Examples
 ///

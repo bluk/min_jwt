@@ -4,7 +4,7 @@
 //!
 //! | Algorithm | Type | Wrapper Type |
 //! | --------- | ---- | ------------ |
-//! | rs256     | [::rsa::RsaPrivateKey] | [RsaPrivateKeySigner] |
+//! | rs256     | [`::rsa::RsaPrivateKey`] |`RsaPrivateKeySigner`er] |
 //!
 //! Note that you will also need the `sha2` feature enabled.
 //!
@@ -14,7 +14,7 @@
 //!
 //! The `pem` feature on the `rsa` dependency must be enabled.
 //!
-//! See the [::rsa::pkcs8::FromPrivateKey] trait for more methods.
+//! See the [`::rsa::pkcs8::FromPrivateKey`] trait for more methods.
 //!
 //! ```
 //! # #[cfg(feature="sha2")]
@@ -111,7 +111,7 @@ impl Key for ::rsa::RsaPrivateKey {
 
 impl private::Private for ::rsa::RsaPrivateKey {}
 
-/// Wrapper for [::rsa::RsaPrivateKey].
+/// Wrapper for [`::rsa::RsaPrivateKey`].
 ///
 /// # Examples
 ///
