@@ -143,10 +143,7 @@
 //! ```
 
 use super::Signature;
-use crate::{
-    algorithm::{Algorithm, Es256, Hs256, Rs256},
-    error::{Error, Result},
-};
+use crate::algorithm::{Algorithm, Es256, Hs256, Rs256};
 use core::marker::PhantomData;
 use ring::rand::SecureRandom;
 use ring::signature::EcdsaKeyPair;
@@ -164,7 +161,13 @@ mod private {
 pub trait EcdsaKey: private::Private {
     type Signature: Signature;
 
-    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    type Error;
+
+    fn sign<B>(
+        &self,
+        secure_random: &dyn SecureRandom,
+        bytes: B,
+    ) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>;
 }
@@ -175,7 +178,13 @@ where
 {
     type Signature = T::Signature;
 
-    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    type Error = T::Error;
+
+    fn sign<B>(
+        &self,
+        secure_random: &dyn SecureRandom,
+        bytes: B,
+    ) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>,
     {
@@ -188,11 +197,17 @@ impl private::Private for ::ring::signature::EcdsaKeyPair {}
 impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
     type Signature = ::ring::signature::Signature;
 
-    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    type Error = ::ring::error::Unspecified;
+
+    fn sign<B>(
+        &self,
+        secure_random: &dyn SecureRandom,
+        bytes: B,
+    ) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>,
     {
-        EcdsaKeyPair::sign(self, secure_random, bytes.as_ref()).map_err(|_| todo!())
+        EcdsaKeyPair::sign(self, secure_random, bytes.as_ref())
     }
 }
 
@@ -304,7 +319,9 @@ where
 {
     type Signature = K::Signature;
 
-    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+    type Error = K::Error;
+
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
         self.key_pair.sign(&self.secure_random, bytes)
     }
 }
@@ -312,7 +329,9 @@ where
 pub trait HmacKey: private::Private {
     type Signature: Signature;
 
-    fn sign<B>(&self, bytes: B) -> Result<Self::Signature>
+    type Error;
+
+    fn sign<B>(&self, bytes: B) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>;
 }
@@ -323,7 +342,9 @@ where
 {
     type Signature = T::Signature;
 
-    fn sign<B>(&self, bytes: B) -> Result<Self::Signature>
+    type Error = T::Error;
+
+    fn sign<B>(&self, bytes: B) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>,
     {
@@ -334,7 +355,9 @@ where
 impl HmacKey for ::ring::hmac::Key {
     type Signature = ::ring::hmac::Tag;
 
-    fn sign<B>(&self, bytes: B) -> Result<Self::Signature>
+    type Error = ();
+
+    fn sign<B>(&self, bytes: B) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>,
     {
@@ -393,7 +416,9 @@ where
 {
     type Signature = K::Signature;
 
-    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+    type Error = K::Error;
+
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
         self.key.sign(bytes)
     }
 }
@@ -413,7 +438,13 @@ where
 pub trait RsaKey: private::Private {
     type Signature: Signature;
 
-    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    type Error;
+
+    fn sign<B>(
+        &self,
+        secure_random: &dyn SecureRandom,
+        bytes: B,
+    ) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>;
 }
@@ -424,7 +455,13 @@ where
 {
     type Signature = T::Signature;
 
-    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    type Error = T::Error;
+
+    fn sign<B>(
+        &self,
+        secure_random: &dyn SecureRandom,
+        bytes: B,
+    ) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>,
     {
@@ -435,7 +472,13 @@ where
 impl RsaKey for ::ring::signature::RsaKeyPair {
     type Signature = Vec<u8>;
 
-    fn sign<B>(&self, secure_random: &dyn SecureRandom, bytes: B) -> Result<Self::Signature>
+    type Error = ::ring::error::Unspecified;
+
+    fn sign<B>(
+        &self,
+        secure_random: &dyn SecureRandom,
+        bytes: B,
+    ) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>,
     {
@@ -446,8 +489,7 @@ impl RsaKey for ::ring::signature::RsaKeyPair {
             secure_random,
             bytes.as_ref(),
             &mut signature,
-        )
-        .map_err(|_| Error::invalid_signature())?;
+        )?;
         Ok(signature)
     }
 }
@@ -559,7 +601,9 @@ where
 {
     type Signature = K::Signature;
 
-    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+    type Error = K::Error;
+
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
         self.key_pair.sign(&self.secure_random, bytes)
     }
 }

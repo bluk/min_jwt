@@ -744,7 +744,9 @@ where
     let encoded_claims = base64::encode_config(claims, base64::URL_SAFE_NO_PAD);
     let data_to_sign = [encoded_header.as_ref(), encoded_claims.as_ref()].join(".");
 
-    let signature = signing_key.sign(data_to_sign.as_bytes())?;
+    let signature = signing_key
+        .sign(data_to_sign.as_bytes())
+        .map_err(|_| Error::unspecified())?;
     let signature = signature.as_ref();
     let signature = base64::encode_config(&signature, base64::URL_SAFE_NO_PAD);
 

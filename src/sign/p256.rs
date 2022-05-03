@@ -57,15 +57,15 @@
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
 
-use crate::error::Result;
-
 impl super::Signature for ::p256::ecdsa::Signature {}
 impl super::private::Private for ::p256::ecdsa::Signature {}
 
 impl super::Signer for ::p256::ecdsa::SigningKey {
     type Signature = ::p256::ecdsa::Signature;
 
-    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+    type Error = ();
+
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
         Ok(::p256::ecdsa::signature::Signer::sign(self, bytes))
     }
 }

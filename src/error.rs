@@ -3,7 +3,6 @@
 use core::convert::From;
 use core::fmt::{self, Debug, Display};
 use core::result;
-use std::error;
 
 /// Result type with crate [Error].
 pub type Result<T> = result::Result<T, Error>;
@@ -56,20 +55,19 @@ impl Error {
     pub fn is_key_rejected(&self) -> bool {
         matches!(self.err.code, ErrorCode::KeyRejected)
     }
-}
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match self.err.code {
-            ErrorCode::Base64Decode(_) => "base64 decode error",
-            ErrorCode::InvalidSignature => "invalid signature",
-            ErrorCode::KeyRejected => "key rejected",
-            ErrorCode::MalformedJwt => "malformed jwt",
-            ErrorCode::Unspecified => "unspecified error",
+    #[must_use]
+    pub(crate) fn unspecified() -> Self {
+        Error {
+            err: Box::new(ErrorImpl {
+                code: ErrorCode::Unspecified,
+            }),
         }
     }
+}
 
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self.err.code {
             ErrorCode::Base64Decode(ref err) => Some(err),
             ErrorCode::InvalidSignature
@@ -151,7 +149,7 @@ pub(crate) enum ErrorCode {
 
 impl Display for ErrorCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
+        match self {
             ErrorCode::Base64Decode(ref error) => Display::fmt(error, f),
             ErrorCode::InvalidSignature | ErrorCode::KeyRejected => {
                 f.write_str("invalid signature")

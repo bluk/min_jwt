@@ -14,8 +14,6 @@
 //!
 //! See the implementation modules for specific examples.
 
-use crate::error::Result;
-
 /// A signature which can be represented by bytes.
 pub trait Signature: AsRef<[u8]> + private::Private {}
 
@@ -43,8 +41,15 @@ pub trait Signer: private::Private {
     /// Returned signature type which implmenets the [Signature] trait.
     type Signature: Signature;
 
+    /// Returns an error.
+    type Error;
+
     /// Returns a signature from a byte buffer.
-    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature>;
+    ///
+    /// # Errors
+    ///
+    /// Returns an error dependent on the signer.
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error>;
 }
 
 impl<T> Signer for &T
@@ -53,7 +58,9 @@ where
 {
     type Signature = T::Signature;
 
-    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+    type Error = T::Error;
+
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
         T::sign(self, bytes)
     }
 }

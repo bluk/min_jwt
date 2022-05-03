@@ -67,14 +67,20 @@
 //! ```
 use core::marker::PhantomData;
 
-use crate::{algorithm::Algorithm, error::Result};
+use crate::algorithm::Algorithm;
 
 use super::Signature;
 
 pub trait Key: private::Private {
     type Signature: Signature;
 
-    fn sign<B>(&self, padding: ::rsa::PaddingScheme, bytes: B) -> Result<Self::Signature>
+    type Error;
+
+    fn sign<B>(
+        &self,
+        padding: ::rsa::PaddingScheme,
+        bytes: B,
+    ) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>;
 }
@@ -90,7 +96,13 @@ where
 {
     type Signature = T::Signature;
 
-    fn sign<B>(&self, padding: ::rsa::PaddingScheme, bytes: B) -> Result<Self::Signature>
+    type Error = T::Error;
+
+    fn sign<B>(
+        &self,
+        padding: ::rsa::PaddingScheme,
+        bytes: B,
+    ) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>,
     {
@@ -101,11 +113,17 @@ where
 impl Key for ::rsa::RsaPrivateKey {
     type Signature = Vec<u8>;
 
-    fn sign<B>(&self, padding: ::rsa::PaddingScheme, bytes: B) -> Result<Self::Signature>
+    type Error = ::rsa::errors::Error;
+
+    fn sign<B>(
+        &self,
+        padding: ::rsa::PaddingScheme,
+        bytes: B,
+    ) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>,
     {
-        ::rsa::RsaPrivateKey::sign(self, padding, bytes.as_ref()).map_err(|_| todo!())
+        ::rsa::RsaPrivateKey::sign(self, padding, bytes.as_ref())
     }
 }
 
@@ -215,7 +233,9 @@ where
 {
     type Signature = K::Signature;
 
-    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature> {
+    type Error = K::Error;
+
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
         use sha2::{Digest, Sha256};
 
         self.key.sign(
