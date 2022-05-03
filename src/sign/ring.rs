@@ -383,6 +383,7 @@ impl HmacKey for ::ring::hmac::Key {
 /// let jwt = min_jwt::encode_and_sign(header, claims, &signer);
 /// # Ok::<(), min_jwt::Error>(())
 /// ```
+#[derive(Debug)]
 pub struct HmacKeySigner<K, A>
 where
     K: HmacKey,

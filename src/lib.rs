@@ -1,6 +1,14 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![warn(missing_docs, rust_2018_idioms)]
+#![warn(
+    rust_2018_idioms,
+    missing_docs,
+    missing_debug_implementations,
+    unused_lifetimes,
+    unused_qualifications
+)]
+
+use core::convert::TryFrom;
 
 pub use error::Error;
 
@@ -67,8 +75,8 @@ struct SplitJwt<'a> {
     signature: &'a str,
 }
 
-impl<'a> core::convert::TryFrom<&'a str> for UnverifiedJwt<'a> {
-    type Error = crate::error::Error;
+impl<'a> TryFrom<&'a str> for UnverifiedJwt<'a> {
+    type Error = Error;
 
     fn try_from(value: &'a str) -> Result<Self> {
         let split_jwt = Self::split(value)?;
@@ -719,8 +727,8 @@ impl<'a> Claims for BasicClaims<'a> {}
 #[cfg(all(feature = "serde", feature = "serde_json"))]
 pub fn serialize_encode_and_sign<H, C, S>(header: &H, claims: &C, signing_key: S) -> Result<String>
 where
-    H: crate::Header + serde::Serialize,
-    C: crate::Claims + serde::Serialize,
+    H: Header + Serialize,
+    C: Claims + Serialize,
     S: sign::Signer,
 {
     let header = serde_json::to_vec(&header).map_err(|_| Error::unspecified())?;

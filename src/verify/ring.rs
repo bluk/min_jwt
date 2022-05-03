@@ -225,6 +225,7 @@ key_verifier!(EcdsaKeyVerifier, EcdsaKey);
 /// let claims = verified_jwt.decode_claims();
 /// # Ok::<(), min_jwt::Error>(())
 /// ```
+#[derive(Debug)]
 pub struct EcdsaKeyVerifier<K, A>
 where
     K: EcdsaKey,
@@ -288,6 +289,7 @@ key_verifier!(RsaKeyVerifier, RsaKey);
 /// let claims = verified_jwt.decode_claims();
 /// # Ok::<(), min_jwt::Error>(())
 /// ```
+#[derive(Debug)]
 pub struct RsaKeyVerifier<K, A>
 where
     K: RsaKey,
@@ -367,6 +369,7 @@ impl HmacKey for ::ring::hmac::Key {
 /// let claims = verified_jwt.decode_claims();
 /// # Ok::<(), min_jwt::Error>(())
 /// ```
+#[derive(Debug)]
 pub struct HmacKeyVerifier<K, A>
 where
     K: HmacKey,
