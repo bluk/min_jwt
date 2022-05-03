@@ -86,7 +86,7 @@
 //! # let header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
 //! # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
-//! #   use rsa::pkcs8::{ToPrivateKey, FromPrivateKey};
+//! #   use rsa::pkcs8::{DecodePrivateKey, EncodePrivateKey};
 //! #   let private_key = ::rsa::RsaPrivateKey::from_pkcs8_pem(&private_key).unwrap();
 //! #   private_key.to_pkcs8_der().unwrap()
 //! # }
@@ -509,7 +509,7 @@ impl RsaKey for ::ring::signature::RsaKeyPair {
 /// # let header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
 /// # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
 /// # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
-/// #   use rsa::pkcs8::{ToPrivateKey, FromPrivateKey};
+/// #   use rsa::pkcs8::{DecodePrivateKey, EncodePrivateKey};
 /// #   let private_key = ::rsa::RsaPrivateKey::from_pkcs8_pem(&private_key).unwrap();
 /// #   private_key.to_pkcs8_der().unwrap()
 /// # }

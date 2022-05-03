@@ -14,14 +14,14 @@
 //!
 //! The `pem` feature on the `rsa` dependency must be enabled.
 //!
-//! See the [`::rsa::pkcs8::FromPrivateKey`] trait for more methods.
+//! See the [`::rsa::pkcs8::DecodePrivateKey`] trait for more methods.
 //!
 //! ```
 //! # #[cfg(feature="sha2")]
 //! # fn try_main() -> Result<(), min_jwt::error::Error> {
 //! # let header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
-//! use rsa::pkcs8::FromPrivateKey;
+//! use rsa::pkcs8::DecodePrivateKey;
 //!
 //! let private_key =
 //! "-----BEGIN PRIVATE KEY-----
@@ -141,7 +141,7 @@ impl Key for ::rsa::RsaPrivateKey {
 /// # fn try_main() -> Result<(), min_jwt::error::Error> {
 /// # let header = "{\"alg\":\"RS256\",\"typ\":\"JWT\"}";
 /// # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
-/// use rsa::pkcs8::FromPrivateKey;
+/// use rsa::pkcs8::DecodePrivateKey;
 ///
 /// let private_key =
 /// "-----BEGIN PRIVATE KEY-----

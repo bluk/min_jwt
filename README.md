@@ -99,7 +99,7 @@ let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
 # NvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3f\
 # U5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2\
 # -AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw";
-use ::rsa::pkcs8::FromPublicKey;
+use ::rsa::pkcs8::DecodePublicKey;
 
 let public_key =
 "-----BEGIN PUBLIC KEY-----

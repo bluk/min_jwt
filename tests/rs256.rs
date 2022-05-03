@@ -101,7 +101,7 @@ fn rs256_verify_invalid_signature() {
 ))]
 #[test]
 fn rs256_verify_valid_signature_jwt_io_example_with_rsa() {
-    use rsa::{pkcs8::FromPublicKey, RsaPublicKey};
+    use rsa::{pkcs8::DecodePublicKey, RsaPublicKey};
 
     let encoded_header = String::from("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9");
 
