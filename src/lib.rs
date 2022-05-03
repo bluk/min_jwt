@@ -717,14 +717,14 @@ impl<'a> Claims for BasicClaims<'a> {}
 #[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "serde_json")))]
 #[cfg(all(feature = "serde", feature = "serde_json"))]
-pub fn serialize_encode_and_sign<H, C, S>(header: H, claims: C, signing_key: S) -> Result<String>
+pub fn serialize_encode_and_sign<H, C, S>(header: &H, claims: &C, signing_key: S) -> Result<String>
 where
     H: crate::Header + serde::Serialize,
     C: crate::Claims + serde::Serialize,
     S: sign::Signer,
 {
-    let header = serde_json::to_vec(&header).unwrap();
-    let claims = serde_json::to_vec(&claims).unwrap();
+    let header = serde_json::to_vec(&header).map_err(|_| Error::unspecified())?;
+    let claims = serde_json::to_vec(&claims).map_err(|_| Error::unspecified())?;
     encode_and_sign(header, claims, signing_key)
 }
 
