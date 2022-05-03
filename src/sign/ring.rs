@@ -149,16 +149,9 @@ use ring::rand::SecureRandom;
 use ring::signature::EcdsaKeyPair;
 
 impl Signature for ::ring::signature::Signature {}
-impl super::private::Private for ::ring::signature::Signature {}
 impl Signature for ::ring::hmac::Tag {}
-impl super::private::Private for ::ring::hmac::Tag {}
 
-mod private {
-    pub trait Private {}
-    impl<T> Private for &T where T: Private {}
-}
-
-pub trait EcdsaKey: private::Private {
+pub trait EcdsaKey {
     type Signature: Signature;
 
     type Error;
@@ -191,8 +184,6 @@ where
         T::sign(self, secure_random, bytes)
     }
 }
-
-impl private::Private for ::ring::signature::EcdsaKeyPair {}
 
 impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
     type Signature = ::ring::signature::Signature;
@@ -278,14 +269,6 @@ where
     algorithm: PhantomData<A>,
 }
 
-impl<K, R, A> super::private::Private for EcdsaKeyPairSigner<K, R, A>
-where
-    K: EcdsaKey,
-    R: SecureRandom,
-    A: Algorithm,
-{
-}
-
 impl<K, R, A> EcdsaKeyPairSigner<K, R, A>
 where
     K: EcdsaKey,
@@ -326,7 +309,7 @@ where
     }
 }
 
-pub trait HmacKey: private::Private {
+pub trait HmacKey {
     type Signature: Signature;
 
     type Error;
@@ -364,7 +347,6 @@ impl HmacKey for ::ring::hmac::Key {
         Ok(::ring::hmac::sign(self, bytes.as_ref()))
     }
 }
-impl private::Private for ::ring::hmac::Key {}
 
 /// Wrapper for [`::ring::hmac::Key`].
 ///
@@ -390,13 +372,6 @@ where
 {
     key: K,
     algorithm: PhantomData<A>,
-}
-
-impl<K, A> super::private::Private for HmacKeySigner<K, A>
-where
-    K: HmacKey,
-    A: Algorithm,
-{
 }
 
 impl<K, A> HmacKeySigner<K, A>
@@ -435,7 +410,7 @@ where
     }
 }
 
-pub trait RsaKey: private::Private {
+pub trait RsaKey {
     type Signature: Signature;
 
     type Error;
@@ -493,7 +468,6 @@ impl RsaKey for ::ring::signature::RsaKeyPair {
         Ok(signature)
     }
 }
-impl private::Private for ::ring::signature::RsaKeyPair {}
 
 /// Wrapper for [`::ring::signature::RsaKeyPair`].
 ///
@@ -572,14 +546,6 @@ where
     key_pair: K,
     secure_random: R,
     alg: PhantomData<A>,
-}
-
-impl<K, R, A> super::private::Private for RsaKeyPairSigner<K, R, A>
-where
-    K: RsaKey,
-    R: SecureRandom,
-    A: Algorithm,
-{
 }
 
 impl<K, R, A> RsaKeyPairSigner<K, R, A>

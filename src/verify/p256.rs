@@ -72,5 +72,3 @@ impl super::Verifier for ::p256::ecdsa::VerifyingKey {
             .map_err(|_| Error::invalid_signature())
     }
 }
-
-impl super::private::Private for ::p256::ecdsa::VerifyingKey {}

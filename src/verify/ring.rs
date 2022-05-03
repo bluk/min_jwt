@@ -5,8 +5,8 @@
 //! | Algorithm | Type | Wrapper Type |
 //! | --------- | ---- | ------------ |
 //! | es256     | [`::ring::signature::UnparsedPublicKey`]   |`EcdsaKeyVerifier`er] |
-//! | hs256     | [`::ring::hmac::Key`]                      | [`HmacKeyVerifier`]  |
-//! | rs256     | [`::ring::signature::UnparsedPublicKey`]   | [`RsaKeyVerifier`]   |
+//! | hs256     | [`::ring::hmac::Key`]                      |`HmacKeyVerifier`er]  |
+//! | rs256     | [`::ring::signature::UnparsedPublicKey`]   |`RsaKeyVerifier`er]   |
 //!
 //! # Examples
 //!
@@ -111,17 +111,9 @@ use crate::{
 };
 use core::marker::PhantomData;
 
-mod private {
-    pub trait Private {}
-
-    impl<T> Private for &T where T: Private {}
-}
-
-impl<B> private::Private for ::ring::signature::UnparsedPublicKey<B> where B: AsRef<[u8]> {}
-
 macro_rules! key_verifier {
     ($verifier_name:ident, $key_name:ident) => {
-        pub trait $key_name: private::Private {
+        pub trait $key_name {
             fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
             where
                 M: AsRef<[u8]>,
@@ -181,13 +173,6 @@ macro_rules! key_verifier {
             {
                 self.key.verify(message, signature)
             }
-        }
-
-        impl<K, A> super::private::Private for $verifier_name<K, A>
-        where
-            K: $key_name,
-            A: Algorithm,
-        {
         }
     };
 }
@@ -316,7 +301,7 @@ where
     }
 }
 
-pub trait HmacKey: private::Private {
+pub trait HmacKey {
     fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
     where
         M: AsRef<[u8]>,
@@ -346,7 +331,6 @@ impl HmacKey for ::ring::hmac::Key {
             .map_err(|_| Error::invalid_signature())
     }
 }
-impl private::Private for ::ring::hmac::Key {}
 
 /// Wrapper for [`::ring::hmac::Key`].
 ///
@@ -399,13 +383,6 @@ where
     {
         self.key.verify(message, signature)
     }
-}
-
-impl<K, A> super::private::Private for HmacKeyVerifier<K, A>
-where
-    K: HmacKey,
-    A: Algorithm,
-{
 }
 
 impl<K> HmacKeyVerifier<K, Hs256>

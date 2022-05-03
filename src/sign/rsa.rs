@@ -71,7 +71,7 @@ use crate::algorithm::Algorithm;
 
 use super::Signature;
 
-pub trait Key: private::Private {
+pub trait Key {
     type Signature: Signature;
 
     type Error;
@@ -83,11 +83,6 @@ pub trait Key: private::Private {
     ) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>;
-}
-
-mod private {
-    pub trait Private {}
-    impl<T> Private for &T where T: Private {}
 }
 
 impl<T> Key for &T
@@ -126,8 +121,6 @@ impl Key for ::rsa::RsaPrivateKey {
         ::rsa::RsaPrivateKey::sign(self, padding, bytes.as_ref())
     }
 }
-
-impl private::Private for ::rsa::RsaPrivateKey {}
 
 /// Wrapper for [`::rsa::RsaPrivateKey`].
 ///
@@ -192,13 +185,6 @@ where
 {
     key: K,
     alg: PhantomData<A>,
-}
-
-impl<K, A> super::private::Private for RsaPrivateKeySigner<K, A>
-where
-    K: Key,
-    A: Algorithm,
-{
 }
 
 impl<K, A> RsaPrivateKeySigner<K, A>

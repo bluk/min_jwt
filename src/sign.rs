@@ -15,18 +15,14 @@
 //! See the implementation modules for specific examples.
 
 /// A signature which can be represented by bytes.
-pub trait Signature: AsRef<[u8]> + private::Private {}
+pub trait Signature: AsRef<[u8]> {}
 
-impl private::Private for Vec<u8> {}
 impl Signature for Vec<u8> {}
 
-// impl private::Private for &[u8] {}
 // impl Signature for &[u8] {}
 
-// impl private::Private for String {}
 // impl Signature for String {}
 
-// impl private::Private for &str {}
 // impl Signature for &str {}
 
 /// A type which can sign a byte buffer.
@@ -37,7 +33,7 @@ impl Signature for Vec<u8> {}
 /// In other cases, a new type composed of multiple fields may be needed because
 /// the signing key's sign method may require more parameters (e.g. a random
 /// number generator).
-pub trait Signer: private::Private {
+pub trait Signer {
     /// Returned signature type which implmenets the [Signature] trait.
     type Signature: Signature;
 
@@ -63,12 +59,6 @@ where
     fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
         T::sign(self, bytes)
     }
-}
-
-mod private {
-    pub trait Private {}
-
-    impl<T> Private for &T where T: Private {}
 }
 
 #[cfg(feature = "p256")]

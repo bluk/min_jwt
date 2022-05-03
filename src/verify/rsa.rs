@@ -52,19 +52,12 @@ use crate::{
 };
 use core::marker::PhantomData;
 
-impl super::private::Private for ::rsa::RsaPublicKey {}
-
 /// Types which can verify a signature.
-pub trait PublicKey: private::Private {
+pub trait PublicKey {
     fn verify<M, S>(&self, message: M, signature: S, padding: ::rsa::PaddingScheme) -> Result<()>
     where
         M: AsRef<[u8]>,
         S: AsRef<[u8]>;
-}
-
-mod private {
-    pub trait Private {}
-    impl<T> Private for &T where T: Private {}
 }
 
 impl<T> PublicKey for &T
@@ -91,8 +84,6 @@ impl PublicKey for ::rsa::RsaPublicKey {
     }
 }
 
-impl private::Private for ::rsa::RsaPublicKey {}
-
 /// A wrapper type which holds the key and algorithm.
 #[derive(Debug)]
 pub struct RsaPublicKeyVerifier<K, A>
@@ -102,13 +93,6 @@ where
 {
     key: K,
     alg: PhantomData<A>,
-}
-
-impl<K, A> super::private::Private for RsaPublicKeyVerifier<K, A>
-where
-    K: PublicKey,
-    A: Algorithm,
-{
 }
 
 impl<K, A> RsaPublicKeyVerifier<K, A>

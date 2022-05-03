@@ -58,7 +58,6 @@
 //! ```
 
 impl super::Signature for ::p256::ecdsa::Signature {}
-impl super::private::Private for ::p256::ecdsa::Signature {}
 
 impl super::Signer for ::p256::ecdsa::SigningKey {
     type Signature = ::p256::ecdsa::Signature;
@@ -69,4 +68,3 @@ impl super::Signer for ::p256::ecdsa::SigningKey {
         Ok(::p256::ecdsa::signature::Signer::sign(self, bytes))
     }
 }
-impl super::private::Private for ::p256::ecdsa::SigningKey {}

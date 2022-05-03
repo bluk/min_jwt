@@ -21,7 +21,7 @@ use crate::error::Result;
 ///
 /// In other cases, a new type composed of multiple fields may be needed because
 /// the verifying key's verify method may require more parameters.
-pub trait Verifier: private::Private {
+pub trait Verifier {
     /// Verifies the signature for the given message.
     fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
     where
@@ -40,12 +40,6 @@ where
     {
         T::verify(self, message, signature)
     }
-}
-
-mod private {
-    pub trait Private {}
-
-    impl<T> Private for &T where T: Private {}
 }
 
 #[cfg(feature = "p256")]
