@@ -1,27 +1,56 @@
-# CHANGELOG
+# Changelog
 
-## v0.3.0
-
-### Changed
-
-* Add docs.rs cfg attributes.
-* Use Rust Edition 2021.
-
-## v0.2.1
-
-### Changed
-
-* Update to document all features on doc.rs.
-
-## v0.2.0
-
-### Changed
-
-* Major refactor to basic functions for signing and verifying a JWT.
-* Allow different crypto implementations which are enabled via cargo features.
-
-## v0.1.0
+## [0.4.0] - 2022-05-03
 
 ### Added
 
-* Initial implementation.
+- Add `Error` associated type to `Signer` traits.
+
+### Changed
+
+- Fix serialize_encode_and_sign to use references for arguments.
+
+  Remove `unwrap()` calls and use unspecified Error.
+
+- Add documentation
+
+- Update to rsa 0.6.1
+
+### Removed
+
+- Remove private modules
+
+## [0.3.0] - 2022-01-02
+
+### Changed
+
+- Add docs.rs cfg attributes.
+
+- Use Rust Edition 2021.
+
+## [0.2.1] - 2022-01-01
+
+### Changed
+
+- Update to document all features on doc.rs.
+
+## [0.2.0] - 2022-01-01
+
+### Changed
+
+- Major refactor to basic functions for signing and verifying a JWT.
+
+- Allow different crypto implementations which are enabled via cargo features.
+
+## [0.1.0] - 2019-11-06
+
+### Added
+
+- Initial implementation.
+
+[Unreleased]: https://github.com/bluk/gen_value/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/bluk/min_jwt/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/bluk/min_jwt/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/bluk/min_jwt/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/bluk/min_jwt/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/bluk/min_jwt/releases/tag/v0.1.0

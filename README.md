@@ -32,7 +32,7 @@ crate, depend on this crate and the relevant dependent crate in your
 
 ```toml
 [dependencies]
-min_jwt = { version = "0.2.0", features = [ "p256", "serde", "serde_json"] }
+min_jwt = { version = "0.4.0", features = [ "p256", "serde", "serde_json"] }
 p256 = { version = "0.10.0", features = [ "ecdsa", "jwk", "pem"] }
 ```
 
