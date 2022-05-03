@@ -14,6 +14,12 @@
 //!
 //! See the implementation modules for specific examples.
 
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{string::String, vec::Vec};
+
+#[cfg(feature = "std")]
+use std::{string::String, vec::Vec};
+
 /// A signature which can be represented by bytes.
 pub trait Signature: AsRef<[u8]> {}
 

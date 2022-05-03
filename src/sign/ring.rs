@@ -148,6 +148,12 @@ use core::marker::PhantomData;
 use ring::rand::SecureRandom;
 use ring::signature::EcdsaKeyPair;
 
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{vec, vec::Vec};
+
+#[cfg(feature = "std")]
+use std::{vec, vec::Vec};
+
 impl Signature for ::ring::signature::Signature {}
 impl Signature for ::ring::hmac::Tag {}
 

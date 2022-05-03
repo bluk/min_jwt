@@ -7,8 +7,18 @@
     unused_lifetimes,
     unused_qualifications
 )]
+#![cfg_attr(not(feature = "std"), no_std)]
+
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+extern crate alloc;
 
 use core::convert::TryFrom;
+
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::{string::String, vec::Vec};
+
+#[cfg(feature = "std")]
+use std::{string::String, vec::Vec};
 
 pub use error::Error;
 
@@ -781,7 +791,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{SplitJwt, UnverifiedJwt};
+    use super::*;
 
     #[cfg(any(feature = "ring", feature = "p256"))]
     pub(crate) fn jwt_claims_str() -> String {

@@ -4,6 +4,12 @@ use core::convert::From;
 use core::fmt::{self, Debug, Display};
 use core::result;
 
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::boxed::Box;
+
+#[cfg(feature = "std")]
+use std::boxed::Box;
+
 /// Result type with crate [Error].
 pub type Result<T> = result::Result<T, Error>;
 
@@ -66,6 +72,7 @@ impl Error {
     }
 }
 
+#[cfg(feature = "std")]
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self.err.code {
@@ -86,7 +93,7 @@ impl Display for Error {
 
 impl Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Error({:?})", self.err.code.to_string(),)
+        write!(f, "Error({:?})", self.err.code)
     }
 }
 

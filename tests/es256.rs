@@ -1,5 +1,14 @@
 mod common;
 
+#[cfg(all(feature = "ring", feature = "alloc", not(feature = "std")))]
+extern crate alloc;
+
+#[cfg(all(feature = "ring", feature = "alloc", not(feature = "std")))]
+use alloc::string::String;
+
+#[cfg(all(feature = "ring", feature = "std"))]
+use std::string::String;
+
 #[cfg(feature = "ring")]
 use min_jwt::sign::ring::EcdsaKeyPairSigner;
 #[cfg(feature = "ring")]

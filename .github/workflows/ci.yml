@@ -55,15 +55,24 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
-      - run: cargo build --release --no-default-features
-      - run: cargo build --release --no-default-features --features p256
-      - run: cargo build --release --no-default-features --features rsa,sha2
-      - run: cargo build --release --no-default-features --features ring
-      - run: cargo build --release --no-default-features --features p256,serde,serde_json
-      - run: cargo build --release --no-default-features --features rsa,sha2,serde,serde_json
-      - run: cargo build --release --no-default-features --features ring,serde,serde_json
-      - run: cargo build --release --no-default-features --features ring,p256,serde,serde_json
-      - run: cargo build --release --no-default-features --features ring,rsa,sha2,serde,serde_json
+      - run: cargo build --release --no-default-features --features alloc
+      - run: cargo build --release --no-default-features --features alloc,p256
+      - run: cargo build --release --no-default-features --features alloc,rsa,sha2
+      - run: cargo build --release --no-default-features --features alloc,ring
+      - run: cargo build --release --no-default-features --features alloc,p256,serde,serde_json
+      - run: cargo build --release --no-default-features --features alloc,rsa,sha2,serde,serde_json
+      - run: cargo build --release --no-default-features --features alloc,ring,serde,serde_json
+      - run: cargo build --release --no-default-features --features alloc,ring,p256,serde,serde_json
+      - run: cargo build --release --no-default-features --features alloc,ring,rsa,sha2,serde,serde_json
+      - run: cargo build --release --no-default-features --features std
+      - run: cargo build --release --no-default-features --features std,p256
+      - run: cargo build --release --no-default-features --features std,rsa,sha2
+      - run: cargo build --release --no-default-features --features std,ring
+      - run: cargo build --release --no-default-features --features std,p256,serde,serde_json
+      - run: cargo build --release --no-default-features --features std,rsa,sha2,serde,serde_json
+      - run: cargo build --release --no-default-features --features std,ring,serde,serde_json
+      - run: cargo build --release --no-default-features --features std,ring,p256,serde,serde_json
+      - run: cargo build --release --no-default-features --features std,ring,rsa,sha2,serde,serde_json
       - run: cargo build --release --all-features
   test:
     name: Test
@@ -115,7 +124,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
       - run: cargo check --all-features
-      - run: cargo test --no-default-features
+      - run: cargo test --no-default-features --features alloc
+      - run: cargo test --no-default-features --features std
       - run: cargo test
       - run: cargo test --all-features
   rustfmt:

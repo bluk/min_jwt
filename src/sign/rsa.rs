@@ -71,6 +71,12 @@ use crate::algorithm::Algorithm;
 
 use super::Signature;
 
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::vec::Vec;
+
+#[cfg(feature = "std")]
+use std::vec::Vec;
+
 /// An `RSA` key.
 pub trait Key {
     /// Signature type returned.
