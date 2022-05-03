@@ -22,7 +22,11 @@ use crate::error::Result;
 /// In other cases, a new type composed of multiple fields may be needed because
 /// the verifying key's verify method may require more parameters.
 pub trait Verifier {
-    /// Verifies the signature for the given message.
+    /// Verifies the message with the given signature.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the signature is not valid for the message.
     fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
     where
         M: AsRef<[u8]>,

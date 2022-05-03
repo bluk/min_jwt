@@ -114,7 +114,7 @@ zwIDAQAB
 
 let public_key = ::rsa::RsaPublicKey::from_public_key_pem(public_key).unwrap();
 
-let verifier = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(public_key);
+let verifier = min_jwt::verify::rsa::PublicKeyVerifier::with_rs256(public_key);
 let result = min_jwt::verify(jwt, &verifier)?;
 
 let header = result.decode_header();

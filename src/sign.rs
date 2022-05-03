@@ -19,11 +19,11 @@ pub trait Signature: AsRef<[u8]> {}
 
 impl Signature for Vec<u8> {}
 
-// impl Signature for &[u8] {}
+impl Signature for &[u8] {}
 
-// impl Signature for String {}
+impl Signature for String {}
 
-// impl Signature for &str {}
+impl Signature for &str {}
 
 /// A type which can sign a byte buffer.
 ///

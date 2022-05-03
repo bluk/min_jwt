@@ -151,11 +151,19 @@ use ring::signature::EcdsaKeyPair;
 impl Signature for ::ring::signature::Signature {}
 impl Signature for ::ring::hmac::Tag {}
 
+/// An `ECDSA` key.
 pub trait EcdsaKey {
+    /// Signature type returned.
     type Signature: Signature;
 
+    /// Error type returned.
     type Error;
 
+    /// Signs the bytes with the key.
+    ///
+    /// # Errors
+    ///
+    /// Returns an underlying implementation error.
     fn sign<B>(
         &self,
         secure_random: &dyn SecureRandom,
@@ -275,6 +283,7 @@ where
     R: SecureRandom,
     A: Algorithm,
 {
+    /// Returns the inner key and `SecureRandom`.
     pub fn into_inner(self) -> (K, R) {
         (self.key_pair, self.secure_random)
     }
@@ -285,6 +294,7 @@ where
     K: EcdsaKey,
     R: SecureRandom,
 {
+    /// Creates a new `Es256` key signer.
     pub fn with_es256(key_pair: K, secure_random: R) -> EcdsaKeyPairSigner<K, R, Es256> {
         Self {
             key_pair,
@@ -309,11 +319,19 @@ where
     }
 }
 
+/// An `Hmac` key.
 pub trait HmacKey {
+    /// Signature type returned.
     type Signature: Signature;
 
+    /// Error type returned.
     type Error;
 
+    /// Signs the bytes with the key.
+    ///
+    /// # Errors
+    ///
+    /// Returns an underlying implementation error.
     fn sign<B>(&self, bytes: B) -> Result<Self::Signature, Self::Error>
     where
         B: AsRef<[u8]>;
@@ -379,6 +397,7 @@ where
     K: HmacKey,
     A: Algorithm,
 {
+    /// Returns the inner key.
     pub fn into_inner(self) -> K {
         self.key
     }
@@ -402,6 +421,7 @@ impl<K> HmacKeySigner<K, Hs256>
 where
     K: HmacKey,
 {
+    /// Creates a new `Hs256` key signer.
     pub fn with_hs256(key: K) -> HmacKeySigner<K, Hs256> {
         Self {
             key,
@@ -410,11 +430,19 @@ where
     }
 }
 
+/// An `RSA` key.
 pub trait RsaKey {
+    /// Signature type returned.
     type Signature: Signature;
 
+    /// Error type returned.
     type Error;
 
+    /// Signs the bytes with the key.
+    ///
+    /// # Errors
+    ///
+    /// Returns an underlying implementation error.
     fn sign<B>(
         &self,
         secure_random: &dyn SecureRandom,
@@ -554,6 +582,7 @@ where
     R: SecureRandom,
     A: Algorithm,
 {
+    /// Returns the inner key and `SecureRandom`.
     pub fn into_inner(self) -> (K, R) {
         (self.key_pair, self.secure_random)
     }

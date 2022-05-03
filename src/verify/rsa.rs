@@ -33,7 +33,7 @@
 //!
 //! let public_key = ::rsa::RsaPublicKey::from_public_key_pem(public_key).unwrap();
 //!
-//! let verifier = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(public_key);
+//! let verifier = min_jwt::verify::rsa::PublicKeyVerifier::with_rs256(public_key);
 //! let result = min_jwt::verify(jwt, &verifier)?;
 //!
 //! let header = result.decode_header();
@@ -54,6 +54,11 @@ use core::marker::PhantomData;
 
 /// Types which can verify a signature.
 pub trait PublicKey {
+    /// Verifies the message with the given signature.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the signature is not valid for the message.
     fn verify<M, S>(&self, message: M, signature: S, padding: ::rsa::PaddingScheme) -> Result<()>
     where
         M: AsRef<[u8]>,
@@ -86,7 +91,7 @@ impl PublicKey for ::rsa::RsaPublicKey {
 
 /// A wrapper type which holds the key and algorithm.
 #[derive(Debug)]
-pub struct RsaPublicKeyVerifier<K, A>
+pub struct PublicKeyVerifier<K, A>
 where
     K: PublicKey,
     A: Algorithm,
@@ -95,11 +100,12 @@ where
     alg: PhantomData<A>,
 }
 
-impl<K, A> RsaPublicKeyVerifier<K, A>
+impl<K, A> PublicKeyVerifier<K, A>
 where
     K: PublicKey,
     A: Algorithm,
 {
+    /// Returns the inner key.
     pub fn into_inner(self) -> K {
         self.key
     }
@@ -107,10 +113,11 @@ where
 
 #[cfg(feature = "sha2")]
 #[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
-impl<K> RsaPublicKeyVerifier<K, crate::algorithm::Rs256>
+impl<K> PublicKeyVerifier<K, crate::algorithm::Rs256>
 where
     K: PublicKey,
 {
+    /// Creates a new `Rs256` key verifier.
     pub fn with_rs256(key: K) -> Self {
         Self {
             key,
@@ -121,7 +128,7 @@ where
 
 #[cfg(feature = "sha2")]
 #[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
-impl<K> super::Verifier for RsaPublicKeyVerifier<K, crate::algorithm::Rs256>
+impl<K> super::Verifier for PublicKeyVerifier<K, crate::algorithm::Rs256>
 where
     K: PublicKey,
 {

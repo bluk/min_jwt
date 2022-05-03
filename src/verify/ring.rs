@@ -113,7 +113,13 @@ use core::marker::PhantomData;
 
 macro_rules! key_verifier {
     ($verifier_name:ident, $key_name:ident) => {
+        /// A key which can verify a message.
         pub trait $key_name {
+            /// Verifies the message with the given signature.
+            ///
+            /// # Errors
+            ///
+            /// Returns an error if the signature is not valid for the message.
             fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
             where
                 M: AsRef<[u8]>,
@@ -156,6 +162,7 @@ macro_rules! key_verifier {
             K: $key_name,
             A: Algorithm,
         {
+            /// Returns the inner key.
             pub fn into_inner(self) -> K {
                 self.key
             }
@@ -231,6 +238,7 @@ impl<K> EcdsaKeyVerifier<K, Es256>
 where
     K: EcdsaKey,
 {
+    /// Creates a new `Es256` key verifier.
     pub fn with_es256(key: K) -> EcdsaKeyVerifier<K, Es256> {
         Self {
             key,
@@ -293,6 +301,7 @@ impl<K> RsaKeyVerifier<K, Rs256>
 where
     K: RsaKey,
 {
+    /// Creates a new `Rs256` key verifier.
     pub fn with_rs256(key: K) -> RsaKeyVerifier<K, Rs256> {
         Self {
             key,
@@ -301,7 +310,13 @@ where
     }
 }
 
+/// An `Hmac` key.
 pub trait HmacKey {
+    /// Verifies the message with the given signature.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the signature is not valid for the message.
     fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
     where
         M: AsRef<[u8]>,
@@ -366,6 +381,7 @@ where
     K: HmacKey,
     A: Algorithm,
 {
+    /// Returns the inner key.
     pub fn into_inner(self) -> K {
         self.key
     }
@@ -389,6 +405,7 @@ impl<K> HmacKeyVerifier<K, Hs256>
 where
     K: HmacKey,
 {
+    /// Creates a new `Hs256` key verifier.
     pub fn with_hs256(key: K) -> HmacKeyVerifier<K, Hs256> {
         Self {
             key,

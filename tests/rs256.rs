@@ -126,7 +126,7 @@ fn rs256_verify_valid_signature_jwt_io_example_with_rsa() {
 
     let public_key = include_str!("rs256_public_key_rsa.pem");
     let public_key = RsaPublicKey::from_public_key_pem(public_key).unwrap();
-    let verifier = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(public_key);
+    let verifier = min_jwt::verify::rsa::PublicKeyVerifier::with_rs256(public_key);
 
     let signature_verified_jwt = min_jwt::verify(&jwt, &verifier).unwrap();
 
@@ -171,11 +171,11 @@ fn test_rs256_with_rsa() -> Result<(), min_jwt::error::Error> {
     let signing_key = ::rsa::RsaPrivateKey::new(&mut rng, bits).unwrap();
     let verifying_key = signing_key.to_public_key();
 
-    let signing_key = min_jwt::sign::rsa::RsaPrivateKeySigner::with_rs256(&signing_key);
+    let signing_key = min_jwt::sign::rsa::PrivateKeySigner::with_rs256(&signing_key);
 
     let jwt = min_jwt::encode_and_sign(HEADER, CLAIMS, &signing_key)?;
 
-    let verifying_key = min_jwt::verify::rsa::RsaPublicKeyVerifier::with_rs256(&verifying_key);
+    let verifying_key = min_jwt::verify::rsa::PublicKeyVerifier::with_rs256(&verifying_key);
     let signature_verified_jwt = min_jwt::verify(&jwt, &verifying_key)?;
 
     let decoded_header = signature_verified_jwt.decode_header()?;

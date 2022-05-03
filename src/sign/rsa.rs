@@ -4,7 +4,7 @@
 //!
 //! | Algorithm | Type | Wrapper Type |
 //! | --------- | ---- | ------------ |
-//! | rs256     | [`::rsa::RsaPrivateKey`] |`RsaPrivateKeySigner`er] |
+//! | rs256     | [`::rsa::RsaPrivateKey`] |`PrivateKeySigner`er] |
 //!
 //! Note that you will also need the `sha2` feature enabled.
 //!
@@ -55,7 +55,7 @@
 //!
 //! let private_key = ::rsa::RsaPrivateKey::from_pkcs8_pem(&private_key).unwrap();
 //!
-//! let signer = min_jwt::sign::rsa::RsaPrivateKeySigner::with_rs256(&private_key);
+//! let signer = min_jwt::sign::rsa::PrivateKeySigner::with_rs256(&private_key);
 //! let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
 //! # assert_eq!("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw", jwt);
 //! # Ok::<(), min_jwt::Error>(())
@@ -71,11 +71,19 @@ use crate::algorithm::Algorithm;
 
 use super::Signature;
 
+/// An `RSA` key.
 pub trait Key {
+    /// Signature type returned.
     type Signature: Signature;
 
+    /// Error type returned.
     type Error;
 
+    /// Signs the bytes with the key.
+    ///
+    /// # Errors
+    ///
+    /// Returns an underlying implementation error.
     fn sign<B>(
         &self,
         padding: ::rsa::PaddingScheme,
@@ -167,7 +175,7 @@ impl Key for ::rsa::RsaPrivateKey {
 ///
 /// let private_key = ::rsa::RsaPrivateKey::from_pkcs8_pem(&private_key).unwrap();
 ///
-/// let signer = min_jwt::sign::rsa::RsaPrivateKeySigner::with_rs256(&private_key);
+/// let signer = min_jwt::sign::rsa::PrivateKeySigner::with_rs256(&private_key);
 /// let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
 /// # assert_eq!("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw", jwt);
 /// # Ok::<(), min_jwt::Error>(())
@@ -178,7 +186,7 @@ impl Key for ::rsa::RsaPrivateKey {
 /// # }
 /// ```
 #[derive(Debug)]
-pub struct RsaPrivateKeySigner<K, A>
+pub struct PrivateKeySigner<K, A>
 where
     K: Key,
     A: Algorithm,
@@ -187,11 +195,12 @@ where
     alg: PhantomData<A>,
 }
 
-impl<K, A> RsaPrivateKeySigner<K, A>
+impl<K, A> PrivateKeySigner<K, A>
 where
     K: Key,
     A: Algorithm,
 {
+    /// Returns the inner key.
     pub fn into_inner(self) -> K {
         self.key
     }
@@ -199,10 +208,11 @@ where
 
 #[cfg(feature = "sha2")]
 #[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
-impl<K> RsaPrivateKeySigner<K, crate::algorithm::Rs256>
+impl<K> PrivateKeySigner<K, crate::algorithm::Rs256>
 where
     K: Key,
 {
+    /// Creates a new `Rs256` key signer.
     pub fn with_rs256(key: K) -> Self {
         Self {
             key,
@@ -213,7 +223,7 @@ where
 
 #[cfg(feature = "sha2")]
 #[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
-impl<K> super::Signer for RsaPrivateKeySigner<K, crate::algorithm::Rs256>
+impl<K> super::Signer for PrivateKeySigner<K, crate::algorithm::Rs256>
 where
     K: Key,
 {
