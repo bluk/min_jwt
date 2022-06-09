@@ -20,7 +20,7 @@
 //! # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
 //! #   use ::p256::pkcs8::{DecodePrivateKey, EncodePrivateKey};
 //! #   let secret_key = ::p256::SecretKey::from_pkcs8_pem(&private_key).unwrap();
-//! #   secret_key.to_pkcs8_der().unwrap()
+//! #   secret_key.to_pkcs8_der().unwrap().to_bytes()
 //! # }
 //! let private_key =
 //! "-----BEGIN PRIVATE KEY-----
@@ -230,7 +230,7 @@ impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
 /// # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
 /// #   use ::p256::pkcs8::{DecodePrivateKey, EncodePrivateKey};
 /// #   let secret_key = ::p256::SecretKey::from_pkcs8_pem(&private_key).unwrap();
-/// #   secret_key.to_pkcs8_der().unwrap()
+/// #   secret_key.to_pkcs8_der().unwrap().to_bytes()
 /// # }
 /// let private_key =
 /// "-----BEGIN PRIVATE KEY-----
