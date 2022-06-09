@@ -1,6 +1,6 @@
 [package]
 name = "min_jwt"
-version = "0.5.0-alpha.2"
+version = "0.5.0"
 license = "MIT OR Apache-2.0"
 description = "Minimal JSON Web Token library"
 repository = "https://github.com/bluk/min_jwt"
