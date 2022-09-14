@@ -121,11 +121,31 @@ impl From<ring::error::Unspecified> for Error {
     }
 }
 
-impl From<base64::DecodeError> for Error {
-    fn from(error: base64::DecodeError) -> Self {
+impl From<base64ct::Error> for Error {
+    fn from(error: base64ct::Error) -> Self {
         Error {
             err: Box::new(ErrorImpl {
                 code: ErrorCode::Base64Decode(error),
+            }),
+        }
+    }
+}
+
+impl From<base64ct::InvalidLengthError> for Error {
+    fn from(_: base64ct::InvalidLengthError) -> Self {
+        Error {
+            err: Box::new(ErrorImpl {
+                code: ErrorCode::Base64Decode(base64ct::Error::InvalidLength),
+            }),
+        }
+    }
+}
+
+impl From<base64ct::InvalidEncodingError> for Error {
+    fn from(_: base64ct::InvalidEncodingError) -> Self {
+        Error {
+            err: Box::new(ErrorImpl {
+                code: ErrorCode::Base64Decode(base64ct::Error::InvalidEncoding),
             }),
         }
     }
@@ -144,7 +164,7 @@ impl Display for ErrorImpl {
 
 #[derive(Debug)]
 pub(crate) enum ErrorCode {
-    Base64Decode(base64::DecodeError),
+    Base64Decode(base64ct::Error),
     #[allow(dead_code)]
     InvalidSignature,
     #[allow(dead_code)]

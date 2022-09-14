@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased] - 2022-09-14
+
+### Changed
+
+- Use `base64ct` instead of `base64` for base64 encoding/decoding.
+
 ## [0.5.0] - 2022-06-09
 
 ### Added

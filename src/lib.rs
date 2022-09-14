@@ -12,13 +12,14 @@
 #[cfg(all(feature = "alloc", not(feature = "std")))]
 extern crate alloc;
 
+use base64ct::{Base64UrlUnpadded, Encoding};
 use core::convert::TryFrom;
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
-use alloc::{string::String, vec::Vec};
+use alloc::{string::String, vec, vec::Vec};
 
 #[cfg(feature = "std")]
-use std::{string::String, vec::Vec};
+use std::{string::String, vec, vec::Vec};
 
 pub use error::Error;
 
@@ -168,10 +169,7 @@ impl<'a> UnverifiedJwt<'a> {
     /// # }
     /// ```
     pub fn decode_header(&self) -> Result<Vec<u8>> {
-        Ok(base64::decode_config(
-            &self.header,
-            base64::URL_SAFE_NO_PAD,
-        )?)
+        Ok(Base64UrlUnpadded::decode_vec(self.header)?)
     }
 
     // Currently not pub. Should a SignatureVerifiedJwt be required before looking at the claims?
@@ -181,10 +179,7 @@ impl<'a> UnverifiedJwt<'a> {
     ///
     /// If the claims part is not correctly base64 encoded, the function will return an error variant.
     fn decode_claims(&self) -> Result<Vec<u8>> {
-        Ok(base64::decode_config(
-            &self.claims,
-            base64::URL_SAFE_NO_PAD,
-        )?)
+        Ok(Base64UrlUnpadded::decode_vec(self.claims)?)
     }
 
     /// Decodes the signature part by parsing the JWT for the signature and base64 decoding the
@@ -217,10 +212,7 @@ impl<'a> UnverifiedJwt<'a> {
     /// # }
     /// ```
     pub fn decode_signature(&self) -> Result<Vec<u8>> {
-        Ok(base64::decode_config(
-            &self.signature,
-            base64::URL_SAFE_NO_PAD,
-        )?)
+        Ok(Base64UrlUnpadded::decode_vec(self.signature)?)
     }
 
     /// Returns the signed data.
@@ -758,17 +750,32 @@ where
     C: AsRef<[u8]>,
     S: sign::Signer,
 {
-    let encoded_header = base64::encode_config(header, base64::URL_SAFE_NO_PAD);
-    let encoded_claims = base64::encode_config(claims, base64::URL_SAFE_NO_PAD);
-    let data_to_sign = [encoded_header.as_ref(), encoded_claims.as_ref()].join(".");
+    let header = header.as_ref();
+    let claims = claims.as_ref();
+
+    let encoded_header_len = Base64UrlUnpadded::encoded_len(header);
+    let signed_data_len = encoded_header_len + Base64UrlUnpadded::encoded_len(claims) + 1;
+
+    let mut output = vec![0; signed_data_len];
+
+    Base64UrlUnpadded::encode(header, &mut output[..encoded_header_len])?;
+    output[encoded_header_len] = b'.';
+    Base64UrlUnpadded::encode(claims, &mut output[encoded_header_len + 1..])?;
 
     let signature = signing_key
-        .sign(data_to_sign.as_bytes())
+        .sign(&output)
         .map_err(|_| Error::unspecified())?;
     let signature = signature.as_ref();
-    let signature = base64::encode_config(&signature, base64::URL_SAFE_NO_PAD);
 
-    Ok([data_to_sign, signature].join("."))
+    let final_len = signed_data_len + 1 + Base64UrlUnpadded::encoded_len(signature);
+
+    output.reserve_exact(final_len);
+    output.resize(final_len, 0);
+    output[signed_data_len] = b'.';
+
+    Base64UrlUnpadded::encode(signature, &mut output[signed_data_len + 1..])?;
+
+    Ok(String::from_utf8(output).map_err(|_| base64ct::InvalidEncodingError)?)
 }
 
 /// Attempts to verify a JWT's signature.

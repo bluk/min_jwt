@@ -56,10 +56,12 @@
 //! ## HS256
 //!
 //! ```
+//! # use ::base64ct::Encoding;
+//! #
 //! # let jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.tAzkR2NyvqGKrIras8IDsoczvrYWD0gAM3E6H5qGZVg";
 //! # let encoded_hmac_key: &str =
 //! # "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
-//! # let hmac_key_bytes = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
+//! # let hmac_key_bytes = ::base64ct::Base64UrlUnpadded::decode_vec(encoded_hmac_key).unwrap();
 //! let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key_bytes);
 //!
 //! let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(hmac_key);
@@ -356,10 +358,12 @@ impl HmacKey for ::ring::hmac::Key {
 /// ## HS256
 ///
 /// ```
+/// # use ::base64ct::Encoding;
+/// #
 /// # let jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.tAzkR2NyvqGKrIras8IDsoczvrYWD0gAM3E6H5qGZVg";
 /// # let encoded_hmac_key: &str =
 /// # "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
-/// # let hmac_key_bytes = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
+/// # let hmac_key_bytes = ::base64ct::Base64UrlUnpadded::decode_vec(encoded_hmac_key).unwrap();
 /// let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key_bytes);
 ///
 /// let verifier = min_jwt::verify::ring::HmacKeyVerifier::with_hs256(hmac_key);

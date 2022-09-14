@@ -30,7 +30,8 @@ static EXPECTED_CLAIMS: &str =
 
 #[cfg(feature = "ring")]
 fn decoded_hmac_key() -> Vec<u8> {
-    base64::decode_config(&ENCODED_HMAC_KEY_RFC7515_A1, base64::URL_SAFE_NO_PAD).unwrap()
+    use base64ct::Encoding;
+    ::base64ct::Base64UrlUnpadded::decode_vec(&ENCODED_HMAC_KEY_RFC7515_A1).unwrap()
 }
 
 #[cfg(feature = "ring")]

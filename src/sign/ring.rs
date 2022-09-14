@@ -65,11 +65,13 @@
 //! ## HS256
 //!
 //! ```
+//! # use ::base64ct::Encoding;
+//! #
 //! # let header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
 //! # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
 //! # let encoded_hmac_key: &str =
 //! # "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
-//! # let hmac_key_bytes = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
+//! # let hmac_key_bytes = ::base64ct::Base64UrlUnpadded::decode_vec(encoded_hmac_key).unwrap();
 //! let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key_bytes);
 //!
 //! let signer = min_jwt::sign::ring::HmacKeySigner::with_hs256(hmac_key);
@@ -378,11 +380,13 @@ impl HmacKey for ::ring::hmac::Key {
 ///
 /// ## HS256
 /// ```
+/// # use ::base64ct::Encoding;
+/// #
 /// # let header = "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
 /// # let claims = "{\"sub\":\"1234567890\",\"name\":\"Jane Doe\",\"iat\":1516239022}";
 /// # let encoded_hmac_key: &str =
 /// # "AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow";
-/// # let hmac_key_bytes = ::base64::decode_config(encoded_hmac_key, base64::URL_SAFE_NO_PAD).unwrap();
+/// # let hmac_key_bytes = ::base64ct::Base64UrlUnpadded::decode_vec(encoded_hmac_key).unwrap();
 /// let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key_bytes);
 ///
 /// let signer = min_jwt::sign::ring::HmacKeySigner::with_hs256(hmac_key);
