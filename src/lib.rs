@@ -671,7 +671,7 @@ use serde::{Deserialize, Serialize};
 /// only require common information in JWTs. If more specific fields need to be
 /// deserialized, a custom application specific type would be required to
 /// deserialize all of the fields.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[non_exhaustive]
 pub struct BasicHeader<'a> {
@@ -695,7 +695,7 @@ impl<'a> Header for BasicHeader<'a> {}
 /// only require common information in JWTs. For most applications, a custom
 /// application specific type would be required to deserialize all of the
 /// fields.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[non_exhaustive]
 pub struct BasicClaims<'a> {
