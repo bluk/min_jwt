@@ -90,7 +90,7 @@
 //! # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
 //! #   use rsa::pkcs8::{DecodePrivateKey, EncodePrivateKey};
 //! #   let private_key = ::rsa::RsaPrivateKey::from_pkcs8_pem(&private_key).unwrap();
-//! #   private_key.to_pkcs8_der().unwrap()
+//! #   private_key.to_pkcs8_der().unwrap().to_bytes()
 //! # }
 //! let private_key =
 //! "-----BEGIN PRIVATE KEY-----
@@ -522,7 +522,7 @@ impl RsaKey for ::ring::signature::RsaKeyPair {
 /// # fn convert_pkcs8_pem_to_der(private_key: &str) -> impl AsRef<[u8]> {
 /// #   use rsa::pkcs8::{DecodePrivateKey, EncodePrivateKey};
 /// #   let private_key = ::rsa::RsaPrivateKey::from_pkcs8_pem(&private_key).unwrap();
-/// #   private_key.to_pkcs8_der().unwrap()
+/// #   private_key.to_pkcs8_der().unwrap().to_bytes()
 /// # }
 /// let private_key =
 /// "-----BEGIN PRIVATE KEY-----

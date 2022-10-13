@@ -15,7 +15,7 @@
 //! The `pem` feature on the `rsa` dependency must be enabled.
 //!
 //! ```
-//! # #[cfg(all(feature = "rsa", feature = "sha2"))]
+//! # #[cfg(all(feature = "rsa", feature = "sha2", feature = "signature"))]
 //! # fn try_main() -> Result<(), min_jwt::error::Error> {
 //! # let jwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw";
 //! use ::rsa::pkcs8::DecodePublicKey;
@@ -33,7 +33,7 @@
 //!
 //! let public_key = ::rsa::RsaPublicKey::from_public_key_pem(public_key).unwrap();
 //!
-//! let verifier = min_jwt::verify::rsa::PublicKeyVerifier::with_rs256(public_key);
+//! let verifier = ::rsa::pkcs1v15::VerifyingKey::<sha2::Sha256>::new_with_prefix(public_key);
 //! let result = min_jwt::verify(jwt, &verifier)?;
 //!
 //! let header = result.decode_header();
@@ -46,103 +46,21 @@
 //! # }
 //! ```
 
-use crate::{
-    algorithm::Algorithm,
-    error::{Error, Result},
-};
-use core::marker::PhantomData;
+use crate::error::{Error, Result};
 
-/// Types which can verify a signature.
-pub trait PublicKey {
-    /// Verifies the message with the given signature.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the signature is not valid for the message.
-    fn verify<M, S>(&self, message: M, signature: S, padding: ::rsa::PaddingScheme) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>;
-}
-
-impl<T> PublicKey for &T
-where
-    T: PublicKey,
-{
-    fn verify<M, S>(&self, message: M, signature: S, padding: ::rsa::PaddingScheme) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>,
-    {
-        T::verify(self, message, signature, padding)
-    }
-}
-
-impl PublicKey for ::rsa::RsaPublicKey {
-    fn verify<M, S>(&self, message: M, signature: S, padding: ::rsa::PaddingScheme) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>,
-    {
-        ::rsa::PublicKey::verify(self, padding, message.as_ref(), signature.as_ref())
-            .map_err(|_| Error::invalid_signature())
-    }
-}
-
-/// A wrapper type which holds the key and algorithm.
-#[derive(Debug)]
-pub struct PublicKeyVerifier<K, A>
-where
-    K: PublicKey,
-    A: Algorithm,
-{
-    key: K,
-    alg: PhantomData<A>,
-}
-
-impl<K, A> PublicKeyVerifier<K, A>
-where
-    K: PublicKey,
-    A: Algorithm,
-{
-    /// Returns the inner key.
-    pub fn into_inner(self) -> K {
-        self.key
-    }
-}
-
-#[cfg(feature = "sha2")]
-#[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
-impl<K> PublicKeyVerifier<K, crate::algorithm::Rs256>
-where
-    K: PublicKey,
-{
-    /// Creates a new `Rs256` key verifier.
-    pub fn with_rs256(key: K) -> Self {
-        Self {
-            key,
-            alg: PhantomData::default(),
-        }
-    }
-}
-
-#[cfg(feature = "sha2")]
-#[cfg_attr(docsrs, doc(cfg(feature = "sha2")))]
-impl<K> super::Verifier for PublicKeyVerifier<K, crate::algorithm::Rs256>
-where
-    K: PublicKey,
-{
+#[cfg(all(feature = "sha2", feature = "signature"))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "sha2", feature = "signature"))))]
+impl super::Verifier for ::rsa::pkcs1v15::VerifyingKey<sha2::Sha256> {
     fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
     where
         M: AsRef<[u8]>,
         S: AsRef<[u8]>,
     {
-        use sha2::{Digest, Sha256};
+        use signature::Signature;
 
-        self.key.verify(
-            Sha256::digest(message),
-            signature,
-            ::rsa::PaddingScheme::new_pkcs1v15_sign(Some(::rsa::Hash::SHA2_256)),
-        )
+        let signature = ::rsa::pkcs1v15::Signature::from_bytes(signature.as_ref())
+            .map_err(|_| Error::invalid_signature())?;
+        ::signature::Verifier::verify(self, message.as_ref(), &signature)
+            .map_err(|_| Error::invalid_signature())
     }
 }

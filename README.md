@@ -23,7 +23,7 @@ Find a supported crypto crate below which supports the algorithms required.
 | ------------------       | ---------------------- | ----------
 | [p256][p256]             | ES256                  | p256
 | [ring][ring]             | ES256, HS256, RS256    | ring
-| [rsa][rsa], [sha2][sha2] | RS256                  | rsa, sha2
+| [rsa][rsa], [sha2][sha2], [signature][signature] | RS256                  | rsa, sha2
 
 For instance, if you need `ES256` support, you may choose to use the `p256`
 crate and/or the `ring` crate.  Suppose you chose the `p256` crate. In your
@@ -90,7 +90,7 @@ let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
 ### Verify using RS256 with `rsa` and `sha2` crates
 
 ```rust
-# #[cfg(all(feature = "rsa", feature = "sha2"))]
+# #[cfg(all(feature = "rsa", feature = "sha2", feature = "signature"))]
 # {
 # let jwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.\
 # eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.\
@@ -113,9 +113,9 @@ zwIDAQAB
 -----END PUBLIC KEY-----";
 
 let public_key = ::rsa::RsaPublicKey::from_public_key_pem(public_key).unwrap();
+let verifying_key = ::rsa::pkcs1v15::VerifyingKey::new_with_prefix(public_key);
 
-let verifier = min_jwt::verify::rsa::PublicKeyVerifier::with_rs256(public_key);
-let result = min_jwt::verify(jwt, &verifier)?;
+let result = min_jwt::verify(jwt, &verifying_key)?;
 
 let header = result.decode_header();
 let claims = result.decode_claims();
@@ -142,3 +142,4 @@ dual licensed as above, without any additional terms or conditions.
 [rsa]: https://github.com/RustCrypto/RSA
 [rust_crypto]: https://github.com/RustCrypto
 [sha2]: https://github.com/RustCrypto/hashes
+[signature]: https://github.com/RustCrypto/traits/tree/master/signature
