@@ -12,7 +12,7 @@ mod tests {
         let jwt = crate::encode_and_sign(HEADER, &claims, &signing_key)?;
 
         let verifying_key = signing_key.verifying_key();
-        let signature_verified_jwt = crate::verify(&jwt, &verifying_key)?;
+        let signature_verified_jwt = crate::verify(&jwt, verifying_key)?;
 
         let decoded_header = signature_verified_jwt.decode_header()?;
         let deserialized_header =

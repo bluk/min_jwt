@@ -139,7 +139,7 @@ fn es256_verify_valid_signature_jwt_io_example_using_p256() {
     let public_key = ::p256::PublicKey::from_public_key_der(public_key).unwrap();
     let verifying_key = ::p256::ecdsa::VerifyingKey::from(public_key);
 
-    let signature_verified_jwt = min_jwt::verify(jwt, &verifying_key).unwrap();
+    let signature_verified_jwt = min_jwt::verify(jwt, verifying_key).unwrap();
 
     assert_eq!(
         String::from_utf8(signature_verified_jwt.decode_claims().unwrap()).unwrap(),
