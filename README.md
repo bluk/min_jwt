@@ -23,7 +23,7 @@ Find a supported crypto crate below which supports the algorithms required.
 | ------------------       | ---------------------- | ----------
 | [p256][p256]             | ES256                  | p256
 | [ring][ring]             | ES256, HS256, RS256    | ring
-| [rsa][rsa], [sha2][sha2], [signature][signature] | RS256                  | rsa, sha2
+| [rsa][rsa], [sha2][sha2], [signature][signature] | RS256                  | rsa, sha2, signature
 
 For instance, if you need `ES256` support, you may choose to use the `p256`
 crate and/or the `ring` crate.  Suppose you chose the `p256` crate. In your
@@ -32,7 +32,7 @@ crate, depend on this crate and the relevant dependent crate in your
 
 ```toml
 [dependencies]
-min_jwt = { version = "0.5.0", features = [ "p256", "serde", "serde_json"] }
+min_jwt = { version = "0.6.0", features = [ "p256", "serde", "serde_json"] }
 p256 = { version = "0.11.0", features = [ "ecdsa", "jwk", "pem"] }
 ```
 
@@ -87,7 +87,7 @@ let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
 # Ok::<(), min_jwt::Error>(())
 ```
 
-### Verify using RS256 with `rsa` and `sha2` crates
+### Verify using RS256 with `rsa`, `sha2`, and `signature` crates
 
 ```rust
 # #[cfg(all(feature = "rsa", feature = "sha2", feature = "signature"))]

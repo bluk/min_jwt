@@ -1,10 +1,18 @@
 # Changelog
 
-## [Unreleased] - 2022-09-14
+## [0.6.0] - 2022-10-17
 
 ### Changed
 
 - Use `base64ct` instead of `base64` for base64 encoding/decoding.
+
+- Update dependency to `rsa` `0.7` and use `rsa::pkcs1v15::{SigningKey, VerifyingKey}` directly.
+
+  Removed wrappers for RSA keys and implement `Signer` and `Verifier` directly with the keys.
+
+  Requires `sha2` crate with `oid` feature and `signature` crate.
+
+  See updated tests for examples.
 
 ## [0.5.0] - 2022-06-09
 
@@ -64,7 +72,8 @@
 
 - Initial implementation.
 
-[Unreleased]: https://github.com/bluk/min_jwt/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/bluk/min_jwt/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/bluk/min_jwt/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/bluk/min_jwt/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/bluk/min_jwt/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/bluk/min_jwt/compare/v0.2.1...v0.3.0
