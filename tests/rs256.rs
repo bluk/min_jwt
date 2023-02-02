@@ -33,10 +33,7 @@ fn rs256_verify_valid_signature_jwt_io_example() {
          FfEbLxtF2pZS6YC1aSfLQxeNe8djT9YjpvRZA",
     );
 
-    let jwt = format!(
-        "{}.{}.{}",
-        encoded_header, encoded_claims, encoded_signature
-    );
+    let jwt = format!("{encoded_header}.{encoded_claims}.{encoded_signature}");
 
     let public_key = include_bytes!("rs256_public_key_rsa.der");
     let public_key =
@@ -88,10 +85,7 @@ fn rs256_verify_invalid_signature() {
          FfEbLxtF2pZS6YC1aSfLQxeNe8djT9YjpvRZA",
     );
 
-    let jwt = format!(
-        "{}.{}.{}",
-        encoded_header, encoded_claims, encoded_signature
-    );
+    let jwt = format!("{encoded_header}.{encoded_claims}.{encoded_signature}");
 
     let public_key = include_bytes!("rs256_public_key_rsa.der");
     let public_key =
@@ -128,10 +122,7 @@ fn rs256_verify_valid_signature_jwt_io_example_with_rsa() {
          FfEbLxtF2pZS6YC1aSfLQxeNe8djT9YjpvRZA",
     );
 
-    let jwt = format!(
-        "{}.{}.{}",
-        encoded_header, encoded_claims, encoded_signature
-    );
+    let jwt = format!("{encoded_header}.{encoded_claims}.{encoded_signature}");
 
     let public_key = include_str!("rs256_public_key_rsa.pem");
     let public_key = RsaPublicKey::from_public_key_pem(public_key).unwrap();
