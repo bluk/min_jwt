@@ -56,9 +56,7 @@ impl super::Verifier for ::rsa::pkcs1v15::VerifyingKey<sha2::Sha256> {
         M: AsRef<[u8]>,
         S: AsRef<[u8]>,
     {
-        use signature::Signature;
-
-        let signature = ::rsa::pkcs1v15::Signature::from_bytes(signature.as_ref())
+        let signature = ::rsa::pkcs1v15::Signature::try_from(signature.as_ref())
             .map_err(|_| Error::invalid_signature())?;
         ::signature::Verifier::verify(self, message.as_ref(), &signature)
             .map_err(|_| Error::invalid_signature())

@@ -66,7 +66,7 @@ impl super::Verifier for ::p256::ecdsa::VerifyingKey {
         M: AsRef<[u8]>,
         S: AsRef<[u8]>,
     {
-        let signature = ::p256::ecdsa::signature::Signature::from_bytes(signature.as_ref())
+        let signature = ::p256::ecdsa::Signature::try_from(signature.as_ref())
             .map_err(|_| Error::invalid_signature())?;
         ::p256::ecdsa::signature::Verifier::verify(self, message.as_ref(), &signature)
             .map_err(|_| Error::invalid_signature())

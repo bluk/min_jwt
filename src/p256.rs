@@ -8,7 +8,7 @@ mod tests {
         const HEADER: &str = "{\"alg\":\"ES256\",\"typ\":\"JWT\"}";
         let claims = crate::tests::jwt_claims_str();
 
-        let signing_key = ::p256::ecdsa::SigningKey::random(rand::thread_rng());
+        let signing_key = ::p256::ecdsa::SigningKey::random(&mut rand::thread_rng());
         let jwt = crate::encode_and_sign(HEADER, &claims, &signing_key)?;
 
         let verifying_key = signing_key.verifying_key();

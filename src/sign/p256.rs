@@ -57,14 +57,29 @@
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
 
-impl super::Signature for ::p256::ecdsa::Signature {}
+/// An ECDSA P-256 signature.
+#[derive(Debug)]
+pub struct Signature([u8; 64]);
+
+impl AsRef<[u8]> for Signature {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+impl super::Signature for Signature {}
 
 impl super::Signer for ::p256::ecdsa::SigningKey {
-    type Signature = ::p256::ecdsa::Signature;
+    type Signature = Signature;
 
     type Error = ();
 
     fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
-        Ok(::p256::ecdsa::signature::Signer::sign(self, bytes))
+        let signature: ::p256::ecdsa::Signature =
+            ::p256::ecdsa::signature::Signer::sign(self, bytes);
+        let signature_bytes = signature.to_bytes();
+        let mut bytes: [u8; 64] = [0; 64];
+        bytes.copy_from_slice(&signature_bytes);
+        Ok(Signature(bytes))
     }
 }
