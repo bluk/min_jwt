@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.0] - 2023-03-02
+
+### Changed
+
+- Update `p256` dependency to version `0.12.0`.
+
+- Update `rsa` dependency to version `0.8.0`.
+
+- Update `signature` dependency to version `2.0`.
+
+- Add wrapper for `p256` signatures.
+
+- Remove generic signatures with `AsRef<[u8]>` to reduce code generated in final binaries.
+
 ## [0.6.0] - 2022-10-17
 
 ### Changed
@@ -72,7 +86,8 @@
 
 - Initial implementation.
 
-[Unreleased]: https://github.com/bluk/min_jwt/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/bluk/min_jwt/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/bluk/min_jwt/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/bluk/min_jwt/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/bluk/min_jwt/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/bluk/min_jwt/compare/v0.3.0...v0.4.0
