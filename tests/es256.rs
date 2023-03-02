@@ -54,7 +54,8 @@ fn es256_encode_and_sign_json_str_jwt_io_example() {
 
     let key_pair_with_rand = EcdsaKeyPairSigner::with_es256(private_key_pair(), sys_rand);
 
-    let jwt = min_jwt::encode_and_sign(header, claims, key_pair_with_rand).unwrap();
+    let jwt =
+        min_jwt::encode_and_sign(header.as_bytes(), claims.as_bytes(), key_pair_with_rand).unwrap();
 
     // Verify the signature generated
 

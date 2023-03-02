@@ -77,7 +77,7 @@ let jwk = r#"
 let secret_key = ::p256::SecretKey::from_jwk_str(jwk).unwrap();
 let signing_key = ::p256::ecdsa::SigningKey::from(secret_key);
 
-let jwt = min_jwt::encode_and_sign(header, claims, &signing_key)?;
+let jwt = min_jwt::encode_and_sign(header.as_bytes(), claims.as_bytes(), &signing_key)?;
 # assert_eq!(
 # "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZ\
 # SI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.t2IAtoWoX5iMaIXJmOELc_LY-B8Y\

@@ -173,7 +173,7 @@ fn test_rs256_with_rsa() -> Result<(), min_jwt::error::Error> {
 
     let signing_key = ::rsa::pkcs1v15::SigningKey::<sha2::Sha256>::new_with_prefix(signing_key);
 
-    let jwt = min_jwt::encode_and_sign(HEADER, CLAIMS, &signing_key)?;
+    let jwt = min_jwt::encode_and_sign(HEADER.as_bytes(), CLAIMS.as_bytes(), &signing_key)?;
 
     let verifying_key = ::rsa::pkcs1v15::VerifyingKey::new_with_prefix(verifying_key);
     let signature_verified_jwt = min_jwt::verify(&jwt, &verifying_key)?;

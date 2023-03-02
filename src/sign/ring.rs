@@ -42,7 +42,7 @@
 //!   private_key,
 //!   secure_random
 //! );
-//! let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
+//! let jwt = min_jwt::encode_and_sign(header.as_bytes(), claims.as_bytes(), &signer)?;
 //! # use ::p256::pkcs8::DecodePublicKey;
 //! # let public_key =
 //! # "-----BEGIN PUBLIC KEY-----
@@ -75,7 +75,7 @@
 //! let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key_bytes);
 //!
 //! let signer = min_jwt::sign::ring::HmacKeySigner::with_hs256(hmac_key);
-//! let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
+//! let jwt = min_jwt::encode_and_sign(header.as_bytes(), claims.as_bytes(), &signer)?;
 //! # assert_eq!("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.tAzkR2NyvqGKrIras8IDsoczvrYWD0gAM3E6H5qGZVg", jwt);
 //! # Ok::<(), min_jwt::Error>(())
 //! ```
@@ -134,7 +134,7 @@
 //!   private_key,
 //!   secure_random
 //! );
-//! let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
+//! let jwt = min_jwt::encode_and_sign(header.as_bytes(), claims.as_bytes(), &signer)?;
 //! # assert_eq!("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw", jwt);
 //! # Ok::<(), min_jwt::Error>(())
 //! # }
@@ -254,7 +254,7 @@ impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
 ///   private_key,
 ///   secure_random
 /// );
-/// let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
+/// let jwt = min_jwt::encode_and_sign(header.as_bytes(), claims.as_bytes(), &signer)?;
 /// # use ::p256::pkcs8::DecodePublicKey;
 /// # let public_key =
 /// # "-----BEGIN PUBLIC KEY-----
@@ -390,7 +390,7 @@ impl HmacKey for ::ring::hmac::Key {
 /// let hmac_key = ::ring::hmac::Key::new(::ring::hmac::HMAC_SHA256, &hmac_key_bytes);
 ///
 /// let signer = min_jwt::sign::ring::HmacKeySigner::with_hs256(hmac_key);
-/// let jwt = min_jwt::encode_and_sign(header, claims, &signer);
+/// let jwt = min_jwt::encode_and_sign(header.as_bytes(), claims.as_bytes(), &signer);
 /// # Ok::<(), min_jwt::Error>(())
 /// ```
 #[derive(Debug)]
@@ -566,7 +566,7 @@ impl RsaKey for ::ring::signature::RsaKeyPair {
 ///   private_key,
 ///   secure_random
 /// );
-/// let jwt = min_jwt::encode_and_sign(header, claims, &signer)?;
+/// let jwt = min_jwt::encode_and_sign(header.as_bytes(), claims.as_bytes(), &signer)?;
 /// # assert_eq!("eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkphbmUgRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.BV5tgihZQo_CCSJuwSmespFnUPVcE1tZ52td6wYfB6j-YuKanRuHD4hJZPO-fN2GYe492aU4FDFVqVqC3cZcv5sZgkZolPgAhXVlQymw___vmvcodWv7xLjZBr4INpzb4FPUkaNhAd1LvF28CXHx0aNvoyyOo4i_AR1ZYBk6CbsCrVj7XxdsVmP3VBpXLSFKcit0FrWBs_sP0-g2qQDIKZ5w9HNiv4H3fU5NZ_TNKRKIQkwMJ1hvI_JbacIZ9uk2oYZ6LwV_NMeh0EqIwRg1EsH6TcdXhzLRozVa1fbej9hd2-AOGxZTba3LQtBAEKbyEATd7N5mqtEsRvcTHzXJmw", jwt);
 /// # Ok::<(), min_jwt::Error>(())
 /// # }

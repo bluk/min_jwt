@@ -735,7 +735,7 @@ where
 {
     let header = serde_json::to_vec(&header).map_err(|_| Error::unspecified())?;
     let claims = serde_json::to_vec(&claims).map_err(|_| Error::unspecified())?;
-    encode_and_sign(header, claims, signing_key)
+    encode_and_sign(&header, &claims, signing_key)
 }
 
 /// Base64 encodes byte representations of the header and claims, constructs the
@@ -744,15 +744,10 @@ where
 /// # Errors
 ///
 /// The function may return an error variant because the key pair is invalid.
-pub fn encode_and_sign<H, C, S>(header: H, claims: C, signing_key: S) -> Result<String>
+pub fn encode_and_sign<S>(header: &[u8], claims: &[u8], signing_key: S) -> Result<String>
 where
-    H: AsRef<[u8]>,
-    C: AsRef<[u8]>,
     S: sign::Signer,
 {
-    let header = header.as_ref();
-    let claims = claims.as_ref();
-
     let encoded_header_len = Base64UrlUnpadded::encoded_len(header);
     let signed_data_len = encoded_header_len + Base64UrlUnpadded::encoded_len(claims) + 1;
 
