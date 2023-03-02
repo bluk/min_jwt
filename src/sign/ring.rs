@@ -172,13 +172,11 @@ pub trait EcdsaKey {
     /// # Errors
     ///
     /// Returns an underlying implementation error.
-    fn sign<B>(
+    fn sign(
         &self,
         secure_random: &dyn SecureRandom,
-        bytes: B,
-    ) -> Result<Self::Signature, Self::Error>
-    where
-        B: AsRef<[u8]>;
+        bytes: &[u8],
+    ) -> Result<Self::Signature, Self::Error>;
 }
 
 impl<T> EcdsaKey for &T
@@ -189,14 +187,11 @@ where
 
     type Error = T::Error;
 
-    fn sign<B>(
+    fn sign(
         &self,
         secure_random: &dyn SecureRandom,
-        bytes: B,
-    ) -> Result<Self::Signature, Self::Error>
-    where
-        B: AsRef<[u8]>,
-    {
+        bytes: &[u8],
+    ) -> Result<Self::Signature, Self::Error> {
         T::sign(self, secure_random, bytes)
     }
 }
@@ -206,15 +201,12 @@ impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
 
     type Error = ::ring::error::Unspecified;
 
-    fn sign<B>(
+    fn sign(
         &self,
         secure_random: &dyn SecureRandom,
-        bytes: B,
-    ) -> Result<Self::Signature, Self::Error>
-    where
-        B: AsRef<[u8]>,
-    {
-        EcdsaKeyPair::sign(self, secure_random, bytes.as_ref())
+        bytes: &[u8],
+    ) -> Result<Self::Signature, Self::Error> {
+        EcdsaKeyPair::sign(self, secure_random, bytes)
     }
 }
 
@@ -340,9 +332,7 @@ pub trait HmacKey {
     /// # Errors
     ///
     /// Returns an underlying implementation error.
-    fn sign<B>(&self, bytes: B) -> Result<Self::Signature, Self::Error>
-    where
-        B: AsRef<[u8]>;
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error>;
 }
 
 impl<T> HmacKey for &T
@@ -353,10 +343,7 @@ where
 
     type Error = T::Error;
 
-    fn sign<B>(&self, bytes: B) -> Result<Self::Signature, Self::Error>
-    where
-        B: AsRef<[u8]>,
-    {
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
         T::sign(self, bytes)
     }
 }
@@ -366,11 +353,8 @@ impl HmacKey for ::ring::hmac::Key {
 
     type Error = ();
 
-    fn sign<B>(&self, bytes: B) -> Result<Self::Signature, Self::Error>
-    where
-        B: AsRef<[u8]>,
-    {
-        Ok(::ring::hmac::sign(self, bytes.as_ref()))
+    fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
+        Ok(::ring::hmac::sign(self, bytes))
     }
 }
 
@@ -454,13 +438,11 @@ pub trait RsaKey {
     /// # Errors
     ///
     /// Returns an underlying implementation error.
-    fn sign<B>(
+    fn sign(
         &self,
         secure_random: &dyn SecureRandom,
-        bytes: B,
-    ) -> Result<Self::Signature, Self::Error>
-    where
-        B: AsRef<[u8]>;
+        bytes: &[u8],
+    ) -> Result<Self::Signature, Self::Error>;
 }
 
 impl<T> RsaKey for &T
@@ -471,14 +453,11 @@ where
 
     type Error = T::Error;
 
-    fn sign<B>(
+    fn sign(
         &self,
         secure_random: &dyn SecureRandom,
-        bytes: B,
-    ) -> Result<Self::Signature, Self::Error>
-    where
-        B: AsRef<[u8]>,
-    {
+        bytes: &[u8],
+    ) -> Result<Self::Signature, Self::Error> {
         T::sign(self, secure_random, bytes)
     }
 }
@@ -488,20 +467,17 @@ impl RsaKey for ::ring::signature::RsaKeyPair {
 
     type Error = ::ring::error::Unspecified;
 
-    fn sign<B>(
+    fn sign(
         &self,
         secure_random: &dyn SecureRandom,
-        bytes: B,
-    ) -> Result<Self::Signature, Self::Error>
-    where
-        B: AsRef<[u8]>,
-    {
+        bytes: &[u8],
+    ) -> Result<Self::Signature, Self::Error> {
         let mut signature = vec![0; self.public_modulus_len()];
         ::ring::signature::RsaKeyPair::sign(
             self,
             &ring::signature::RSA_PKCS1_SHA256,
             secure_random,
-            bytes.as_ref(),
+            bytes,
             &mut signature,
         )?;
         Ok(signature)
