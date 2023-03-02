@@ -27,21 +27,14 @@ pub trait Verifier {
     /// # Errors
     ///
     /// Returns an error if the signature is not valid for the message.
-    fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>;
+    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()>;
 }
 
 impl<T> Verifier for &T
 where
     T: Verifier,
 {
-    fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>,
-    {
+    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()> {
         T::verify(self, message, signature)
     }
 }

@@ -122,21 +122,14 @@ macro_rules! key_verifier {
             /// # Errors
             ///
             /// Returns an error if the signature is not valid for the message.
-            fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-            where
-                M: AsRef<[u8]>,
-                S: AsRef<[u8]>;
+            fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()>;
         }
 
         impl<T> $key_name for &T
         where
             T: $key_name,
         {
-            fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-            where
-                M: AsRef<[u8]>,
-                S: AsRef<[u8]>,
-            {
+            fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()> {
                 T::verify(self, message, signature)
             }
         }
@@ -145,11 +138,7 @@ macro_rules! key_verifier {
         where
             B: AsRef<[u8]>,
         {
-            fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-            where
-                M: AsRef<[u8]>,
-                S: AsRef<[u8]>,
-            {
+            fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()> {
                 ::ring::signature::UnparsedPublicKey::verify(
                     self,
                     message.as_ref(),
@@ -175,11 +164,7 @@ macro_rules! key_verifier {
             K: $key_name,
             A: Algorithm,
         {
-            fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-            where
-                M: AsRef<[u8]>,
-                S: AsRef<[u8]>,
-            {
+            fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()> {
                 self.key.verify(message, signature)
             }
         }
@@ -321,33 +306,21 @@ pub trait HmacKey {
     /// # Errors
     ///
     /// Returns an error if the signature is not valid for the message.
-    fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>;
+    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()>;
 }
 
 impl<T> HmacKey for &T
 where
     T: HmacKey,
 {
-    fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>,
-    {
+    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()> {
         T::verify(self, message, signature)
     }
 }
 
 impl HmacKey for ::ring::hmac::Key {
-    fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>,
-    {
-        ::ring::hmac::verify(self, message.as_ref(), signature.as_ref())
-            .map_err(|_| Error::invalid_signature())
+    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()> {
+        ::ring::hmac::verify(self, message, signature).map_err(|_| Error::invalid_signature())
     }
 }
 
@@ -399,11 +372,7 @@ where
     K: HmacKey,
     A: Algorithm,
 {
-    fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>,
-    {
+    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()> {
         self.key.verify(message, signature)
     }
 }

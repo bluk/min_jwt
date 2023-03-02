@@ -787,7 +787,7 @@ where
     let decoded_signature = unverified_jwt.decode_signature()?;
 
     verifying_key
-        .verify(signed_data, decoded_signature)
+        .verify(signed_data, &decoded_signature)
         .map(|_| SignatureVerifiedJwt { unverified_jwt })
 }
 

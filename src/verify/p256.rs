@@ -61,14 +61,10 @@
 use crate::error::{Error, Result};
 
 impl super::Verifier for ::p256::ecdsa::VerifyingKey {
-    fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>,
-    {
-        let signature = ::p256::ecdsa::Signature::try_from(signature.as_ref())
+    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()> {
+        let signature = ::p256::ecdsa::Signature::try_from(signature)
             .map_err(|_| Error::invalid_signature())?;
-        ::p256::ecdsa::signature::Verifier::verify(self, message.as_ref(), &signature)
+        ::p256::ecdsa::signature::Verifier::verify(self, message, &signature)
             .map_err(|_| Error::invalid_signature())
     }
 }

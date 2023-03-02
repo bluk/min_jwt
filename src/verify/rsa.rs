@@ -51,14 +51,10 @@ use crate::error::{Error, Result};
 #[cfg(all(feature = "sha2", feature = "signature"))]
 #[cfg_attr(docsrs, doc(cfg(all(feature = "sha2", feature = "signature"))))]
 impl super::Verifier for ::rsa::pkcs1v15::VerifyingKey<sha2::Sha256> {
-    fn verify<M, S>(&self, message: M, signature: S) -> Result<()>
-    where
-        M: AsRef<[u8]>,
-        S: AsRef<[u8]>,
-    {
-        let signature = ::rsa::pkcs1v15::Signature::try_from(signature.as_ref())
+    fn verify(&self, message: &[u8], signature: &[u8]) -> Result<()> {
+        let signature = ::rsa::pkcs1v15::Signature::try_from(signature)
             .map_err(|_| Error::invalid_signature())?;
-        ::signature::Verifier::verify(self, message.as_ref(), &signature)
+        ::signature::Verifier::verify(self, message, &signature)
             .map_err(|_| Error::invalid_signature())
     }
 }
