@@ -114,4 +114,4 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           components: clippy
-      - run: cargo clippy --all-features
+      - run: cargo clippy --all-features --all-targets
