@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0] - 2023-05-02
+
+### Changed
+
+- Update `rsa` dependency to version `0.9.0`.
+- Use Rust `1.65.0` as minimum supported version.
+
 ## [0.8.0] - 2023-03-30
 
 ### Changed
@@ -92,7 +99,8 @@
 
 - Initial implementation.
 
-[Unreleased]: https://github.com/bluk/min_jwt/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/bluk/min_jwt/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/bluk/min_jwt/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/bluk/min_jwt/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/bluk/min_jwt/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/bluk/min_jwt/compare/v0.5.0...v0.6.0
