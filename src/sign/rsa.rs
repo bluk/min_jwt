@@ -65,17 +65,32 @@
 //! #   try_main().unwrap();
 //! # }
 //! ```
-use super::Signature;
 
-impl Signature for ::rsa::pkcs1v15::Signature {}
+use ::signature::SignatureEncoding;
+
+/// A RSA signature.
+#[derive(Debug)]
+pub struct Signature([u8; 256]);
+
+impl AsRef<[u8]> for Signature {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+impl super::Signature for Signature {}
 
 #[cfg(all(feature = "sha2", feature = "signature"))]
 impl super::Signer for ::rsa::pkcs1v15::SigningKey<sha2::Sha256> {
-    type Signature = ::rsa::pkcs1v15::Signature;
+    type Signature = Signature;
 
     type Error = ();
 
     fn sign(&self, bytes: &[u8]) -> Result<Self::Signature, Self::Error> {
-        Ok(::signature::Signer::sign(self, bytes))
+        let signature: ::rsa::pkcs1v15::Signature = ::signature::Signer::sign(self, bytes);
+        let signature_bytes = signature.to_bytes();
+        let mut bytes: [u8; 256] = [0; 256];
+        bytes.copy_from_slice(&signature_bytes);
+        Ok(Signature(bytes))
     }
 }

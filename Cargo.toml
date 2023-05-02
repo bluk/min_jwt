@@ -26,7 +26,7 @@ serde_json = { version = "1.0", optional = true, default-features = false, featu
 
 p256 = { version = "0.13.0", optional = true, default-features = false, features = ["ecdsa"] }
 
-rsa = { version = "0.8", optional = true, default-features = false }
+rsa = { version = "0.9", optional = true, default-features = false }
 sha2 = { version = "0.10.6", optional = true, default-features = false, features = ["oid"] }
 signature = { version = "2.0", optional = true, default-features = false }
 
@@ -35,7 +35,7 @@ ring = { version = "0.16.20", optional = true }
 [dev-dependencies]
 rand = { version = "0.8" }
 p256 = { version = "0.13.0", default-features = false, features = ["ecdsa", "jwk", "pem"] }
-rsa = { version = "0.8", default-features = false, features = ["pem"] }
+rsa = { version = "0.9", default-features = false, features = ["pem"] }
 signature = { version = "2.0", default-features = false }
 
 [features]
