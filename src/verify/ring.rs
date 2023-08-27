@@ -230,7 +230,7 @@ where
     pub fn with_es256(key: K) -> EcdsaKeyVerifier<K, Es256> {
         Self {
             key,
-            algorithm: PhantomData::default(),
+            algorithm: PhantomData,
         }
     }
 }
@@ -294,7 +294,7 @@ where
     pub fn with_rs256(key: K) -> RsaKeyVerifier<K, Rs256> {
         Self {
             key,
-            algorithm: PhantomData::default(),
+            algorithm: PhantomData,
         }
     }
 }
@@ -385,7 +385,7 @@ where
     pub fn with_hs256(key: K) -> HmacKeyVerifier<K, Hs256> {
         Self {
             key,
-            algorithm: PhantomData::default(),
+            algorithm: PhantomData,
         }
     }
 }

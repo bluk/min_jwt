@@ -14,6 +14,7 @@ pub struct StdDurationSinceEpoch(core::time::Duration);
 #[cfg(feature = "std")]
 impl StdDurationSinceEpoch {
     /// Returns the current duration since the epoch.
+    #[allow(clippy::missing_panics_doc)]
     #[must_use]
     pub fn now() -> Self {
         use std::time::SystemTime;

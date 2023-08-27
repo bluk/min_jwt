@@ -299,7 +299,7 @@ where
         Self {
             key_pair,
             secure_random,
-            algorithm: PhantomData::default(),
+            algorithm: PhantomData,
         }
     }
 }
@@ -420,7 +420,7 @@ where
     pub fn with_hs256(key: K) -> HmacKeySigner<K, Hs256> {
         Self {
             key,
-            algorithm: PhantomData::default(),
+            algorithm: PhantomData,
         }
     }
 }
@@ -600,7 +600,7 @@ where
         Self {
             key_pair,
             secure_random,
-            alg: PhantomData::<Rs256>::default(),
+            alg: PhantomData,
         }
     }
 }
