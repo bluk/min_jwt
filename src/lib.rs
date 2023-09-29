@@ -311,14 +311,21 @@ impl<'a> UnverifiedJwt<'a> {
     fn split(jwt: &str) -> Result<SplitJwt<'_>> {
         let mut parts = jwt.rsplitn(2, '.');
 
-        let (Some(signature), Some(signed_data)) = (parts.next(), parts.next()) else {
+        let signature = parts.next().ok_or_else(Error::malformed_jwt)?;
+        let signed_data = parts.next().ok_or_else(Error::malformed_jwt)?;
+
+        if parts.next().is_some() {
             return Err(Error::malformed_jwt());
-        };
+        }
 
         let mut parts = signed_data.rsplitn(3, '.');
-        let (Some(claims), Some(header), None) = (parts.next(), parts.next(), parts.next()) else {
+
+        let claims = parts.next().ok_or_else(Error::malformed_jwt)?;
+        let header = parts.next().ok_or_else(Error::malformed_jwt)?;
+
+        if parts.next().is_some() {
             return Err(Error::malformed_jwt());
-        };
+        }
 
         Ok(SplitJwt {
             header,
