@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.0] - 2023-10-02
+
+### Changed
+
+- Update `ring` dependency to version `0.10.0`.
+
 ## [0.9.0] - 2023-05-02
 
 ### Changed
@@ -99,7 +105,8 @@
 
 - Initial implementation.
 
-[Unreleased]: https://github.com/bluk/min_jwt/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/bluk/min_jwt/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/bluk/min_jwt/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/bluk/min_jwt/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/bluk/min_jwt/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/bluk/min_jwt/compare/v0.6.0...v0.7.0
