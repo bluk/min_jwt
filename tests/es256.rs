@@ -33,11 +33,12 @@ static EXPECTED_CLAIMS: &str =
 // openssl ec -in private_key.pem -pubout -out public_key.pem
 
 #[cfg(feature = "ring")]
-fn private_key_pair() -> ::ring::signature::EcdsaKeyPair {
+fn private_key_pair(sys_rand: &SystemRandom) -> ::ring::signature::EcdsaKeyPair {
     let private_key = include_bytes!("es256_private_key.p8.der");
     ::ring::signature::EcdsaKeyPair::from_pkcs8(
         &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
         &private_key[..],
+        sys_rand,
     )
     .unwrap()
 }
@@ -52,7 +53,7 @@ fn es256_encode_and_sign_json_str_jwt_io_example() {
     let header = String::from("{\"alg\":\"ES256\",\"typ\":\"JWT\"}");
     let claims = EXPECTED_CLAIMS;
 
-    let key_pair_with_rand = EcdsaKeyPairSigner::with_es256(private_key_pair(), sys_rand);
+    let key_pair_with_rand = EcdsaKeyPairSigner::with_es256(private_key_pair(&sys_rand), sys_rand);
 
     let jwt =
         min_jwt::encode_and_sign(header.as_bytes(), claims.as_bytes(), key_pair_with_rand).unwrap();

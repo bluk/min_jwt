@@ -32,11 +32,12 @@
 //! // Convert the PKCS8 PEM to DER
 //! let private_key = convert_pkcs8_pem_to_der(private_key);
 //!
+//! let secure_random = ::ring::rand::SystemRandom::new();
 //! let private_key = ::ring::signature::EcdsaKeyPair::from_pkcs8(
 //!   &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
 //!   private_key.as_ref(),
+//!   &secure_random,
 //! ).unwrap();
-//! let secure_random = ::ring::rand::SystemRandom::new();
 //!
 //! let signer = min_jwt::sign::ring::EcdsaKeyPairSigner::with_es256(
 //!   private_key,
@@ -236,11 +237,12 @@ impl EcdsaKey for ::ring::signature::EcdsaKeyPair {
 /// // Convert the PKCS8 PEM to DER
 /// let private_key = convert_pkcs8_pem_to_der(private_key);
 ///
+/// let secure_random = ::ring::rand::SystemRandom::new();
 /// let private_key = ::ring::signature::EcdsaKeyPair::from_pkcs8(
 ///   &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
 ///   private_key.as_ref(),
+///   &secure_random,
 /// ).unwrap();
-/// let secure_random = ::ring::rand::SystemRandom::new();
 ///
 /// let signer = min_jwt::sign::ring::EcdsaKeyPairSigner::with_es256(
 ///   private_key,
@@ -472,7 +474,7 @@ impl RsaKey for ::ring::signature::RsaKeyPair {
         secure_random: &dyn SecureRandom,
         bytes: &[u8],
     ) -> Result<Self::Signature, Self::Error> {
-        let mut signature = vec![0; self.public_modulus_len()];
+        let mut signature = vec![0; self.public().modulus_len()];
         ::ring::signature::RsaKeyPair::sign(
             self,
             &ring::signature::RSA_PKCS1_SHA256,

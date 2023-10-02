@@ -20,6 +20,7 @@ mod tests {
         let signing_key_pair = ::ring::signature::EcdsaKeyPair::from_pkcs8(
             &ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
             pkcs8_bytes.as_ref(),
+            &sys_rand,
         )?;
         let verifying_key = *signing_key_pair.public_key();
         let verifying_key =
